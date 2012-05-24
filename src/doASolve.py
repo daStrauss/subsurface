@@ -28,10 +28,11 @@ bce.sigmap[1][55:95,55:70] = 0.001
 print 'sigmap'
 bce.make_operators(pmc)
 print 'mkop'
-bce.te_pw(45*3.141/180)
+# bce.te_pw(45*3.141/180)
+bce.point_source(75, 120)
 print 'pw'
-# bce.fwd_solve(0)
-# bce.fwd_solve(1)
+bce.fwd_solve(0)
+bce.fwd_solve(1)
 
 
         
