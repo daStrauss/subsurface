@@ -7,6 +7,14 @@ import numpy as np
 # import scipy as sp
 from scipy import sparse
 from scipy.sparse import linalg as lin
+import matplotlib.pyplot as plt
+import scipy.special as spec
+import pickle
+
+class pmlList(object):
+    freq = np.ndarray(0)
+    pmc = np.ndarray(0)
+            
 
 class twoDim(object):
     ''' 
@@ -21,6 +29,7 @@ class twoDim(object):
     # create a few holders for some important things
     sol = ['','','']
     A = ['','','']
+    Q = ['','','']
     
     def __init__(self, freq):
         self.w = 2*np.pi*freq
@@ -35,7 +44,7 @@ class twoDim(object):
         self.dy = dy # delta y
         # interestingly, I want to not include zeros((q),1) because that gives
         # the wrong size arrays
-        self.rhs = np.zeros((self.nx*self.ny), dtype='complex128')
+        self.rhs = np.zeros((self.nx*self.ny,1), dtype='complex128')
         # np.zeros((self.nx,self.nx),complex);
         self.npml = min(10,round((nx+2)/10)) # size of pml borders
         
@@ -69,6 +78,26 @@ class twoDim(object):
         """This routine might be nice to have it spit out a basic
         parameters in the structure """
         print('Size ({0}, {1}); gridsize ({2}, {3})'.format(self.nx,self.ny,self.dx,self.dy))
+    
+    def getPMLparm(self):
+        try:
+            lkt = pickle.load(open('pmlLib.p', 'rb'))
+        except:
+            lkt = pmlList()
+            
+        if np.any(lkt.freq==self.f):
+            return lkt.pmc[lkt.freq==self.f]
+        else:
+            pmc = findBestAng(self.f)
+            lkt.freq = np.append(lkt.freq, self.f)
+            lkt.pmc = np.append(lkt.pmc, pmc)
+            pickle.dump(lkt, open('pmlLib.p', 'wb'))
+            return pmc
+            
+    def setOperators(self):
+        self.make_operators(self.getPMLparm())
+            
+            
         
     def make_operators(self, pmc):
         """A routine that will define the following operators:
@@ -227,13 +256,111 @@ class twoDim(object):
     def fwd_solve(self, ind):
         """ Does the clean solve, prints a figure """
         self.sol[ind] = self.rhs.copy();
-        b = self.rhs.copy();
-        self.Q[ind] = lin.factorized(self.nabla2 + self.getk(ind))
+        b = self.rhs.copy().flatten();
+        self.Q[ind] = lin.factorized(sparse.csc_matrix(self.nabla2 + self.getk(ind)))
         
-        self.sol[ind] = self.Q(b)
+        self.sol[ind] = self.Q[ind](b)
         # umfpack.linsolv((self.nabla2 + self.getk(ind)), self.sol[ind])
         self.sol[ind] = np.array(self.sol[ind])
         self.sol[ind] = self.sol[ind].reshape(self.nx,self.ny)
         
     def setSensorOps(self, nSensors):
         pass
+    
+    def plotSol(self,ind):
+        pass
+    
+def findBestAng(freq):
+    '''for a particular frequency, find the best PML complex angle 
+    '''
+    # set some internal parameters
+    nx = 149
+    ny = nx
+    dx = 5.0
+    dy = dx
+    
+    # this means free space
+    eHS = 1.0
+    sHS = 0
+    
+    epso = 8.854e-12
+    muo = 4.0*np.pi*1e-7
+    
+    x = np.array(range(1,nx+1))*dx - dx*(nx/2)
+    Y,X = np.meshgrid(x, x);
+    dist = np.sqrt(Y**2+X**2) 
+    
+    
+    
+    c = 1/np.sqrt(muo*epso)
+    
+    k = (2*np.pi)/(c/freq)
+    bbx = dx*dx*(1j/4)*spec.hankel1(0,k*dist)
+    mdpt = nx/2-1
+    # the center contains a singularity, but we'll  be forgiving and finite
+    bbx[mdpt,mdpt] = 0.25*bbx[mdpt+1,mdpt] + 0.25*bbx[mdpt-1,mdpt] + 0.25*bbx[mdpt,mdpt+1] + 0.25*bbx[mdpt,mdpt-1]
+    
+    sze = bbx.shape
+    mask = np.ones(sze)
+    mask[:15,:] =0
+    mask[(nx-15):(nx-1),:] = 0
+    mask[:,:15]=0
+    mask[:,(nx-15):(nx-1)] =0
+    
+    lo = 0
+    hi = 5
+    
+    # do two loops over different ranges to get a more precise estimate
+    for tune in range(2):
+        localError = np.zeros(50)
+        angChoice = np.logspace(lo,hi,50)
+    
+        for i in range(50):    
+            #     create a single object
+            bce = twoDim(freq)
+            bce.setspace(nx,ny,dx,dy)
+            bce.setmats(eHS, sHS, nx/2)
+    
+            # pmc = 22.229964825261945
+            bce.make_operators(angChoice[i])
+            bce.point_source(nx/2 -1, ny/2 - 1)
+            bce.fwd_solve(0)
+    
+            localError[i] = np.linalg.norm((bce.sol[0] - bbx)*mask,'fro')
+            print 'ang = ' + repr(angChoice[i]) + ' local error ' + repr(localError[i])
+    
+        minIdx = np.argmin(localError)
+        lo = np.log10(angChoice[max(0,minIdx-1)])
+        hi = np.log10(angChoice[min(50,minIdx+1)])
+        
+    bce = twoDim(freq)
+    bce.setspace(nx,ny,dx,dy)
+    bce.setmats(eHS, sHS, nx/2)
+    
+            # pmc = 22.229964825261945
+    bce.make_operators(angChoice[minIdx])
+    bce.point_source(nx/2 -1, ny/2 - 1)
+    bce.fwd_solve(0)
+    
+    #do some representative plots
+    plt.figure(1)
+    plt.plot(angChoice, localError)
+    # do some plotting
+    plt.figure(13)
+    plt.subplot(1,2,1)
+    plt.imshow((bce.sol[0].real*mask))
+    plt.colorbar()
+    
+    plt.subplot(1,2,2)
+    plt.imshow((bbx.real*mask))
+    plt.colorbar()
+    
+    plt.figure(4)
+    plt.subplot(121)
+    plt.imshow((bce.sol[0]-bbx).real)
+    plt.colorbar()
+    plt.show()
+    
+    return angChoice[minIdx]
+    
+    
