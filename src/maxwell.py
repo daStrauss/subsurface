@@ -28,7 +28,7 @@ class twoDim(object):
     
     # create a few holders for some important things
     sol = ['','','']
-    A = ['','','']
+    # A = ['','','']
     Q = ['','','']
     
     def __init__(self, freq):
@@ -217,21 +217,21 @@ class twoDim(object):
                                             Yxh[thsx]*ktx[1])))
         Hyinc = -Hyinc;
         
-        plt.figure(11)
-        plt.subplot(1,3,1)
-        plt.imshow(Ezinc.real)
-        plt.title('Real Ez inc')
-        plt.colorbar()
-        
-        plt.subplot(1,3,2)
-        plt.imshow(Hxinc.real)
-        plt.title('Real Hx inc')
-        plt.colorbar()
-
-        plt.subplot(1,3,3)
-        plt.imshow(Hyinc.imag)
-        plt.title('Imag Hy inc')
-        plt.colorbar()
+#        plt.figure(11)
+#        plt.subplot(1,3,1)
+#        plt.imshow(Ezinc.real)
+#        plt.title('Real Ez inc')
+#        plt.colorbar()
+#        
+#        plt.subplot(1,3,2)
+#        plt.imshow(Hxinc.real)
+#        plt.title('Real Hx inc')
+#        plt.colorbar()
+#
+#        plt.subplot(1,3,3)
+#        plt.imshow(Hyinc.imag)
+#        plt.title('Imag Hy inc')
+#        plt.colorbar()
 
         xl = instep-1; xr = self.nx-instep-1;
         yb = instep-1; yt = self.ny-instep-1;
@@ -255,6 +255,8 @@ class twoDim(object):
 #        aliMy = (self.nx+1)*self.ny
         print Msrcx.shape
         print Msrcy.shape
+        
+        # note -- this is different from the MATLAB version: due to the row-ordering of arrays
         pw = (1j*self.w*self.muo)*Jsrcz.flatten() - \
               sparse.kron(sparse.eye(self.nx,self.nx), self.d2/self.dx)*Msrcx.flatten() + \
               sparse.kron(self.d2/self.dx, sparse.eye(self.ny,self.ny))*Msrcy.flatten()
@@ -289,6 +291,7 @@ class twoDim(object):
         for i in range(sum(oprx)):
             self.Ms[idx[i],i] = 1
         self.Ms = self.Ms.tocsc()
+        self.Ms = self.Ms.T
         
         
     def setMd(self, xrng, yrng):
@@ -296,6 +299,8 @@ class twoDim(object):
         '''
         oprx = np.zeros((self.nx,self.ny),dtype='bool')
         oprx[xrng[0]:xrng[1],yrng[0]:yrng[1]] = 1
+        self.nRx = xrng[1]-xrng[0] + 1
+        self.nRy = yrng[1]-yrng[0] + 1
         
         idx = np.arange(self.N)
         oprx = oprx.flatten()
@@ -305,6 +310,7 @@ class twoDim(object):
         for i in range(idx.size):
             self.Md[idx[i],i]=1
         self.Md = self.Md.tocsc()
+        self.Md = self.Md.T
         
 
             
@@ -384,23 +390,23 @@ def findBestAng(freq):
     bce.fwd_solve(0)
     
     #do some representative plots
-    plt.figure(1)
-    plt.plot(angChoice, localError)
-    # do some plotting
-    plt.figure(13)
-    plt.subplot(1,2,1)
-    plt.imshow((bce.sol[0].real*mask))
-    plt.colorbar()
-    
-    plt.subplot(1,2,2)
-    plt.imshow((bbx.real*mask))
-    plt.colorbar()
-    
-    plt.figure(4)
-    plt.subplot(121)
-    plt.imshow((bce.sol[0]-bbx).real)
-    plt.colorbar()
-    plt.show()
+#    plt.figure(1)
+#    plt.plot(angChoice, localError)
+#    # do some plotting
+#    plt.figure(13)
+#    plt.subplot(1,2,1)
+#    plt.imshow((bce.sol[0].real*mask))
+#    plt.colorbar()
+#    
+#    plt.subplot(1,2,2)
+#    plt.imshow((bbx.real*mask))
+#    plt.colorbar()
+#    
+#    plt.figure(4)
+#    plt.subplot(121)
+#    plt.imshow((bce.sol[0]-bbx).real)
+#    plt.colorbar()
+#    plt.show()
     
     return angChoice[minIdx]
     

@@ -34,7 +34,7 @@ bce.setMs(10)
 
 
 # hard code a different sigmap -- interesting
-bce.sigmap[1] = (bce.Md*np.ones(40*15)*0.001).reshape(nx,ny)
+bce.sigmap[1] = (bce.Md.T*np.ones(40*15)*0.001).reshape(nx,ny)
 
 bce.setOperators()
 
@@ -48,7 +48,7 @@ bce.setMs(20)
 print bce.Ms.size
 print bce.Ms.shape
 
-z = bce.Ms.T*bce.sol[1].flatten('F')
+z = bce.Ms*bce.sol[1].flatten('F')
 
 plt.figure(2)
 plt.subplot(121)
