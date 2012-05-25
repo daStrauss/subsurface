@@ -40,6 +40,7 @@ class twoDim(object):
     def setspace(self, nx,ny,dx,dy):
         self.nx = nx # number x points
         self.ny = ny # number y points
+        self.N = nx*ny # super size of space
         self.dx = dx # delta x
         self.dy = dy # delta y
         # interestingly, I want to not include zeros((q),1) because that gives
@@ -95,11 +96,13 @@ class twoDim(object):
             return pmc
             
     def setOperators(self):
-        self.make_operators(self.getPMLparm())
+        ''' An wraper for makeFinteDiferences that will select the right PML parameters
+        '''
+        self.makeFD(self.getPMLparm())
             
             
         
-    def make_operators(self, pmc):
+    def makeFD(self, pmc):
         """A routine that will define the following operators:
         A, ox, oy"""
         # h = (self.dx)*np.mat(np.ones((self.nx+1,1)));
@@ -138,12 +141,13 @@ class twoDim(object):
         """ A routine to add a te planewave at angle as spec'd """
         instep = 3+(self.nx+1)/10;
         # mdpt = nx/2; # should replace by div
-        x = np.array(range(1,self.nx+1))*self.dx
+        x = np.arange(1,self.nx+1)*self.dx
         # The assumption is that the Ez and materials are co
         # located. Since epsilon(50) => in the half space, epsilon(51) =>
         # is not, the actual zero boundary must be between them, or on
         # that y boundary.
         # Mapping is y,x because of how matlab treats these. annoying.
+        # (
         Y,X = np.meshgrid(x-(self.div+0.5)*self.dx, x); # I do things backward
         Yyh, Xyh = np.meshgrid(np.append(0.0,x)+(self.dx/2)\
                                - (self.div+0.5)*self.dx,x);
@@ -264,9 +268,42 @@ class twoDim(object):
         self.sol[ind] = np.array(self.sol[ind])
         self.sol[ind] = self.sol[ind].reshape(self.nx,self.ny)
         
-    def setSensorOps(self, nSensors):
-        pass
-    
+    def setMs(self, nSensors=10):
+        '''Tell me the number of sensors, and I will distribute them equally across the surface
+        '''
+        indx = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)).astype(int);
+        oprx = np.zeros((self.nx,self.ny),dtype='bool')
+        
+        oprx[self.div+1,indx] = 1;
+        
+        idx = np.arange(self.N)
+        oprx = oprx.flatten('F')
+        idx = idx[oprx]
+        
+        self.Ms = sparse.dok_matrix((self.N,idx.size), dtype='bool')
+        
+        for i in range(sum(oprx)):
+            self.Ms[idx[i],i] = 1
+        self.Ms = self.Ms.tocsc()
+        
+        
+    def setMd(self, xrng, yrng):
+        '''Tell me the xrange and the yrange and I'll make selector
+        '''
+        oprx = np.zeros((self.nx,self.ny),dtype='bool')
+        oprx[xrng[0]:xrng[1],yrng[0]:yrng[1]] = 1
+        
+        idx = np.arange(self.N)
+        oprx = oprx.flatten('F')
+        idx = idx[oprx]
+        self.Md = sparse.dok_matrix((self.N,idx.size), dtype = 'bool')
+        
+        for i in range(idx.size):
+            self.Md[idx[i],i]=1
+        self.Md = self.Md.tocsc()
+        
+
+            
     def plotSol(self,ind):
         pass
     
@@ -322,7 +359,7 @@ def findBestAng(freq):
             bce.setmats(eHS, sHS, nx/2)
     
             # pmc = 22.229964825261945
-            bce.make_operators(angChoice[i])
+            bce.makeFD(angChoice[i])
             bce.point_source(nx/2 -1, ny/2 - 1)
             bce.fwd_solve(0)
     
@@ -338,7 +375,7 @@ def findBestAng(freq):
     bce.setmats(eHS, sHS, nx/2)
     
             # pmc = 22.229964825261945
-    bce.make_operators(angChoice[minIdx])
+    bce.makeFD(angChoice[minIdx])
     bce.point_source(nx/2 -1, ny/2 - 1)
     bce.fwd_solve(0)
     
