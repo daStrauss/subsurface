@@ -59,7 +59,8 @@ class fieldSplit(twoDim):
         
         obj = np.linalg.norm(self.Ms*self.v-uHatLocal)
         gap = np.linalg.norm(self.v-self.us)
-        return obj, gap
+        print 'obj = ' + repr(obj) + ' gap ' + repr(gap)
+        # return obj
     
     
     
@@ -67,26 +68,27 @@ def aggregateFS(S,lmb,uBound):
     '''Do the aggregate step updates '''
     N = np.size(S)
     n = S[0].nRx*S[0].nRy
+    print n
     
-    # U = np.zeros((n,N),dtype='complex128')
-    # Q = np.zeros((n,N),dtype='complex128')
+    U = np.zeros((n,N),dtype='complex128')
+    Q = np.zeros((n,N),dtype='complex128')
     
     for ix in range(N):
         c = S[ix].c
-        U = np.hstack([U,(S[ix].Md*S[ix].ub+S[ix].Md*S[ix].v)])
+        U[:,ix] = c*S[ix].Md*(S[ix].ub+S[ix].v)
         Q[:,ix] = S[ix].Md*((S[ix].A*S[ix].us) + S[ix].F)
         
     num = np.sum(U.real*Q.real + U.imag*Q.imag,1)
     den = np.sum(U.conj()*U,1) + lmb/S[0].rho
     
     P = (-num/den).real
-    P = max(P,0)
-    P = min(P,uBound)
+    P = np.maximum(P,0)
+    P = np.minimum(P,uBound)
     
     gap = np.zeros(N)
     for ix in range(N):
         gap[ix] = np.linalg.norm(S[ix].Md.T*(U[:,ix]*P) + S[ix].A*S[ix].us)
         
-    return P,gap
+    return P
     
     

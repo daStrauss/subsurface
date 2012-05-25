@@ -42,6 +42,7 @@ def main():
     rho = 1500.0
     xi = 2e-3
     lmb = 0.0
+    uBound = 0.05
 
     freq = np.array([1e4])
     S = bigProj(freq)
@@ -59,7 +60,7 @@ def main():
         for ix in range(N):
             S[ix].runOpt(P)
         
-        P = 
+        P = admm.aggregateFS(S, lmb, uBound)
         resid[itNo] = np.linalg.norm(P-0.01)
         
     plt.figure(383)

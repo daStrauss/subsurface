@@ -299,8 +299,8 @@ class twoDim(object):
         '''
         oprx = np.zeros((self.nx,self.ny),dtype='bool')
         oprx[xrng[0]:xrng[1],yrng[0]:yrng[1]] = 1
-        self.nRx = xrng[1]-xrng[0] + 1
-        self.nRy = yrng[1]-yrng[0] + 1
+        self.nRx = xrng[1]-xrng[0]
+        self.nRy = yrng[1]-yrng[0]
         
         idx = np.arange(self.N)
         oprx = oprx.flatten()
