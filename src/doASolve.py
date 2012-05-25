@@ -15,7 +15,7 @@ import numpy as np
 
 # bbx = findBestAng(1e6)
 
-bce = twoDim(1e4)
+bce = twoDim(1e6)
 print 'done got it'
 pmc = 22.229964825261945 # best for 1MHz
 mc = 1526.4179671752333 # best for 10kHz
@@ -38,6 +38,7 @@ bce.sigmap[1] = (bce.Md*np.ones(40*15)*0.001).reshape(nx,ny)
 
 bce.setOperators()
 
+# bce.point_source(120, 100)
 bce.te_pw(45*3.141/180)
 # bce.point_source(75, 120)
 bce.fwd_solve(0)
@@ -60,13 +61,15 @@ plt.plot(z.imag)
 #
 plt.figure(1)
 plt.subplot(121)
-plt.imshow(bce.sol[1].real)
-plt.title('Real part')
+img = plt.imshow(bce.sol[0].real.T, origin='lower')
+img.set_clim(-1.0,1.0)
+plt.title('Real un perturbed')
 plt.colorbar()
 
 plt.subplot(122)
-plt.imshow(bce.sol[1].imag)
-plt.title('Imag part')
+img = plt.imshow(bce.sol[1].real.T, origin='lower')
+img.set_clim(-1.0,1.0)
+plt.title('Real perturbed')
 plt.colorbar()
 plt.show()
 

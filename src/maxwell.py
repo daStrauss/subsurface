@@ -45,21 +45,21 @@ class twoDim(object):
         self.dy = dy # delta y
         # interestingly, I want to not include zeros((q),1) because that gives
         # the wrong size arrays
-        self.rhs = np.zeros((self.nx*self.ny,1), dtype='complex128')
+        self.rhs = np.zeros(self.N, dtype='complex128')
         # np.zeros((self.nx,self.nx),complex);
-        self.npml = min(10,round((nx+2)/10)) # size of pml borders
+        self.npml = min(10,round((nx+2.0)/10)) # size of pml borders
         
     def setmats(self, eHSr, sHS, div):
         """This quick routine starts the process to
         setup the location of the background halfspace 
         It is also true that this set the space for the ON GRID locations
         """
-        self.eHS = eHSr*self.epso
-        self.sHS = sHS
-        self.div = div
-        self.kfree = 2*np.pi/self.l;
+        self.eHS = eHSr*self.epso # half space permitivity
+        self.sHS = sHS # half space conductivity
+        self.div = div # hslf space dividing line
+        self.kfree = 2*np.pi/self.l; # define k in free space
         self.kHS = np.sqrt(self.muo*self.eHS*(self.w**2) \
-                         + 1j*self.w*self.muo*self.sHS);
+                         + 1j*self.w*self.muo*self.sHS); # k in subsurface
 
         self.epsmap = [self.epso*np.ones((self.nx,self.ny)), self.epso*np.ones((self.nx,self.ny))]
         self.sigmap = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
@@ -71,9 +71,9 @@ class twoDim(object):
     def getk(self, ind):
         """ This routine assembles a diagonal matrix with the materials indexed by ind
         """
-        kl = (self.muo*self.epsmap[ind].T*(self.w**2) \
-                     + 1j*self.w*self.muo*self.sigmap[ind].T)
-        return sparse.spdiags((kl.reshape(self.nx*self.ny,1)).T, [0], self.nx*self.ny, self.nx*self.ny)
+        kl = (self.muo*self.epsmap[ind]*(self.w**2) + 1j*self.w*self.muo*self.sigmap[ind]   )
+        
+        return sparse.spdiags(kl.flatten(), [0], self.N, self.N)
         
     def prmz(self):
         """This routine might be nice to have it spit out a basic
@@ -81,6 +81,9 @@ class twoDim(object):
         print('Size ({0}, {1}); gridsize ({2}, {3})'.format(self.nx,self.ny,self.dx,self.dy))
     
     def getPMLparm(self):
+        ''' Returns the proper PML parameter either from a library if it has already been calculated,
+        or it is able to explicitly calculate it otherwise
+        '''
         try:
             lkt = pickle.load(open('pmlLib.p', 'rb'))
         except:
@@ -106,32 +109,33 @@ class twoDim(object):
         """A routine that will define the following operators:
         A, ox, oy"""
         # h = (self.dx)*np.mat(np.ones((self.nx+1,1)));
-        hi = np.mat(np.zeros((self.nx+1,1)));
+        hi = np.zeros(self.nx+1);
     
-        hi[:self.npml] = (pmc)*np.linspace(1,0,self.npml).reshape(self.npml,1);
+        hi[:self.npml] = (pmc)*np.linspace(1,0,self.npml);
         hi[(self.nx-self.npml+1):(self.nx+1)] = \
-                  (pmc)*np.linspace(0,1,self.npml).reshape(self.npml,1);
+                  (pmc)*np.linspace(0,1,self.npml);
 
-        h = np.vectorize(complex)(self.dx*np.ones((self.nx+1,1)), hi);
+        h = np.vectorize(complex)(self.dx*np.ones(self.nx+1), hi);
 
-        opr = np.tile([-1,1], ((self.nx)+1,1));
-        d1 = sparse.spdiags(opr.T, [-1, 0], self.nx+1, self.nx);
-        d2 = sparse.spdiags(opr.T, [0,  1], self.nx, self.nx+1);
-        self.d1 = d1 # hold on to these for later - they are 1d zero dirichlet operators
-        self.d2 = d2 # hold on to these for later - 1d zdc oper
+
+        opr = np.ones((2,self.nx+1))
+        opr[0,:] = -1
         
-        avg_n_c = sparse.spdiags(np.tile([0.5, 0.5], (self.nx+1,1)).T, [0, 1], self.nx,self.nx+1);
+        self.d1 = sparse.spdiags(opr, [-1, 0], self.nx+1, self.nx);
+        self.d2 = sparse.spdiags(opr, [0,  1], self.nx, self.nx+1);
 
-        ph = sparse.spdiags(1/h.T, 0, self.nx+1,self.nx+1);
-        po = sparse.spdiags(1/(avg_n_c*h).T, 0, self.nx,self.nx);
+        # averaging operator for getting to the in-between grid points
+        avg_n_c = sparse.spdiags(0.5*np.ones((2,self.nx+1)), [0, 1], self.nx,self.nx+1);
 
-        oper1d = po*d2*ph*d1;
-        oper2d = sparse.kron(oper1d,sparse.eye(self.nx,self.nx)) \
+        #creating the half and non-half space streatchers.
+        ph = sparse.spdiags(1/h, 0, self.nx+1,self.nx+1);
+        po = sparse.spdiags(1/(avg_n_c*h), 0, self.nx,self.nx);
+
+        oper1d = po*self.d2*ph*self.d1;
+        # ok. building nabla2 for the TE only
+        self.nabla2 = sparse.kron(oper1d,sparse.eye(self.nx,self.nx)) \
                  + sparse.kron(sparse.eye(self.nx,self.nx), oper1d);
-        oper2d = oper2d.tocoo();
 
-        # go ahead and keep it internally rather than return it.
-        self.nabla2 = oper2d.copy() #spmatrix(oper2d.data,oper2d.row,oper2d.col)
         
     def point_source(self, x,y):
         """ A routine to add a point source at the grid loc (x,y) """
@@ -213,21 +217,21 @@ class twoDim(object):
                                             Yxh[thsx]*ktx[1])))
         Hyinc = -Hyinc;
         
-        # plt.figure(11)
-        # plt.subplot(1,3,1)
-        # plt.imshow(Ezinc.real)
-        # plt.title('Real Ez inc')
-        # plt.colorbar()
+        plt.figure(11)
+        plt.subplot(1,3,1)
+        plt.imshow(Ezinc.real)
+        plt.title('Real Ez inc')
+        plt.colorbar()
         
-        # plt.subplot(1,3,2)
-        # plt.imshow(Hxinc.real)
-        # plt.title('Real Hx inc')
-        # plt.colorbar()
+        plt.subplot(1,3,2)
+        plt.imshow(Hxinc.real)
+        plt.title('Real Hx inc')
+        plt.colorbar()
 
-        # plt.subplot(1,3,3)
-        # plt.imshow(Hyinc.imag)
-        # plt.title('Imag Hy inc')
-        # plt.colorbar()
+        plt.subplot(1,3,3)
+        plt.imshow(Hyinc.imag)
+        plt.title('Imag Hy inc')
+        plt.colorbar()
 
         xl = instep-1; xr = self.nx-instep-1;
         yb = instep-1; yt = self.ny-instep-1;
@@ -246,26 +250,26 @@ class twoDim(object):
         Msrcy[xl,   yb:yt] = -(1)*(Ezinc[xl,yb:yt]/self.dx);
         Msrcy[xr+1, yb:yt] =  (1)*(Ezinc[xr,yb:yt]/self.dx);
         
-        aliJ = self.nx*self.ny
-        aliMx = self.nx*(self.ny+1)
-        aliMy = (self.nx+1)*self.ny
-        pw = (1j*self.w*self.muo)*Jsrcz.T.reshape(aliJ,1) - \
-              sparse.kron(self.d2/self.dx, \
-                          sparse.eye(self.nx,self.nx))*Msrcx.T.reshape(aliMx,1) + \
-              sparse.kron(sparse.eye(self.ny,self.ny), \
-                          self.d2/self.dx)*Msrcy.T.reshape(aliMy,1)
+#        aliJ = self.nx*self.ny
+#        aliMx = self.nx*(self.ny+1)
+#        aliMy = (self.nx+1)*self.ny
+        print Msrcx.shape
+        print Msrcy.shape
+        pw = (1j*self.w*self.muo)*Jsrcz.flatten() - \
+              sparse.kron(sparse.eye(self.nx,self.nx), self.d2/self.dx)*Msrcx.flatten() + \
+              sparse.kron(self.d2/self.dx, sparse.eye(self.ny,self.ny))*Msrcy.flatten()
 
-        self.rhs = self.rhs + pw;
+        self.rhs = self.rhs + pw.flatten();
 
     def fwd_solve(self, ind):
         """ Does the clean solve, prints a figure """
-        self.sol[ind] = self.rhs.copy();
-        b = self.rhs.copy().flatten();
+        # self.sol[ind] = self.rhs.copy();
+        # b = self.rhs.copy().flatten();
         self.Q[ind] = lin.factorized(sparse.csc_matrix(self.nabla2 + self.getk(ind)))
         
-        self.sol[ind] = self.Q[ind](b)
+        self.sol[ind] = self.Q[ind](self.rhs.flatten())
         # umfpack.linsolv((self.nabla2 + self.getk(ind)), self.sol[ind])
-        self.sol[ind] = np.array(self.sol[ind])
+        # self.sol[ind] = np.array(self.sol[ind])
         self.sol[ind] = self.sol[ind].reshape(self.nx,self.ny)
         
     def setMs(self, nSensors=10):
@@ -277,7 +281,7 @@ class twoDim(object):
         oprx[self.div+1,indx] = 1;
         
         idx = np.arange(self.N)
-        oprx = oprx.flatten('F')
+        oprx = oprx.flatten()
         idx = idx[oprx]
         
         self.Ms = sparse.dok_matrix((self.N,idx.size), dtype='bool')
@@ -294,7 +298,7 @@ class twoDim(object):
         oprx[xrng[0]:xrng[1],yrng[0]:yrng[1]] = 1
         
         idx = np.arange(self.N)
-        oprx = oprx.flatten('F')
+        oprx = oprx.flatten()
         idx = idx[oprx]
         self.Md = sparse.dok_matrix((self.N,idx.size), dtype = 'bool')
         
