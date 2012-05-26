@@ -8,7 +8,6 @@ import numpy as np
 from maxwell import twoDim
 import scipy.sparse as sparse
 import scipy.sparse.linalg as lin
-import numpy
 
 class fieldSplit(twoDim):
     '''A function for implementing the field splitting methods'''
@@ -30,30 +29,33 @@ class fieldSplit(twoDim):
         
         # the update for the first step can be precomputed
         self.A = self.nabla2+self.getk(0)
+        self.s = 1j*self.muo*self.w
         
         self.Q = sparse.vstack([self.A, -self.xi*sparse.eye(self.N,self.N)])
-        M = self.rho*(self.Q.T*self.Q) + self.Ms.T*self.Ms
+        self.Moo = self.rho*(self.Q.conj().T*self.Q) + self.Ms.T*self.Ms
         
-        self.M = lin.factorized(M.tocsc())
+        self.M = lin.factorized(self.Moo.tocsc())
 
     def runOpt(self, P):
         ''' method to run in each interation of the ADMM routine - super parallel '''
         
         #update dual variables
-        self.F = self.F + (self.A*self.us + self.c*(self.Md.T*P)*(self.ub+self.v))
+        self.F = self.F + (self.A*self.us + self.s*(self.Md.T*P)*(self.ub+self.v))
         self.E = self.E + self.xi*(self.v-self.us)
         
         # reasses local uHat
         uHatLocal = self.uHat - (self.Ms*self.ub)
         
         #solve for us update
-        b = self.Ms.T*uHatLocal - self.rho*(self.Q.T*np.append(self.c*(self.ub+self.v)*(self.Md.T*P), self.xi*self.v+self.E))
+        b = self.Ms.T*uHatLocal - self.rho*(self.Q.conj().T*np.append(self.s*((self.ub+self.v)*(self.Md.T*P) + self.F), self.xi*self.v+self.E))
         self.us = self.M(b)
         
+        print np.linalg.norm(self.Moo*self.us - b)
+        
         # solve for v update
-        Q = sparse.vstack([sparse.spdiags((self.c*self.Md.T*P),0,self.N,self.N), self.xi*sparse.eye(self.N,self.N)])
-        M = self.rho*(Q.T*Q)
-        b = -self.rho*(Q.T*np.append(self.A*self.us + self.F + self.c*(self.Md.T*P), self.E - self.xi*self.us))
+        Q = sparse.vstack([sparse.spdiags((self.s*self.Md.T*P),0,self.N,self.N), self.xi*sparse.eye(self.N,self.N)])
+        M = self.rho*(Q.conj().T*Q)
+        b = -self.rho*(Q.conj().T*np.append(self.A*self.us + self.F + self.s*(self.Md.T*P)*self.ub, (self.E - self.xi*self.us)))
         
         self.v = lin.spsolve(M,b)
         
@@ -74,11 +76,12 @@ def aggregateFS(S,lmb,uBound):
     Q = np.zeros((n,N),dtype='complex128')
     
     for ix in range(N):
-        c = S[ix].c
-        U[:,ix] = c*S[ix].Md*(S[ix].ub+S[ix].v)
+        s = S[ix].s
+        U[:,ix] = s*S[ix].Md*(S[ix].ub+S[ix].v)
         Q[:,ix] = S[ix].Md*((S[ix].A*S[ix].us) + S[ix].F)
         
     num = np.sum(U.real*Q.real + U.imag*Q.imag,1)
+    print num.shape
     den = np.sum(U.conj()*U,1) + lmb/S[0].rho
     
     P = (-num/den).real

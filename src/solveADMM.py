@@ -15,8 +15,8 @@ import admm
 def bigProj(freq):
     S = map(admm.fieldSplit, freq)
     N = np.size(S)
-    nx = 149
-    ny = 149
+    nx = 199
+    ny = 199
     dx = 5.0
     dy = 5.0
     eHS = 1.0
@@ -26,12 +26,12 @@ def bigProj(freq):
     for ix in range(N):
         S[ix].setspace(nx,ny,dx,dy)
         S[ix].setmats(eHS,sHS,ny/2);
-        S[ix].setMd([55,95],[55,70])
-        S[ix].setMs(10)   
+        S[ix].setMd([60,140],[70,95])
+        S[ix].setMs(30)   
         S[ix].setOperators()
         S[ix].te_pw(45*3.141/180)
         S[ix].fwd_solve(0)
-        S[ix].sigmap[1] = (S[ix].Md.T*np.ones(40*15)*0.01).reshape(nx,ny)
+        S[ix].sigmap[1] = S[ix].sigmap[1] + (S[ix].Md.T*np.ones(80*25)*0.01).reshape(nx,ny)
         
         S[ix].fwd_solve(1)
     
@@ -41,8 +41,10 @@ def bigProj(freq):
 def main():
     rho = 1500.0
     xi = 2e-3
-    lmb = 0.0
+    lmb = 1e-8
     uBound = 0.05
+    print xi
+    print rho
 
     freq = np.array([1e4])
     S = bigProj(freq)
@@ -52,7 +54,7 @@ def main():
         uHat = S[ix].Ms*S[ix].sol[1].flatten()
         S[ix].initOpt(rho,xi,uHat)
         
-    P = np.zeros(40*15)
+    P = np.zeros(80*25)
     resid = np.zeros(100)
     
     for itNo in range(100):
@@ -67,10 +69,29 @@ def main():
     plt.plot(resid)
     
     plt.figure(387)
-    plt.imshow(P.reshape(40,15))
+    plt.imshow(P.reshape(80,25), interpolation='nearest')
+    plt.colorbar()
+    
+    plt.figure(44)
+    vv = S[ix].Ms*S[ix].v
+    uu = S[ix].Ms*S[ix].us
+    ub = S[ix].Ms*S[ix].ub
+
+    plt.plot(np.arange(30), (uHat-ub).real, np.arange(30), (uu).real, np.arange(30), vv.real)
+    
+    plt.figure(76)
+    plt.subplot(121)
+    plt.imshow(S[0].us.reshape(199,199).real)
+    plt.colorbar()
+    
+    plt.subplot(122)
+    plt.imshow(S[0].v.reshape(199,199).real)
     plt.colorbar()
     plt.show()
     
+    return uHat,ub,uu,S,P
+
+#uHat,ub,us,S,P = solveADMM.main()
     
 if __name__ == "__main__":
     main()

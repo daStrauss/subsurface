@@ -10,6 +10,7 @@ from scipy.sparse import linalg as lin
 import matplotlib.pyplot as plt
 import scipy.special as spec
 import pickle
+import scipy.io as matOut
 
 class pmlList(object):
     freq = np.ndarray(0)
@@ -29,10 +30,10 @@ class twoDim(object):
     # create a few holders for some important things
     sol = ['','','']
     # A = ['','','']
-    Q = ['','','']
+    # O = ['','','']
     
     def __init__(self, freq):
-        self.w = 2*np.pi*freq
+        self.w = 2.0*np.pi*freq
         self.f = freq
         self.l = self.c/self.f
         print 'building a f = %d object' %freq
@@ -73,7 +74,7 @@ class twoDim(object):
         """
         kl = (self.muo*self.epsmap[ind]*(self.w**2) + 1j*self.w*self.muo*self.sigmap[ind]   )
         
-        return sparse.spdiags(kl.flatten(), [0], self.N, self.N)
+        return sparse.spdiags(kl.flatten(), 0, self.N, self.N)
         
     def prmz(self):
         """This routine might be nice to have it spit out a basic
@@ -90,19 +91,22 @@ class twoDim(object):
             lkt = pmlList()
             
         if np.any(lkt.freq==self.f):
-            return lkt.pmc[lkt.freq==self.f]
+            pmc = lkt.pmc[lkt.freq==self.f]
+            print pmc
+            return pmc
         else:
             pmc = findBestAng(self.f)
             lkt.freq = np.append(lkt.freq, self.f)
             lkt.pmc = np.append(lkt.pmc, pmc)
             pickle.dump(lkt, open('pmlLib.p', 'wb'))
+            print pmc
             return pmc
             
     def setOperators(self):
         ''' An wraper for makeFinteDiferences that will select the right PML parameters
         '''
-        self.makeFD(self.getPMLparm())
-            
+        # self.makeFD(1886.7678)
+        self.makeFD(self.getPMLparm())    
             
         
     def makeFD(self, pmc):
@@ -115,8 +119,8 @@ class twoDim(object):
         hi[(self.nx-self.npml+1):(self.nx+1)] = \
                   (pmc)*np.linspace(0,1,self.npml);
 
-        h = np.vectorize(complex)(self.dx*np.ones(self.nx+1), hi);
-
+        h = self.dx*np.ones(self.nx+1,dtype='complex128') + 1j*hi;
+        # h = self.dx*np.ones(self.nx+1,dtype='complex128')
 
         opr = np.ones((2,self.nx+1))
         opr[0,:] = -1
@@ -131,11 +135,11 @@ class twoDim(object):
         ph = sparse.spdiags(1/h, 0, self.nx+1,self.nx+1);
         po = sparse.spdiags(1/(avg_n_c*h), 0, self.nx,self.nx);
 
-        oper1d = po*self.d2*ph*self.d1;
+        oper1d = (po*self.d2)*(ph*self.d1);
         # ok. building nabla2 for the TE only
         self.nabla2 = sparse.kron(oper1d,sparse.eye(self.nx,self.nx)) \
                  + sparse.kron(sparse.eye(self.nx,self.nx), oper1d);
-
+                 
         
     def point_source(self, x,y):
         """ A routine to add a point source at the grid loc (x,y) """
@@ -143,7 +147,7 @@ class twoDim(object):
 
     def te_pw(self, thi):
         """ A routine to add a te planewave at angle as spec'd """
-        instep = 3+(self.nx+1)/10;
+        instep = 3+self.npml;
         # mdpt = nx/2; # should replace by div
         x = np.arange(1,self.nx+1)*self.dx
         # The assumption is that the Ez and materials are co
@@ -267,9 +271,9 @@ class twoDim(object):
         """ Does the clean solve, prints a figure """
         # self.sol[ind] = self.rhs.copy();
         # b = self.rhs.copy().flatten();
-        self.Q[ind] = lin.factorized(sparse.csc_matrix(self.nabla2 + self.getk(ind)))
+        Q = lin.factorized(sparse.csc_matrix(self.nabla2 + self.getk(ind)))
         
-        self.sol[ind] = self.Q[ind](self.rhs.flatten())
+        self.sol[ind] = Q(self.rhs.flatten())
         # umfpack.linsolv((self.nabla2 + self.getk(ind)), self.sol[ind])
         # self.sol[ind] = np.array(self.sol[ind])
         self.sol[ind] = self.sol[ind].reshape(self.nx,self.ny)
@@ -280,7 +284,7 @@ class twoDim(object):
         indx = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)).astype(int);
         oprx = np.zeros((self.nx,self.ny),dtype='bool')
         
-        oprx[self.div+1,indx] = 1;
+        oprx[indx,self.div+1] = 1;
         
         idx = np.arange(self.N)
         oprx = oprx.flatten()
@@ -321,7 +325,7 @@ def findBestAng(freq):
     '''for a particular frequency, find the best PML complex angle 
     '''
     # set some internal parameters
-    nx = 149
+    nx = 99
     ny = nx
     dx = 5.0
     dy = dx
@@ -385,28 +389,45 @@ def findBestAng(freq):
     bce.setmats(eHS, sHS, nx/2)
     
             # pmc = 22.229964825261945
-    bce.makeFD(angChoice[minIdx])
+            # angChoice[minIdx]
+    bce.makeFD(31.2759)
     bce.point_source(nx/2 -1, ny/2 - 1)
     bce.fwd_solve(0)
     
+    M = bce.nabla2
+    
+    matOut.matlab.savemat('bstN', {'M':M})
+    
     #do some representative plots
-#    plt.figure(1)
-#    plt.plot(angChoice, localError)
-#    # do some plotting
-#    plt.figure(13)
-#    plt.subplot(1,2,1)
-#    plt.imshow((bce.sol[0].real*mask))
-#    plt.colorbar()
-#    
-#    plt.subplot(1,2,2)
-#    plt.imshow((bbx.real*mask))
-#    plt.colorbar()
-#    
-#    plt.figure(4)
-#    plt.subplot(121)
-#    plt.imshow((bce.sol[0]-bbx).real)
-#    plt.colorbar()
-#    plt.show()
+    plt.figure(1)
+    plt.plot(angChoice, localError)
+    # do some plotting
+    plt.figure(13)
+    plt.subplot(221)
+    plt.imshow((bce.sol[0].real*mask))
+    plt.colorbar()
+    
+    plt.subplot(222)
+    plt.imshow((bbx.real*mask))
+    plt.colorbar()
+    
+    plt.subplot(223)
+    plt.imshow((bce.sol[0].imag*mask))
+    plt.colorbar()
+    
+    plt.subplot(224)
+    plt.imshow((bbx.imag*mask))
+    plt.colorbar()
+    
+    lkl = bce.sol[0]
+    plt.figure(44)
+    plt.plot(np.arange(nx), lkl[49,:].real, np.arange(nx), bbx[49,:].real)
+    
+    plt.figure(4)
+    plt.subplot(121)
+    plt.imshow((bce.sol[0]-bbx).real)
+    plt.colorbar()
+    plt.show()
     
     return angChoice[minIdx]
     
