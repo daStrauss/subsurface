@@ -66,8 +66,8 @@ class twoDim(object):
         self.sigmap = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
 
         for x in range(2):
-            self.epsmap[x][:,0:div] = self.eHS
-            self.sigmap[x][:,0:div] = self.sHS
+            self.epsmap[x][:,:(div+1)] = self.eHS
+            self.sigmap[x][:,:(div+1)] = self.sHS
         
     def getk(self, ind):
         """ This routine assembles a diagonal matrix with the materials indexed by ind
@@ -119,9 +119,10 @@ class twoDim(object):
         hi[(self.nx-self.npml+1):(self.nx+1)] = \
                   (pmc)*np.linspace(0,1,self.npml);
 
-        h = self.dx*np.ones(self.nx+1,dtype='complex128') + 1j*hi;
+        h = self.dx*np.ones(self.nx+1,dtype='complex128') + 1j*hi
         # h = self.dx*np.ones(self.nx+1,dtype='complex128')
-
+        # matOut.savemat('Hout', {'h':h})
+        
         opr = np.ones((2,self.nx+1))
         opr[0,:] = -1
         
@@ -149,18 +150,21 @@ class twoDim(object):
         """ A routine to add a te planewave at angle as spec'd """
         instep = 3+self.npml;
         # mdpt = nx/2; # should replace by div
-        x = np.arange(1,self.nx+1)*self.dx
+        x = np.arange(1,1+self.nx,dtype='float64')*self.dx
         # The assumption is that the Ez and materials are co
         # located. Since epsilon(50) => in the half space, epsilon(51) =>
         # is not, the actual zero boundary must be between them, or on
         # that y boundary.
         # Mapping is y,x because of how matlab treats these. annoying.
         # (
-        Y,X = np.meshgrid(x-(self.div+0.5)*self.dx, x); # I do things backward
+        print self.div+1
+        Y,X = np.meshgrid(x-(self.div+1+0.5)*self.dx, x); # I do things backward
         Yyh, Xyh = np.meshgrid(np.append(0.0,x)+(self.dx/2)\
-                               - (self.div+0.5)*self.dx,x);
-        Yxh, Xxh = np.meshgrid(x-(self.div+0.5)*self.dx, \
+                               - (self.div+1+0.5)*self.dx,x);
+        Yxh, Xxh = np.meshgrid(x-(self.div+1+0.5)*self.dx, \
                                np.append(0.0,x)+(self.dx/2));
+                               
+        # matOut.savemat('grids', {'Y':Y, 'X':X, 'Yyh':Yyh, 'Xyh':Xyh, 'Yxh':Yxh, 'Xxh':Xxh})
   
         ni = 1;
         nt = np.sqrt((self.eHS-self.sHS/(1j*self.w))\
@@ -177,24 +181,29 @@ class twoDim(object):
         kHS = 1j*self.kHS;
         etaF = np.sqrt(self.muo/self.epso);
         #   % [kFS kfs]
-        etaH = np.sqrt(self.muo/(self.eHS+1j*self.sHS/self.w));
+        etaH = np.sqrt(self.muo/(self.eHS+(1j*self.sHS/self.w)));
         rTE = (ni*np.cos(thi) - nt*np.cos(tht))/(ni*np.cos(thi) + nt*np.cos(tht));
         tTE = (2*ni*np.cos(thi))/(ni*np.cos(thi) + nt*np.cos(tht));
+        
+        print rTE
+        print tTE
 
         #   % [yy xx] = meshgrid(zeY, zeX);
         #   % Make a selector for the half space.
-        ths = np.zeros([self.nx,self.ny])
+        ths = np.zeros([self.nx,self.ny],dtype='bool')
         ths[Y<0] = 1
-        ths = ths.astype(bool)
+        # ths = ths.astype(bool)
         #   size(ths);
   
-        thsy = np.zeros([self.nx,self.nx+1])
+        thsy = np.zeros([self.nx,self.nx+1],dtype='bool')
         thsy[Yyh<0] = 1
-        thsy = thsy.astype(bool)
+        # thsy = thsy.astype(bool)
 
-        thsx = np.zeros([self.nx+1,self.nx])
+        thsx = np.zeros([self.nx+1,self.nx],dtype='bool')
         thsx[Yxh<0] = 1
-        thsx = thsx.astype(bool)
+        #     thsx = thsx.astype(bool)
+        
+        # matOut.savemat('selctors', {'ths':ths, 'thsy':thsy, 'thsx':thsx})
   
         # % kHS
         # %  size(thsy)
@@ -221,6 +230,8 @@ class twoDim(object):
                                             Yxh[thsx]*ktx[1])))
         Hyinc = -Hyinc;
         
+        # matOut.savemat('fldz', {'Ez':Ezinc,'Hx':Hxinc, 'Hy':Hyinc})
+        
 #        plt.figure(11)
 #        plt.subplot(1,3,1)
 #        plt.imshow(Ezinc.real)
@@ -243,16 +254,16 @@ class twoDim(object):
         Msrcx = np.zeros([self.nx,self.ny+1], dtype='complex128');
         Msrcy = np.zeros([self.nx+1,self.ny], dtype='complex128');
 
-        Jsrcz[xl,yb:yt] =    Jsrcz[xl,yb:yt] + (1)*(Hyinc[xl,yb:yt]/self.dx);
-        Jsrcz[xr,yb:yt] =    Jsrcz[xr,yb:yt] - (1)*(Hyinc[xr+1,yb:yt]/self.dx);
-        Jsrcz[xl:xr,yb] =    Jsrcz[xl:xr,yb] - (1)*(Hxinc[xl:xr,yb]/self.dy);
-        Jsrcz[xl:xr,yt] =    Jsrcz[xl:xr,yt] + (1)*(Hxinc[xl:xr,yt+1]/self.dy);
+        Jsrcz[xl,yb:(yt+1)] =    Jsrcz[xl,yb:(yt+1)] + (1)*(Hyinc[xl,yb:(yt+1)]/self.dx);
+        Jsrcz[xr,yb:(yt+1)] =    Jsrcz[xr,yb:(yt+1)] - (1)*(Hyinc[xr+1,yb:(yt+1)]/self.dx);
+        Jsrcz[xl:(xr+1),yb] =    Jsrcz[xl:(xr+1),yb] - (1)*(Hxinc[xl:(xr+1),yb]/self.dy);
+        Jsrcz[xl:(xr+1),yt] =    Jsrcz[xl:(xr+1),yt] + (1)*(Hxinc[xl:(xr+1),yt+1]/self.dy);
 
-        Msrcx[xl:xr,yb]   =  (1)*(Ezinc[xl:xr,yb]/self.dy);
-        Msrcx[xl:xr,yt+1] = -(1)*(Ezinc[xl:xr,yt]/self.dy);
+        Msrcx[xl:(xr+1),yb]   =  (1)*(Ezinc[xl:(xr+1),yb]/self.dy);
+        Msrcx[xl:(xr+1),yt+1] = -(1)*(Ezinc[xl:(xr+1),yt]/self.dy);
     
-        Msrcy[xl,   yb:yt] = -(1)*(Ezinc[xl,yb:yt]/self.dx);
-        Msrcy[xr+1, yb:yt] =  (1)*(Ezinc[xr,yb:yt]/self.dx);
+        Msrcy[xl,   yb:(yt+1)] = -(1)*(Ezinc[xl,yb:(yt+1)]/self.dx);
+        Msrcy[xr+1, yb:(yt+1)] =  (1)*(Ezinc[xr,yb:(yt+1)]/self.dx);
         
 #        aliJ = self.nx*self.ny
 #        aliMx = self.nx*(self.ny+1)
@@ -281,19 +292,19 @@ class twoDim(object):
     def setMs(self, nSensors=10):
         '''Tell me the number of sensors, and I will distribute them equally across the surface
         '''
-        indx = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)).astype(int);
+        indx = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
         oprx = np.zeros((self.nx,self.ny),dtype='bool')
         
-        oprx[indx,self.div+1] = 1;
+        oprx[indx,self.div] = 1;
         
         idx = np.arange(self.N)
         oprx = oprx.flatten()
         idx = idx[oprx]
         
-        self.Ms = sparse.dok_matrix((self.N,idx.size), dtype='bool')
+        self.Ms = sparse.dok_matrix((self.N,idx.size))
         
         for i in range(sum(oprx)):
-            self.Ms[idx[i],i] = 1
+            self.Ms[idx[i],i] = 1.0
         self.Ms = self.Ms.tocsc()
         self.Ms = self.Ms.T
         
@@ -309,10 +320,10 @@ class twoDim(object):
         idx = np.arange(self.N)
         oprx = oprx.flatten()
         idx = idx[oprx]
-        self.Md = sparse.dok_matrix((self.N,idx.size), dtype = 'bool')
+        self.Md = sparse.dok_matrix((self.N,idx.size))
         
         for i in range(idx.size):
-            self.Md[idx[i],i]=1
+            self.Md[idx[i],i]=1.0
         self.Md = self.Md.tocsc()
         self.Md = self.Md.T
         
@@ -337,7 +348,7 @@ def findBestAng(freq):
     epso = 8.854e-12
     muo = 4.0*np.pi*1e-7
     
-    x = np.array(range(1,nx+1))*dx - dx*(nx/2)
+    x = np.array(range(nx))*dx - dx*(nx/2)
     Y,X = np.meshgrid(x, x);
     dist = np.sqrt(Y**2+X**2) 
     
@@ -347,17 +358,24 @@ def findBestAng(freq):
     
     k = (2*np.pi)/(c/freq)
     bbx = dx*dx*(1j/4)*spec.hankel1(0,k*dist)
-    mdpt = nx/2-1
+    mdpt = nx/2
     # the center contains a singularity, but we'll  be forgiving and finite
     bbx[mdpt,mdpt] = 0.25*bbx[mdpt+1,mdpt] + 0.25*bbx[mdpt-1,mdpt] + 0.25*bbx[mdpt,mdpt+1] + 0.25*bbx[mdpt,mdpt-1]
     
     sze = bbx.shape
+    print sze
     mask = np.ones(sze)
     mask[:15,:] =0
-    mask[(nx-15):(nx-1),:] = 0
+    mask[(nx-15):(nx),:] = 0
     mask[:,:15]=0
-    mask[:,(nx-15):(nx-1)] =0
+    mask[:,(nx-15):(nx)] = 0
     
+#    print mask[:,98]
+#    
+#    plt.figure(388)
+#    plt.imshow(mask)
+#    plt.show()
+#       
     lo = 0
     hi = 5
     
@@ -374,15 +392,18 @@ def findBestAng(freq):
     
             # pmc = 22.229964825261945
             bce.makeFD(angChoice[i])
-            bce.point_source(nx/2 -1, ny/2 - 1)
+            bce.point_source(49, 49)
             bce.fwd_solve(0)
     
             localError[i] = np.linalg.norm((bce.sol[0] - bbx)*mask,'fro')
             print 'ang = ' + repr(angChoice[i]) + ' local error ' + repr(localError[i])
     
         minIdx = np.argmin(localError)
+        
         lo = np.log10(angChoice[max(0,minIdx-1)])
         hi = np.log10(angChoice[min(50,minIdx+1)])
+        print lo
+        print hi
         
     bce = twoDim(freq)
     bce.setspace(nx,ny,dx,dy)
@@ -391,43 +412,43 @@ def findBestAng(freq):
             # pmc = 22.229964825261945
             # angChoice[minIdx]
     bce.makeFD(31.2759)
-    bce.point_source(nx/2 -1, ny/2 - 1)
+    bce.point_source(nx/2, ny/2)
     bce.fwd_solve(0)
     
-    M = bce.nabla2
+    # M = bce.nabla2
     
-    matOut.matlab.savemat('bstN', {'M':M})
+    # matOut.matlab.savemat('bstN', {'M':M})
     
     #do some representative plots
-    plt.figure(1)
-    plt.plot(angChoice, localError)
-    # do some plotting
-    plt.figure(13)
-    plt.subplot(221)
-    plt.imshow((bce.sol[0].real*mask))
-    plt.colorbar()
-    
-    plt.subplot(222)
-    plt.imshow((bbx.real*mask))
-    plt.colorbar()
-    
-    plt.subplot(223)
-    plt.imshow((bce.sol[0].imag*mask))
-    plt.colorbar()
-    
-    plt.subplot(224)
-    plt.imshow((bbx.imag*mask))
-    plt.colorbar()
-    
-    lkl = bce.sol[0]
-    plt.figure(44)
-    plt.plot(np.arange(nx), lkl[49,:].real, np.arange(nx), bbx[49,:].real)
-    
-    plt.figure(4)
-    plt.subplot(121)
-    plt.imshow((bce.sol[0]-bbx).real)
-    plt.colorbar()
-    plt.show()
+#    plt.figure(1)
+#    plt.plot(angChoice, localError)
+#    # do some plotting
+#    plt.figure(13)
+#    plt.subplot(221)
+#    plt.imshow((bce.sol[0].real*mask))
+#    plt.colorbar()
+#    
+#    plt.subplot(222)
+#    plt.imshow((bbx.real*mask))
+#    plt.colorbar()
+#    
+#    plt.subplot(223)
+#    plt.imshow((bce.sol[0].imag*mask))
+#    plt.colorbar()
+#    
+#    plt.subplot(224)
+#    plt.imshow((bbx.imag*mask))
+#    plt.colorbar()
+#    
+#    lkl = bce.sol[0]
+#    plt.figure(44)
+#    plt.plot(np.arange(nx), lkl[49,:].real, np.arange(nx), bbx[49,:].real)
+#    
+#    plt.figure(4)
+#    plt.subplot(121)
+#    plt.imshow((bce.sol[0]-bbx).real)
+#    plt.colorbar()
+#    plt.show()
     
     return angChoice[minIdx]
     

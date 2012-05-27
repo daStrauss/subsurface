@@ -9,7 +9,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 
 import admm
-
+import scipy.io as io
 
 
 def bigProj(freq):
@@ -29,7 +29,7 @@ def bigProj(freq):
         S[ix].setMd([60,140],[70,95])
         S[ix].setMs(30)   
         S[ix].setOperators()
-        S[ix].te_pw(45*3.141/180)
+        S[ix].te_pw(45*np.pi/180)
         S[ix].fwd_solve(0)
         S[ix].sigmap[1] = S[ix].sigmap[1] + (S[ix].Md.T*np.ones(80*25)*0.01).reshape(nx,ny)
         
@@ -51,11 +51,14 @@ def main():
     N = np.size(S)
     
     for ix in range(N):
-        uHat = S[ix].Ms*S[ix].sol[1].flatten()
+        uHat = S[ix].Ms*(S[ix].sol[1].flatten())
         S[ix].initOpt(rho,xi,uHat)
-        
+    
+    
     P = np.zeros(80*25)
     resid = np.zeros(100)
+    
+    io.savemat('bkg', {'u':S[0].sol[1]})
     
     for itNo in range(100):
         print 'iter no ' + repr(itNo)
@@ -73,11 +76,14 @@ def main():
     plt.colorbar()
     
     plt.figure(44)
-    vv = S[ix].Ms*S[ix].v
-    uu = S[ix].Ms*S[ix].us
-    ub = S[ix].Ms*S[ix].ub
+    vv = S[0].Ms*S[0].v
+    uu = S[0].Ms*S[0].us
+    ub = S[0].Ms*S[0].ub
+    skt = uHat-ub
+    
+    io.savemat('uHat', {'uh':uHat, 'ub':ub, 'skt':skt})
 
-    plt.plot(np.arange(30), (uHat-ub).real, np.arange(30), (uu).real, np.arange(30), vv.real)
+    plt.plot(np.arange(30), skt.real, np.arange(30), uu.real, np.arange(30), vv.real)
     
     plt.figure(76)
     plt.subplot(121)
