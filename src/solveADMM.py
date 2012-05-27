@@ -59,6 +59,7 @@ def main():
     resid = np.zeros(100)
     
     io.savemat('bkg', {'u':S[0].sol[1]})
+    io.savemat('sigm', {'sigMap':S[0].sigmap[1]})
     
     for itNo in range(100):
         print 'iter no ' + repr(itNo)
@@ -67,6 +68,8 @@ def main():
         
         P = admm.aggregateFS(S, lmb, uBound)
         resid[itNo] = np.linalg.norm(P-0.01)
+        # io.savemat('iter' + repr(itNo), {'P':P, 'u':S[0].us, 'v':S[0].v, 'E':S[0].E, 'F':S[0].F})
+        
         
     plt.figure(383)
     plt.plot(resid)

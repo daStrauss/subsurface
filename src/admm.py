@@ -47,7 +47,7 @@ class fieldSplit(twoDim):
         uHatLocal = self.uHat - (self.Ms*self.ub)
         
         #solve for us update
-        b = self.Ms.T*uHatLocal - self.rho*(self.Q.conj().T*np.append(self.s*((self.ub+self.v)*(self.Md.T*P) + self.F), self.xi*self.v+self.E))
+        b = self.Ms.T*uHatLocal - self.rho*(self.Q.conj().T*np.append((self.s*(self.ub+self.v)*(self.Md.T*P) + self.F), (self.xi*self.v)+self.E))
         self.us = self.M(b)
         
         print np.linalg.norm(self.Moo*self.us - b)
