@@ -46,7 +46,7 @@ def main():
     print xi
     print rho
 
-    freq = np.array([1e4])
+    freq = np.array([1e3, 1e4])
     S = bigProj(freq)
     N = np.size(S)
     
@@ -58,8 +58,8 @@ def main():
     P = np.zeros(80*25)
     resid = np.zeros(100)
     
-    io.savemat('bkg', {'u':S[0].sol[1]})
-    io.savemat('sigm', {'sigMap':S[0].sigmap[1]})
+    # io.savemat('bkg', {'u':S[0].sol[1]})
+    # io.savemat('sigm', {'sigMap':S[0].sigmap[1]})
     
     for itNo in range(100):
         print 'iter no ' + repr(itNo)
@@ -84,7 +84,7 @@ def main():
     ub = S[0].Ms*S[0].ub
     skt = uHat-ub
     
-    io.savemat('uHat', {'uh':uHat, 'ub':ub, 'skt':skt})
+    # io.savemat('uHat', {'uh':uHat, 'ub':ub, 'skt':skt})
 
     plt.plot(np.arange(30), skt.real, np.arange(30), uu.real, np.arange(30), vv.real)
     
