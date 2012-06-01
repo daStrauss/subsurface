@@ -28,7 +28,7 @@ class twoDim(object):
     c = np.sqrt(1/(muo*epso))
     
     # create a few holders for some important things
-    sol = ['','','']
+    # sol = ['','','']
     # A = ['','','']
     # O = ['','','']
     
@@ -64,6 +64,7 @@ class twoDim(object):
 
         self.epsmap = [self.epso*np.ones((self.nx,self.ny)), self.epso*np.ones((self.nx,self.ny))]
         self.sigmap = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
+        self.sol = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
 
         for x in range(2):
             self.epsmap[x][:,:(div+1)] = self.eHS

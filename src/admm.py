@@ -70,6 +70,7 @@ def aggregateFS(S,lmb,uBound):
     '''Do the aggregate step updates '''
     N = np.size(S)
     n = S[0].nRx*S[0].nRy
+    print N
     print n
     
     U = np.zeros((n,N),dtype='complex128')

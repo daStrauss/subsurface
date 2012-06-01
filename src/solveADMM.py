@@ -23,17 +23,17 @@ def bigProj(freq):
     sHS = 0.005
     
     
-    for ix in range(N):
-        S[ix].setspace(nx,ny,dx,dy)
-        S[ix].setmats(eHS,sHS,ny/2);
-        S[ix].setMd([60,140],[70,95])
-        S[ix].setMs(30)   
-        S[ix].setOperators()
-        S[ix].te_pw(45*np.pi/180)
-        S[ix].fwd_solve(0)
-        S[ix].sigmap[1] = S[ix].sigmap[1] + (S[ix].Md.T*np.ones(80*25)*0.01).reshape(nx,ny)
+    for F in S:
+        F.setspace(nx,ny,dx,dy)
+        F.setmats(eHS,sHS,ny/2);
+        F.setMd([60,140],[70,95])
+        F.setMs(30)   
+        F.setOperators()
+        F.te_pw(45*np.pi/180)
+        F.fwd_solve(0)
+        F.sigmap[1] = F.sigmap[1] + (F.Md.T*np.ones(80*25)*0.01).reshape(nx,ny)
         
-        S[ix].fwd_solve(1)
+        F.fwd_solve(1)
     
     return S
 
@@ -50,9 +50,10 @@ def main():
     S = bigProj(freq)
     N = np.size(S)
     
-    for ix in range(N):
-        uHat = S[ix].Ms*(S[ix].sol[1].flatten())
-        S[ix].initOpt(rho,xi,uHat)
+    for F in S:
+        uHat = F.Ms*(F.sol[1].flatten())
+        
+        F.initOpt(rho,xi,F.Ms*(F.sol[1].flatten()))
     
     
     P = np.zeros(80*25)
@@ -78,15 +79,16 @@ def main():
     plt.imshow(P.reshape(80,25), interpolation='nearest')
     plt.colorbar()
     
-    plt.figure(44)
-    vv = S[0].Ms*S[0].v
-    uu = S[0].Ms*S[0].us
-    ub = S[0].Ms*S[0].ub
-    skt = uHat-ub
+    for ix in range(N):
+        plt.figure(50+ix)
+        vv = S[ix].Ms*S[0].v
+        uu = S[ix].Ms*S[0].us
+        ub = S[ix].Ms*S[0].ub
+        skt = S[ix].uHat-ub
     
-    # io.savemat('uHat', {'uh':uHat, 'ub':ub, 'skt':skt})
+        # io.savemat('uHat'+repr(ix), {'uh':uHat, 'ub':ub, 'skt':skt})
 
-    plt.plot(np.arange(30), skt.real, np.arange(30), uu.real, np.arange(30), vv.real)
+        plt.plot(np.arange(30), skt.real, np.arange(30), uu.real, np.arange(30), vv.real)
     
     plt.figure(76)
     plt.subplot(121)

@@ -5,8 +5,9 @@ Created on May 25, 2012
 '''
 
 import maxwell
+import numpy as np
 
-bce = twoDim(1e6)
+bce = maxwell.twoDim(1e6)
 print 'done got it'
 pmc = 22.229964825261945 # best for 1MHz
 mc = 1526.4179671752333 # best for 10kHz
