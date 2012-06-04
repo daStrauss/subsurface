@@ -122,7 +122,7 @@ def parallel():
     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
     # allRanks = np.arange(np.size(freq))
     
-    S = smallProj([allFreq[rank]], [allIncAng[rank]], [rank])
+    S = bigProj([allFreq[rank]], [allIncAng[rank]], [rank])
     
     # de reference so that I don't continuously have to work with lists in parallel mode
     S = S[0]
@@ -145,9 +145,9 @@ def parallel():
     # do some plotting        
     admm.plotParallel(S,P,resid,rank)
     # S.writeOut()
-    # if rank == 0:
-    #    D = {'Pfinal':P.reshape(S.nRx,S.nRy), 'nProc':nProc}
-    #    spio.savemat('pout', D)
+    if rank == 0:
+       D = {'Pfinal':P.reshape(S.nRx,S.nRy), 'nProc':nProc, 'resid':resid}
+       spio.savemat('pout', D)
         
         
 
