@@ -144,10 +144,11 @@ def parallel():
         
     # do some plotting        
     admm.plotParallel(S,P,resid,rank)
-    # S.writeOut()
+    S.writeOut()
+    
     if rank == 0:
-       D = {'Pfinal':P.reshape(S.nRx,S.nRy), 'nProc':nProc, 'resid':resid}
-       spio.savemat('pout', D)
+        D = {'Pfinal':P.reshape(S.nRx,S.nRy), 'nProc':nProc, 'resid':resid}
+        spio.savemat('pout', D)
         
         
 
