@@ -11,6 +11,8 @@ from maxwell import twoDim
 import scipy.sparse as sparse
 import scipy.sparse.linalg as lin
 from mpi4py import MPI
+import sparseTools as spTools
+
 
 class problem(twoDim):
     ''' class that extents the contrast - Xadmm algorithm '''
@@ -58,10 +60,13 @@ class problem(twoDim):
         
         rhsl = np.zeros(self.nx*self.ny)
   
-    bm = [bmuu bmux bmul;
-          bmxu bmxx bmxl;
-          bmlu bmlx bmll];
-    rhsbm = [rhsu; rhsx; rhsl];
+  
+        bm = spTools.spVcat([spTools.spHcat([bmuu, bmux, bmul]), \
+                             spTools.spHcat([bmxu, bmxx, bmxl]), \
+                             spTools.spHcat([bmlu, bmlx, bmll])])
+        
+        rhsbm = concatenate((rhsu, rhsx, rhsl))
+        
   
     updt = bm\rhsbm;
     F.opt.us = updt(1:F.nx*F.nx);
