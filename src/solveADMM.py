@@ -115,8 +115,8 @@ def parallel():
     print xi
     print rho
     
-    # 3e3, 8e3, 
-    allFreq = np.array([1e3, 1e4])
+    #  
+    allFreq = np.array([1e3, 3e3, 8e3, 1e4])
     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
     # allRanks = np.arange(np.size(freq))
     
