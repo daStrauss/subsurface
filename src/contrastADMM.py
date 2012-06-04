@@ -140,10 +140,12 @@ def plotSerial(S,P,resid):
     N = np.size(S)
     plt.figure(383)
     plt.plot(resid)
+    plt.savefig('fig383')
     
     plt.figure(387)
     plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
     plt.colorbar()
+    plt.savefig('fig387')
     
     for ix in range(N):
         plt.figure(50+ix)
@@ -156,6 +158,7 @@ def plotSerial(S,P,resid):
 
         # plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
         plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real)
+        plt.savefig('fig'+repr(fig+ix))
         
     plt.figure(76)
     plt.subplot(121)
@@ -165,7 +168,8 @@ def plotSerial(S,P,resid):
     plt.subplot(122)
     plt.imshow(S[1].us.reshape(S[0].nx,S[0].ny).real)
     plt.colorbar()
-    plt.show()
+    plt.savefig('fig76')
+    # plt.show()
     
 def plotParallel(S,P,resid,rank):
     ''' Plotting routine if things are parallel'''
@@ -176,15 +180,18 @@ def plotParallel(S,P,resid,rank):
     
     plt.figure(100+rank)
     plt.plot(np.arange(S.nSen), skt.real, np.arange(S.nSen), uu.real)
+    plt.savefig('fig' + repr(100+rank))
     
     if rank==0:
         # then print some figures   
         plt.figure(383)
         plt.plot(resid)
+        plt.savefig('fig383')
     
         plt.figure(387)
         plt.imshow(P.reshape(S.nRx,S.nRy), interpolation='nearest')
         plt.colorbar()
+        plt.savefig('fig387')
 
         plt.figure(76)
         plt.subplot(121)
@@ -194,7 +201,8 @@ def plotParallel(S,P,resid,rank):
         plt.subplot(122)
         plt.imshow(S.us.reshape(S.nx,S.ny).imag)
         plt.colorbar()
+        plt.savefig('fig76')
     
     # all show!
-    plt.show()
+    # plt.show()
     
