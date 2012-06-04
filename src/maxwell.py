@@ -10,7 +10,7 @@ from scipy.sparse import linalg as lin
 import matplotlib.pyplot as plt
 import scipy.special as spec
 import pickle
-import scipy.io as matOut
+import scipy.io as spio
 
 class pmlList(object):
     freq = np.ndarray(0)
@@ -32,10 +32,12 @@ class twoDim(object):
     # A = ['','','']
     # O = ['','','']
     
-    def __init__(self, freq):
+    def __init__(self, freq, incAng=0.0, rank=0):
         self.w = 2.0*np.pi*freq
         self.f = freq
         self.l = self.c/self.f
+        self.incAng = incAng
+        self.rank = rank
         print 'building a f = %d object' %freq
         
     def setspace(self, nx,ny,dx,dy):
@@ -147,8 +149,9 @@ class twoDim(object):
         """ A routine to add a point source at the grid loc (x,y) """
         self.rhs.reshape(self.nx,self.ny)[x,y] = -1.0
 
-    def te_pw(self, thi):
+    def te_pw(self):
         """ A routine to add a te planewave at angle as spec'd """
+        thi = self.incAng 
         instep = 3+self.npml;
         # mdpt = nx/2; # should replace by div
         x = np.arange(1,1+self.nx,dtype='float64')*self.dx
@@ -293,6 +296,7 @@ class twoDim(object):
     def setMs(self, nSensors=10):
         '''Tell me the number of sensors, and I will distribute them equally across the surface
         '''
+        self.nSen = nSensors
         indx = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
         oprx = np.zeros((self.nx,self.ny),dtype='bool')
         
@@ -332,6 +336,11 @@ class twoDim(object):
             
     def plotSol(self,ind):
         pass
+
+    def writeOut(self,ind):
+        D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.simap[ind], 'fld':self.sol[ind]}
+        spio.savemat('maxPrint' + repr(self.rank), D)
+                     
     
 def findBestAng(freq):
     '''for a particular frequency, find the best PML complex angle 
