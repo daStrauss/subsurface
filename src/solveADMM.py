@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import admm
 
 def bigProj(freq,incAng, ranks):
-    S = map(admm.fieldSplit, freq, incAng, ranks)
+    S = map(admm.problem, freq, incAng, ranks)
     nx = 199
     ny = 199
     dx = 5.0
@@ -37,7 +37,7 @@ def bigProj(freq,incAng, ranks):
 
 def smallProj(freq, incAng, ranks):
     '''build for a small project, ie 99x99 '''
-    S = map(admm.fieldSplit, freq, incAng, ranks)
+    S = map(admm.problem, freq, incAng, ranks)
     nx = 99
     ny = 99
     dx = 5.0
@@ -92,7 +92,7 @@ def single():
         for ix in range(N):
             S[ix].runOpt(P)
         
-        P = admm.aggregateFS(S, lmb, uBound)
+        P = admm.aggregatorSerial(S, lmb, uBound)
         resid[itNo] = np.linalg.norm(P-0.01)
         # io.savemat('iter' + repr(itNo), {'P':P, 'u':S[0].us, 'v':S[0].v, 'E':S[0].E, 'F':S[0].F})
         
@@ -168,7 +168,7 @@ def parallel():
         
         S.runOpt(P)
         
-        P = admm.aggregateParallel(S, lmb, uBound, comm)
+        P = admm.aggregatorParallel(S, lmb, uBound, comm)
         resid[itNo] = np.linalg.norm(P-0.01)
         # io.savemat('iter' + repr(itNo), {'P':P, 'u':S[0].us, 'v':S[0].v, 'E':S[0].E, 'F':S[0].F})
         

@@ -2,6 +2,9 @@
 Created on May 24, 2012
 
 @author: dstrauss
+
+This set of routines implements the fast field splitting technique. 
+Both parallel and serial methods are implemented
 '''
 
 import numpy as np
@@ -10,7 +13,7 @@ import scipy.sparse as sparse
 import scipy.sparse.linalg as lin
 from mpi4py import MPI
 
-class fieldSplit(twoDim):
+class problem(twoDim):
     '''A function for implementing the field splitting methods'''
 #    def __init__(self, freq, rho, xi):
 #        self.f=freq
@@ -68,7 +71,7 @@ class fieldSplit(twoDim):
     
     
     
-def aggregateFS(S,lmb,uBound):
+def aggregatorSerial(S,lmb,uBound):
     '''Do the aggregate step updates '''
     N = np.size(S)
     n = S[0].nRx*S[0].nRy
@@ -97,7 +100,7 @@ def aggregateFS(S,lmb,uBound):
         
     return P
 
-def aggregateParallel(S,lmb,uBound,comm):
+def aggregatorParallel(S,lmb,uBound,comm):
     ''' Do the aggregation step in parallel whoop! '''
     N = np.size(S)
     print repr(N) + ' == better be 1!'
