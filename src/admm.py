@@ -12,6 +12,7 @@ from maxwell import twoDim
 import scipy.sparse as sparse
 import scipy.sparse.linalg as lin
 from mpi4py import MPI
+import matplotlib.pyplot as plt
 
 class problem(twoDim):
     '''A function for implementing the field splitting methods'''
@@ -125,6 +126,69 @@ def aggregatorParallel(S,lmb,uBound,comm):
     print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
     
     return P
+
+def plotSerial(S,P,resid):
+    ''' plotting routine for the serial passes '''
+    N = np.size(S)
+    plt.figure(383)
+    plt.plot(resid)
+    
+    plt.figure(387)
+    plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
+    plt.colorbar()
+    
+    for ix in range(N):
+        plt.figure(50+ix)
+        vv = S[ix].Ms*S[0].v
+        uu = S[ix].Ms*S[0].us
+        ub = S[ix].Ms*S[0].ub
+        skt = S[ix].uHat-ub
+    
+        # io.savemat('uHat'+repr(ix), {'uh':uHat, 'ub':ub, 'skt':skt})
+
+        plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
+        
+    plt.figure(76)
+    plt.subplot(121)
+    plt.imshow(S[0].us.reshape(S[0].nx,S[0].ny).real)
+    plt.colorbar()
+    
+    plt.subplot(122)
+    plt.imshow(S[0].vv.reshape(S[0].nx,S[0].ny).real)
+    plt.colorbar()
+    plt.show()
+    
+def plotParallel(S,P,resid,rank):
+    ''' Plotting routine if things are parallel'''
+    vv = S.Ms*S.v
+    uu = S.Ms*S.us
+    ub = S.Ms*S.ub
+    skt = S.uHat-ub
+    
+    plt.figure(100+rank)
+    plt.plot(np.arange(S.nSen), skt.real, np.arange(S.nSen), uu.real, np.arange(S.nSen), vv.real)
+    
+    if rank==0:
+        # then print some figures   
+        plt.figure(383)
+        plt.plot(resid)
+    
+        plt.figure(387)
+        plt.imshow(P.reshape(S.nRx,S.nRy), interpolation='nearest')
+        plt.colorbar()
+
+        plt.figure(76)
+        plt.subplot(121)
+        plt.imshow(S.us.reshape(S.nx,S.ny).real)
+        plt.colorbar()
+    
+        plt.subplot(122)
+        plt.imshow(S.v.reshape(S.nx,S.ny).real)
+        plt.colorbar()
+    
+    # all show!
+    plt.show()
+    
 
     
     

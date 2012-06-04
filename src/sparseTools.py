@@ -10,7 +10,7 @@ I need a few sparse matrix tools
 import scipy.sparse as sparse
 import numpy as np
 
-def spHcat(A):
+def hCat(A):
     ''' squish matricies given in list A'''
     
     # dims = np.empty(N)
@@ -32,7 +32,7 @@ def spHcat(A):
     P = sparse.coo_matrix((dtx[1:],(I[1:],J[1:])), shape=(m,n))
     return P
         
-def spVcat(A):
+def vCat(A):
     '''Stack matrices given in list A '''
     n = A[0].shape[1]
     m = 0
