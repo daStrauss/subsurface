@@ -7,7 +7,7 @@ import numpy as np
 # import scipy as sp
 from scipy import sparse
 from scipy.sparse import linalg as lin
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import scipy.special as spec
 import pickle
 import scipy.io as spio

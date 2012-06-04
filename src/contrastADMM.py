@@ -12,7 +12,7 @@ import scipy.sparse as sparse
 import scipy.sparse.linalg as lin
 from mpi4py import MPI
 import sparseTools as spTools
-import matplotlib.pyplot as plt
+import scipy.io as spio
 
 
 class problem(twoDim):
@@ -77,6 +77,13 @@ class problem(twoDim):
         self.us = updt[:N]
         self.X = updt[N:(N+self.nRx*self.nRy)]
         
+    def writeOut(self, ind=0):
+        D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
+             'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
+             'X':self.X.reshape(self.nRx,self.nRy)}
+        
+        spio.savemat('contrastX' + repr(self.rank), D)
+        
         
     
 def aggregatorSerial(S, lmb, uBound):
@@ -136,6 +143,7 @@ def aggregatorParallel(S, lmb, uBound, comm):
 
 
 def plotSerial(S,P,resid):
+    import matplotlib.pyplot as plt
     ''' plotting routine for the serial passes '''
     N = np.size(S)
     plt.figure(383)
@@ -158,7 +166,7 @@ def plotSerial(S,P,resid):
 
         # plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
         plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real)
-        plt.savefig('fig'+repr(fig+ix))
+        plt.savefig('fig'+repr(50+ix))
         
     plt.figure(76)
     plt.subplot(121)
@@ -172,6 +180,9 @@ def plotSerial(S,P,resid):
     # plt.show()
     
 def plotParallel(S,P,resid,rank):
+    import matplotlib
+    matplotlib.use('PDF')
+    import matplotlib.pyplot as plt
     ''' Plotting routine if things are parallel'''
     # vv = S.Ms*S.v
     uu = S.Ms*S.us
@@ -205,4 +216,3 @@ def plotParallel(S,P,resid,rank):
     
     # all show!
     # plt.show()
-    

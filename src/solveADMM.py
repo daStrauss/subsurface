@@ -8,6 +8,7 @@ Created on May 25, 2012
 from mpi4py import MPI
 import numpy as np
 import contrastADMM as admm
+import scipy.io as spio
 
 def bigProj(freq,incAng, ranks):
     S = map(admm.problem, freq, incAng, ranks)
@@ -74,7 +75,7 @@ def serial():
     for F in S:
         uHat = F.Ms*(F.sol[1].flatten())
         
-        F.initOpt(rho,xi,F.Ms*(F.sol[1].flatten()))
+        F.initOpt(rho,xi,uHat)
     
     
     # P = np.zeros(80*25)
@@ -101,6 +102,7 @@ def serial():
 def parallel():
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
+    nProc = comm.Get_size()
     
 #    rho = 1500.0
 #    xi = 2e-3
@@ -142,7 +144,12 @@ def parallel():
         
     # do some plotting        
     admm.plotParallel(S,P,resid,rank)
-    
+    # S.writeOut()
+    # if rank == 0:
+    #    D = {'Pfinal':P.reshape(S.nRx,S.nRy), 'nProc':nProc}
+    #    spio.savemat('pout', D)
+        
+        
 
     
 if __name__ == "__main__":
