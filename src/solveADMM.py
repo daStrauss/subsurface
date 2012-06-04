@@ -143,12 +143,11 @@ def parallel():
     print xi
     print rho
 
-    allFreq = np.array([1e3, 1e4])
-    allIncAng = np.array([45.0, 45.0])*np.pi/180.0
+    allFreq = np.array([1e3, 3e3, 8e3, 1e4])
+    allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
     # allRanks = np.arange(np.size(freq))
     
     S = smallProj([allFreq[rank]], [allIncAng[rank]], [rank])
-    N = np.size(S)
     
     # de reference so that I don't continuously have to work with lists in parallel mode
     S = S[0]
@@ -164,7 +163,7 @@ def parallel():
     # io.savemat('bkg', {'u':S[0].sol[1]})
     # io.savemat('sigm', {'sigMap':S[0].sigmap[1]})
     
-    for itNo in range(2):
+    for itNo in range(100):
         print 'iter no ' + repr(itNo)
         
         S.runOpt(P)
@@ -173,6 +172,16 @@ def parallel():
         resid[itNo] = np.linalg.norm(P-0.01)
         # io.savemat('iter' + repr(itNo), {'P':P, 'u':S[0].us, 'v':S[0].v, 'E':S[0].E, 'F':S[0].F})
         
+        
+    # everyone do some plotting! 
+    vv = S.Ms*S.v
+    uu = S.Ms*S.us
+    ub = S.Ms*S.ub
+    skt = S.uHat-ub
+    
+    plt.figure(100+rank)
+    plt.plot(np.arange(S.nSen), skt.real, np.arange(S.nSen), uu.real, np.arange(S.nSen), vv.real)
+    
     if rank==0:
         # then print some figures   
         plt.figure(383)
@@ -190,9 +199,7 @@ def parallel():
         skt = S.uHat-ub
     
         # io.savemat('uHat'+repr(ix), {'uh':uHat, 'ub':ub, 'skt':skt})
-        plt.figure(40)
-        plt.plot(np.arange(S.nSen), skt.real, np.arange(S.nSen), uu.real, np.arange(S.nSen), vv.real)
-    
+
         plt.figure(76)
         plt.subplot(121)
         plt.imshow(S.us.reshape(S.nx,S.ny).real)
@@ -201,7 +208,9 @@ def parallel():
         plt.subplot(122)
         plt.imshow(S.v.reshape(S.nx,S.ny).real)
         plt.colorbar()
-        plt.show()
+    
+    # all show!
+    plt.show()
     
 
     
