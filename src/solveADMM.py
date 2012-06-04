@@ -131,9 +131,9 @@ def parallel():
     S.initOpt(rho,xi,uHat)
     
     P = np.zeros(S.nRx*S.nRy)
-    resid = np.zeros(200)
+    resid = np.zeros(1000)
     
-    for itNo in range(200):
+    for itNo in range(1000):
         print 'iter no ' + repr(itNo)
         
         S.runOpt(P)
