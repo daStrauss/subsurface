@@ -32,15 +32,16 @@ class problem(twoDim):
         
     def trueSolve(self,P):
         ''' an "internal" method to use for obtaining the current value of us '''
-        A = self.nabla2 + self.getk(0) + sparse.spdiags(self.s*self.Md.T*P,0,self.nx*self.ny, self.nx*self.ny)
-        self.us = lin.spsolve(A,self.rhs)
-        return self.us,A
+        
+        self.A = self.nabla2 + self.getk(0) + sparse.spdiags(self.s*self.Md.T*P,0,self.nx*self.ny, self.nx*self.ny)
+        self.us = lin.spsolve(self.A,self.rhs)
+
     
     def runOpt(self,P):
         ''' runtime module'''
         # get the local background -- requires a new solve!
-        ub,A = self.trueSolve(P)
-        localuHat = self.uHat - self.Ms*ub
+        self.trueSolve(P)
+        localuHat = self.uHat - self.Ms*self.us
         
         # produce some local matrices
         B = self.s*sparse.spdiags(ub,0,self.nx*self.ny,self.nx*self.ny)*self.Md.T
