@@ -44,7 +44,7 @@ class problem(twoDim):
         localuHat = self.uHat - self.Ms*self.us
         
         # produce some local matrices
-        B = self.s*sparse.spdiags(ub,0,self.nx*self.ny,self.nx*self.ny)*self.Md.T
+        B = self.s*sparse.spdiags(self.us,0,self.nx*self.ny,self.nx*self.ny)*self.Md.T
         c = np.zeros(self.nx*self.ny)
         Z = self.Ms
         
@@ -58,9 +58,9 @@ class problem(twoDim):
         q = np.zeros(m) # estimate 2 for materials
         r = np.zeros(m) # dual variable for materials
         
-        M = spt.vCat([spt.hCat([Z.T*Z, sparse.coo_matrix((n,m)), A.T.conj()]), \
+        M = spt.vCat([spt.hCat([Z.T*Z, sparse.coo_matrix((n,m)), self.A.T.conj()]), \
                       spt.hCat([sparse.coo_matrix((m,n)), self.rho*sparse.eye(m,m), B.T.conj()]),\
-                      spt.hCat([A, B, sparse.coo_matrix((n,n))])])
+                      spt.hCat([self.A, B, sparse.coo_matrix((n,n))])])
         
         Q = lin.factorized(M)
         
@@ -139,9 +139,9 @@ class problem(twoDim):
             
         
         # vv = S.Ms*S.v
-        uf,A = self.trueSolve(P)
+        self.trueSolve(P)
             
-        uu = self.Ms*(uf - self.sol[0].flatten())
+        uu = self.Ms*(self.us - self.sol[0].flatten())
         ub = self.Ms*(self.sol[0].flatten())
         skt = self.uHat-ub
         
@@ -162,11 +162,11 @@ class problem(twoDim):
     
             plt.figure(76)
             plt.subplot(121)
-            plt.imshow((uf.reshape(self.nx,self.ny)-self.sol[0]).real)
+            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).real)
             plt.colorbar()
         
             plt.subplot(122)
-            plt.imshow((uf.reshape(self.nx,self.ny)-self.sol[0]).imag)
+            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
             plt.colorbar()
             plt.title('Final Scattered Fields f = ' + repr(self.f))
             plt.savefig('sbaFigs/fig76')
@@ -195,9 +195,9 @@ class problem(twoDim):
         for ix in range(N):
             plt.figure(50+ix)
             # vv = S[ix].Ms*S[0].v
-            uf,A = S[ix].trueSolve(P)
+            S[ix].trueSolve(P)
             
-            uu = S[ix].Ms*(uf - S[ix].sol[0].flatten())
+            uu = S[ix].Ms*(self.us - S[ix].sol[0].flatten())
             ub = S[ix].Ms*(S[0].sol[0].flatten())
             skt = S[ix].uHat-ub
         
@@ -209,11 +209,11 @@ class problem(twoDim):
             
         plt.figure(76)
         plt.subplot(121)
-        plt.imshow((uf.reshape(self.nx,self.ny)-self.sol[0]).real)
+        plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).real)
         plt.colorbar()
     
         plt.subplot(122)
-        plt.imshow((uf.reshape(self.nx,self.ny)-self.sol[0]).imag)
+        plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
         plt.colorbar()
         plt.savefig('sbaFigs/fig76')
         plt.title('Final Scattered Fields f = ' + repr(self.f))
