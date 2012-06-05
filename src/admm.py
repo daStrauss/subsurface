@@ -70,7 +70,7 @@ class problem(twoDim):
         print 'obj = ' + repr(obj) + ' Split Gap ' + repr(gap)
         # return obj
     
-    def writeOut(self, ind=0):
+    def writeOut(self):
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
              'v':self.v.reshape(self.nRx,self.nRy)}

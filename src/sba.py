@@ -10,6 +10,7 @@ import scipy.sparse.linalg as lin
 import sparseTools as spt
 import numpy as np
 from mpi4py import MPI
+import scipy.io as spio
 
 class problem(twoDim):
     '''a class to do the born approximation iterations '''
@@ -32,8 +33,8 @@ class problem(twoDim):
     def trueSolve(self,P):
         ''' an "internal" method to use for obtaining the current value of us '''
         A = self.nabla2 + self.getk(0) + sparse.spdiags(self.s*self.Md.T*P,0,self.nx*self.ny, self.nx*self.ny)
-        
-        return lin.spsolve(A,self.rhs),A
+        self.us = lin.spsolve(A,self.rhs)
+        return self.us,A
     
     def runOpt(self,P):
         ''' runtime module'''
@@ -218,4 +219,15 @@ class problem(twoDim):
 
         plt.savefig('sbaFigs/fig76')
         # plt.show()
+    def writeOut(self):
+        '''routine to print out information about the solve '''
+        import os
+        if not os.path.exists('sbaData'):
+            os.mkdir('sbaData')
+        
+        D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
+             'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1]}
+        
+        spio.savemat('sbaData/sba' + repr(self.rank), D)
+    
             

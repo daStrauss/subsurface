@@ -79,7 +79,7 @@ class problem(twoDim):
         self.us = updt[:N]
         self.X = updt[N:(N+self.nRx*self.nRy)]
         
-    def writeOut(self, ind=0):
+    def writeOut(self):
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
              'X':self.X.reshape(self.nRx,self.nRy)}
