@@ -26,6 +26,8 @@ class problem(twoDim):
         self.rho = rho
         self.xi = xi
         self.uHat = uHat
+        self.lmb = lmb
+        self.uBound = upperBound
         self.F = np.zeros(self.N,dtype='complex128')
         self.E = np.zeros(self.N,dtype='complex128')
         self.us = np.zeros(self.N,dtype='complex128')
@@ -77,7 +79,7 @@ class problem(twoDim):
             
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
-             'v':self.v.reshape(self.nRx,self.nRy)}
+             'v':self.v.reshape(self.nx,self.ny)}
     
         spio.savemat('splitFieldData/splitField' + repr(self.rank), D)
         
@@ -104,7 +106,7 @@ class problem(twoDim):
         
         P = (-num/den).real
         P = np.maximum(P,0)
-        P = np.minimum(P,self.upperBound)
+        P = np.minimum(P,self.uBound)
         
         gap = np.zeros(N)
         for ix in range(N):
@@ -131,7 +133,7 @@ class problem(twoDim):
         
         P = (-num/den).real
         P = np.maximum(P,0)
-        P = np.minimum(P,self.upperBound)
+        P = np.minimum(P,self.uBound)
         
         gap = np.linalg.norm(self.Md.T*(U*P) + self.A*self.us)
         print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
@@ -185,6 +187,10 @@ class problem(twoDim):
         import matplotlib
         matplotlib.use('PDF')
         import matplotlib.pyplot as plt
+        import os
+        
+        if not os.path.exists('splitFieldFigs'):
+            os.mkdir('splitFieldFigs')
         
         vv = self.Ms*self.v
         uu = self.Ms*self.us
