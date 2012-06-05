@@ -71,11 +71,15 @@ class problem(twoDim):
         # return obj
     
     def writeOut(self):
+        import os
+        if not os.path.exists('splitFieldData'):
+            os.mkdir('splitFieldData')
+            
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
              'v':self.v.reshape(self.nRx,self.nRy)}
     
-        spio.savemat('fieldSplit' + repr(self.rank), D)
+        spio.savemat('splitFieldData/splitField' + repr(self.rank), D)
         
   
     
@@ -139,16 +143,19 @@ class problem(twoDim):
         import matplotlib
         matplotlib.use('PDF')
         import matplotlib.pyplot as plt
+        import os
+        if not os.path.exists('splitFieldFigs'):
+            os.mkdir('splitFieldFigs')
         
         N = np.size(S)
         plt.figure(383)
         plt.plot(resid)
-        plt.savefig('fig383')
+        plt.savefig('splitFieldFigs/fig383')
         
         plt.figure(387)
         plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
         plt.colorbar()
-        plt.savefig('fig387')
+        plt.savefig('splitFieldFigs/fig387')
         
         for ix in range(N):
             plt.figure(50+ix)
@@ -160,7 +167,7 @@ class problem(twoDim):
             # io.savemat('uHat'+repr(ix), {'uh':uHat, 'ub':ub, 'skt':skt})
     
             plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
-            plt.savefig('fig'+repr(50+ix))
+            plt.savefig('splitFieldFigs/fig'+repr(50+ix))
             
         plt.figure(76)
         plt.subplot(121)
@@ -171,7 +178,7 @@ class problem(twoDim):
         plt.imshow(S[0].v.reshape(S[0].nx,S[0].ny).real)
         plt.colorbar()
         # plt.show()
-        plt.savefig('fig76')
+        plt.savefig('splitFieldFigs/fig76')
     
     def plotParallel(self,P,resid,rank):
         ''' Plotting routine if things are parallel'''
@@ -186,18 +193,18 @@ class problem(twoDim):
         
         plt.figure(100+rank)
         plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real, np.arange(self.nSen), vv.real)
-        plt.savefig('fig' + repr(100+rank))
+        plt.savefig('splitFieldFigs/fig' + repr(100+rank))
         
         if rank==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
-            plt.savefig('fig383')
+            plt.savefig('splitFieldFigs/fig383')
         
             plt.figure(387)
             plt.imshow(P.reshape(self.nRx, self.nRy), interpolation='nearest')
             plt.colorbar()
-            plt.savefig('fig387')
+            plt.savefig('splitFieldFigs/fig387')
     
             plt.figure(76)
             plt.subplot(121)
@@ -207,7 +214,7 @@ class problem(twoDim):
             plt.subplot(122)
             plt.imshow(self.v.reshape(self.nx,self.ny).real)
             plt.colorbar()
-            plt.savefig('fig76')
+            plt.savefig('splitFieldFigs/fig76')
         
         # all show!
 #        plt.show()

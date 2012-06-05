@@ -80,11 +80,15 @@ class problem(twoDim):
         self.X = updt[N:(N+self.nRx*self.nRy)]
         
     def writeOut(self):
+        import os
+        if not os.path.exists('contrastXData'):
+            os.mkdir('contrastXData')
+            
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
              'X':self.X.reshape(self.nRx,self.nRy)}
         
-        spio.savemat('contrastX' + repr(self.rank), D)
+        spio.savemat('contrastXData/contrastX' + repr(self.rank), D)
         
         
         
@@ -150,15 +154,20 @@ class problem(twoDim):
         matplotlib.use('PDF')
         import matplotlib.pyplot as plt
         
+        import os
+        if not os.path.exists('contrastXFigs'):
+            os.mkdir('contrastXFigs')
+            
+        
         N = np.size(S)
         plt.figure(383)
         plt.plot(resid)
-        plt.savefig('fig383')
+        plt.savefig('contrastXFigs/fig383')
         
         plt.figure(387)
         plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
         plt.colorbar()
-        plt.savefig('fig387')
+        plt.savefig('contrastXFigs/fig387')
         
         for ix in range(N):
             plt.figure(50+ix)
@@ -171,7 +180,7 @@ class problem(twoDim):
     
             # plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
             plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real)
-            plt.savefig('fig'+repr(50+ix))
+            plt.savefig('contrastXFigs/fig'+repr(50+ix))
             
         plt.figure(76)
         plt.subplot(121)
@@ -181,14 +190,20 @@ class problem(twoDim):
         plt.subplot(122)
         plt.imshow(S[1].us.reshape(S[0].nx,S[0].ny).real)
         plt.colorbar()
-        plt.savefig('fig76')
+        plt.savefig('contrastXFigs/fig76')
         # plt.show()
         
     def plotParallel(self,P,resid,rank):
+        ''' Plotting routine if things are parallel'''
+
         import matplotlib
         matplotlib.use('PDF')
         import matplotlib.pyplot as plt
-        ''' Plotting routine if things are parallel'''
+        import os
+        
+        if not os.path.exists('contrastXFigs'):
+            os.mkdir('contrastXFigs')
+        
         # vv = S.Ms*S.v
         uu = self.Ms*self.us
         ub = self.Ms*self.ub
@@ -196,18 +211,18 @@ class problem(twoDim):
         
         plt.figure(100+rank)
         plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
-        plt.savefig('fig' + repr(100+rank))
+        plt.savefig('contrastXFigs/fig' + repr(100+rank))
         
         if rank==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
-            plt.savefig('fig383')
+            plt.savefig('contrastXFigs/fig383')
         
             plt.figure(387)
             plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
             plt.colorbar()
-            plt.savefig('fig387')
+            plt.savefig('contrastXFigs/fig387')
     
             plt.figure(76)
             plt.subplot(121)
@@ -217,7 +232,7 @@ class problem(twoDim):
             plt.subplot(122)
             plt.imshow(self.us.reshape(self.nx,self.ny).imag)
             plt.colorbar()
-            plt.savefig('fig76')
+            plt.savefig('contrastXFigs/fig76')
         
         # all show!
         # plt.show()
