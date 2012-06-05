@@ -146,9 +146,9 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
     S.initOpt(uHat, rho, xi, uBound, lmb)
     
     P = np.zeros(S.nRx*S.nRy)
-    resid = np.zeros(10)
+    resid = np.zeros(500)
     
-    for itNo in range(10):
+    for itNo in range(500):
         print 'iter no ' + repr(itNo)
         
         S.runOpt(P)
