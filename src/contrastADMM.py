@@ -17,10 +17,12 @@ import scipy.io as spio
 
 class problem(twoDim):
     ''' class that extents the contrast - Xadmm algorithm '''
-    def initOpt(self,rho,xi,uHat):
+    def initOpt(self, uHat, rho, xi, upperBound, lmb):
         self.rho = rho
         self.xi = xi
         self.uHat = uHat
+        self.upperBound = lmb
+        self.lmb = lmb
         
         # add some local vars for ease
         self.s = 1j*self.muo*self.w
@@ -86,7 +88,7 @@ class problem(twoDim):
         
         
         
-    def aggregatorSerial(self, S, lmb, uBound):
+    def aggregatorSerial(self, S):
         ''' routine to do the aggregation step and return an update for P '''
         N = np.size(S)
         n = S[0].nRx*S[0].nRy
@@ -103,11 +105,11 @@ class problem(twoDim):
             
         num = np.sum(U.real*Q.real + U.imag*Q.imag,1)
         
-        den = np.sum(U.conj()*U,1) + lmb/S[0].rho
+        den = np.sum(U.conj()*U,1) + self.lmb/S[0].rho
         
         P = (num/den).real
         P = np.maximum(P,0)
-        P = np.minimum(P,uBound)
+        P = np.minimum(P,self.upperBound)
         
         gap = np.zeros(N)
         for ix in range(N):
@@ -115,7 +117,7 @@ class problem(twoDim):
             
         return P
     
-    def aggregatorParallel(self, lmb, uBound, comm):
+    def aggregatorParallel(self, comm):
         ''' Do the aggregation step in parallel whoop! '''
         N = np.size(self)
         print repr(N) + ' == better be 1!'
@@ -128,13 +130,13 @@ class problem(twoDim):
         
         num = comm.allreduce(q,num,op=MPI.SUM)
         
-        q = U.conj()*U + lmb/self.rho
+        q = U.conj()*U + self.lmb/self.rho
         den = np.zeros(q.shape)
         den = comm.allreduce(q,den,op=MPI.SUM)
         
         P = (num/den).real
         P = np.maximum(P,0)
-        P = np.minimum(P,uBound)
+        P = np.minimum(P,self.upperBound)
         
         gap = np.linalg.norm(U*P - self.X)
         print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)

@@ -20,6 +20,10 @@ def delegator(solverType, freq, incAng, ranks):
         import admm
         S = map(admm.problem, freq, incAng, ranks)
         return S
+    elif solverType == 'sba':
+        import sba
+        S = map(sba.problem, freq, incAng, ranks)
+        return S
     
 def bigProj(S):
     
@@ -67,14 +71,13 @@ def smallProj(S):
         F.fwd_solve(1)
     return S
 
-def serial(solverType, rho=1e-3, xi=2e-3, lmb=0.0):
+def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
 
     # rho = 1500.0
     # ho = 1e-3
     # xi = 2e-3
     # lmb = 0.0
     
-    uBound = 0.05
     print 'xi = ' + repr(xi) + ' rho = ' + repr(rho)
 
     freq = np.array([1e3, 1e4])
@@ -88,7 +91,7 @@ def serial(solverType, rho=1e-3, xi=2e-3, lmb=0.0):
     for F in S:
         uHat = F.Ms*(F.sol[1].flatten())
         
-        F.initOpt(rho,xi,uHat)
+        F.initOpt(uHat,rho,xi,uBound, lmb)
     
     
     # P = np.zeros(80*25)
@@ -106,13 +109,17 @@ def serial(solverType, rho=1e-3, xi=2e-3, lmb=0.0):
             S[ix].runOpt(P)
         
         # aggregate over all
-        P = S[0].aggregatorSerial(S, lmb, uBound)
+        if solverType == 'sba':
+            P += S[0].aggregatorSerial(S)
+        else:
+            P = S[0].aggregatorSerial(S)
+            
         resid[itNo] = np.linalg.norm(P-0.01)
 
     S[0].plotSerial(S, P, resid)
 
 
-def parallel(solverType, rho=1e-3, xi=2e-3, lmb=0.0):
+def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
 
     
     comm = MPI.COMM_WORLD
@@ -135,17 +142,23 @@ def parallel(solverType, rho=1e-3, xi=2e-3, lmb=0.0):
     S = S[0]
     
     uHat = S.Ms*(S.sol[1].flatten())
-    S.initOpt(rho,xi,uHat)
+    
+    S.initOpt(uHat, rho, xi, uBound, lmb)
     
     P = np.zeros(S.nRx*S.nRy)
-    resid = np.zeros(1000)
+    resid = np.zeros(10)
     
-    for itNo in range(1000):
+    for itNo in range(10):
         print 'iter no ' + repr(itNo)
         
         S.runOpt(P)
         
-        P = S.aggregatorParallel(lmb, uBound, comm)
+        # i don't think i can get around this!
+        if solverType == 'sba':
+            P += S.aggregatorParallel(comm)
+        else:
+            P = S.aggregatorParallel(comm)
+            
         resid[itNo] = np.linalg.norm(P-0.01)
         
         
@@ -161,7 +174,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, lmb=0.0):
 
     
 if __name__ == "__main__":
-    serial('contrastX')
+    parallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
     
     
     

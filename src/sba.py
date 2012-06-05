@@ -4,11 +4,12 @@ Created on Jun 4, 2012
 @author: dstrauss
 '''
 
-import maxwell.twoDim as twoDim
+from maxwell import twoDim
 import scipy.sparse as sparse
 import scipy.sparse.linalg as lin
 import sparseTools as spt
 import numpy as np
+from mpi4py import MPI
 
 class problem(twoDim):
     '''a class to do the born approximation iterations '''
@@ -19,18 +20,20 @@ class problem(twoDim):
     rho = 0.0001
     maxit = 2000
     
-    def initOpt(self,uHat, stepSize=0.005, upperBound=0.05):
-        self.stepSize = stepSize
+    def initOpt(self, uHat, rho=0.005, xi=0.9, uBound=0.05, lmb=0):
+        self.stepSize = rho
+        self.alpha = xi
         self.uHat = uHat
         self.s = self.w*self.muo*1j
-        self.uppB = upperBound
+        self.uBound = uBound
+        self.lmb = lmb
         
         
     def trueSolve(self,P):
         ''' an "internal" method to use for obtaining the current value of us '''
         A = self.nabla2 + self.getk(0) + sparse.spdiags(self.s*self.Md.T*P,0,self.nx*self.ny, self.nx*self.ny)
         
-        return lin.spsolve(A,self.rhs,use_Umfpack=True),A
+        return lin.spsolve(A,self.rhs),A
     
     def runOpt(self,P):
         ''' runtime module'''
@@ -62,8 +65,8 @@ class problem(twoDim):
         lowb = -P.copy()
         lowb[P-self.stepSize > 0 ] = -self.stepSize
         
-        uppb = self.uppB-P
-        uppb[P+self.stepSize < self.uppB] = self.stepSize
+        uppb = self.uBound-P
+        uppb[P+self.stepSize < self.uBound] = self.stepSize
         
         okgo = True
         iterk = 0
@@ -102,7 +105,7 @@ class problem(twoDim):
         return q
     
     
-    def aggregatorSerial(self,S,alpha):
+    def aggregatorSerial(self,S):
         ''' super simple aggregator for sba method'''
         N = np.size(S)
         n = S[0].nRx*S[0].nRy
@@ -112,15 +115,107 @@ class problem(twoDim):
         for ix in range(N):
             P += S[ix].deltaP
         
-        return (1.0/N)*P*alpha
+        return (1.0/N)*P*self.alpha
     
-    def aggregatorParallel(self, alpha,comm):
-        pass
-    
-    def plotParallel(self):
-        pass
-    
-    def plotSerial(self,S):
-        pass
+    def aggregatorParallel(self,comm):
+        ''' SUPER simple aggregator for sba method for working over parallel '''
+        dP = np.zeros(self.nRx*self.nRy)
         
+        dP = comm.allreduce(self.deltaP,dP,op=MPI.SUM)
+        dP = dP*(1.0/comm.Get_size())*self.alpha
+        return dP
+    
+    def plotParallel(self,P,resid,rank):
+        ''' Plotting routine if things are parallel'''
+        import matplotlib
+        matplotlib.use('PDF')
+        import matplotlib.pyplot as plt
+        import os
+        
+        if not os.path.exists('sbaFigs'):
+            os.makedirs('sbaFigs')
+            
+        
+        # vv = S.Ms*S.v
+        uf,A = self.trueSolve(P)
+            
+        uu = self.Ms*(uf - self.sol[0].flatten())
+        ub = self.Ms*(self.sol[0].flatten())
+        skt = self.uHat-ub
+        
+        plt.figure(100+rank)
+        plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
+        plt.savefig('sbaFigs/fig' + repr(100+rank))
+        
+        if rank==0:
+            # then print some figures   
+            plt.figure(383)
+            plt.plot(resid)
+            plt.savefig('sbaFigs/fig383')
+        
+            plt.figure(387)
+            plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
+            plt.colorbar()
+            plt.savefig('sbaFigs/fig387')
+    
+            plt.figure(76)
+            plt.subplot(121)
+            plt.imshow((uf.reshape(self.nx,self.ny)-self.sol[0]).real)
+            plt.colorbar()
+        
+            plt.subplot(122)
+            plt.imshow((uf.reshape(self.nx,self.ny)-self.sol[0]).imag)
+            plt.colorbar()
+            plt.title('Final Scattered Fields f = ' + repr(self.f))
+            plt.savefig('sbaFigs/fig76')
+        
+    
+    def plotSerial(self,S,P,resid):
+        ''' plotting routine for the serial passes '''
+        import matplotlib
+        matplotlib.use('PDF')
+        import matplotlib.pyplot as plt
+        import os
+        
+        if not os.path.exists('sbaFigs'):
+            os.makedirs('sbaFigs')
+        
+        N = np.size(S)
+        plt.figure(383)
+        plt.plot(resid)
+        plt.savefig('sbaFigs/fig383')
+        
+        plt.figure(387)
+        plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
+        plt.colorbar()
+        plt.savefig('sbaFigs/fig387')
+        
+        for ix in range(N):
+            plt.figure(50+ix)
+            # vv = S[ix].Ms*S[0].v
+            uf,A = S[ix].trueSolve(P)
+            
+            uu = S[ix].Ms*(uf - S[ix].sol[0].flatten())
+            ub = S[ix].Ms*(S[0].sol[0].flatten())
+            skt = S[ix].uHat-ub
+        
+            # io.savemat('uHat'+repr(ix), {'uh':uHat, 'ub':ub, 'skt':skt})
+    
+            # plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
+            plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real)
+            plt.savefig('sbaFigs/fig'+repr(50+ix))
+            
+        plt.figure(76)
+        plt.subplot(121)
+        plt.imshow((uf.reshape(self.nx,self.ny)-self.sol[0]).real)
+        plt.colorbar()
+    
+        plt.subplot(122)
+        plt.imshow((uf.reshape(self.nx,self.ny)-self.sol[0]).imag)
+        plt.colorbar()
+        plt.savefig('sbaFigs/fig76')
+        plt.title('Final Scattered Fields f = ' + repr(self.f))
+
+        plt.savefig('sbaFigs/fig76')
+        # plt.show()
             

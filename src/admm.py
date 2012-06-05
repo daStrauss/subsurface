@@ -21,7 +21,7 @@ class problem(twoDim):
 #        self.rho = rho
 #        self.xi = xi
     
-    def initOpt(self,rho,xi,uHat):
+    def initOpt(self,uHat, rho, xi, upperBound, lmb):
         ''' prepare for upcoming iterations '''
         self.rho = rho
         self.xi = xi
@@ -79,7 +79,7 @@ class problem(twoDim):
         
   
     
-    def aggregatorSerial(self, S,lmb,uBound):
+    def aggregatorSerial(self, S):
         '''Do the aggregate step updates '''
         N = np.size(S)
         n = S[0].nRx*S[0].nRy
@@ -96,11 +96,11 @@ class problem(twoDim):
             
         num = np.sum(U.real*Q.real + U.imag*Q.imag,1)
         print num.shape
-        den = np.sum(U.conj()*U,1) + lmb/S[0].rho
+        den = np.sum(U.conj()*U,1) + self.lmb/S[0].rho
         
         P = (-num/den).real
         P = np.maximum(P,0)
-        P = np.minimum(P,uBound)
+        P = np.minimum(P,self.upperBound)
         
         gap = np.zeros(N)
         for ix in range(N):
@@ -108,7 +108,7 @@ class problem(twoDim):
             
         return P
 
-    def aggregatorParallel(self,lmb,uBound,comm):
+    def aggregatorParallel(self,comm):
         ''' Do the aggregation step in parallel whoop! '''
         N = np.size(self)
         print repr(N) + ' == better be 1!'
@@ -121,13 +121,13 @@ class problem(twoDim):
         
         num = comm.allreduce(q,num,op=MPI.SUM)
         
-        q = U.conj()*U + lmb/self.rho
+        q = U.conj()*U + self.lmb/self.rho
         den = np.zeros(q.shape)
         den = comm.allreduce(q,den,op=MPI.SUM)
         
         P = (-num/den).real
         P = np.maximum(P,0)
-        P = np.minimum(P,uBound)
+        P = np.minimum(P,self.upperBound)
         
         gap = np.linalg.norm(self.Md.T*(U*P) + self.A*self.us)
         print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
