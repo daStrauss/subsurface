@@ -7,11 +7,22 @@ Created on May 25, 2012
 
 from mpi4py import MPI
 import numpy as np
-import contrastADMM as admm
 import scipy.io as spio
 
-def bigProj(freq,incAng, ranks):
-    S = map(admm.problem, freq, incAng, ranks)
+
+def delegator(solverType, freq, incAng, ranks):
+    ''' A function that will allocate the problem instances according to the 'type' given '''
+    if solverType == 'contrastX':
+        import contrastADMM
+        S = map(contrastADMM.problem, freq, incAng, ranks)
+        return S
+    elif solverType == 'splitField':
+        import admm
+        S = map(admm.problem, freq, incAng, ranks)
+        return S
+    
+def bigProj(S):
+    
     nx = 199
     ny = 199
     dx = 5.0
@@ -34,9 +45,8 @@ def bigProj(freq,incAng, ranks):
     
     return S
 
-def smallProj(freq, incAng, ranks):
+def smallProj(S):
     '''build for a small project, ie 99x99 '''
-    S = map(admm.problem, freq, incAng, ranks)
     nx = 99
     ny = 99
     dx = 5.0
@@ -57,11 +67,13 @@ def smallProj(freq, incAng, ranks):
         F.fwd_solve(1)
     return S
 
-def serial():
+def serial(solverType, rho=1e-3, xi=2e-3, lmb=0.0):
+
     # rho = 1500.0
-    rho = 1e-3
-    xi = 2e-3
-    lmb = 0.0
+    # ho = 1e-3
+    # xi = 2e-3
+    # lmb = 0.0
+    
     uBound = 0.05
     print 'xi = ' + repr(xi) + ' rho = ' + repr(rho)
 
@@ -69,7 +81,8 @@ def serial():
     incAng = np.array([45.0, 45.0])*np.pi/180.0
     ranks = np.arange(np.size(freq))
     
-    S = smallProj(freq, incAng, ranks)
+    S = delegator(solverType, freq, incAng, ranks)
+    S = smallProj(S)
     N = np.size(S)
     
     for F in S:
@@ -93,25 +106,18 @@ def serial():
             S[ix].runOpt(P)
         
         # aggregate over all
-        P = admm.aggregatorSerial(S, lmb, uBound)
+        P = S[0].aggregatorSerial(S, lmb, uBound)
         resid[itNo] = np.linalg.norm(P-0.01)
 
-    admm.plotSerial(S, P, resid)
+    S[0].plotSerial(S, P, resid)
 
 
-def parallel():
+def parallel(solverType, rho=1e-3, xi=2e-3, lmb=0.0):
+
+    
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     nProc = comm.Get_size()
-    
-#    rho = 1500.0
-#    xi = 2e-3
-#    lmb = 1e-8
-    
-    rho = 1e-3
-    xi = 2e-3
-    lmb = 0.0
-    
     
     uBound = 0.05
     print xi
@@ -122,7 +128,8 @@ def parallel():
     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
     # allRanks = np.arange(np.size(freq))
     
-    S = bigProj([allFreq[rank]], [allIncAng[rank]], [rank])
+    S = delegator(solverType, [allFreq[rank]], [allIncAng[rank]], [rank])
+    S = bigProj(S)
     
     # de reference so that I don't continuously have to work with lists in parallel mode
     S = S[0]
@@ -138,12 +145,12 @@ def parallel():
         
         S.runOpt(P)
         
-        P = admm.aggregatorParallel(S, lmb, uBound, comm)
+        P = S.aggregatorParallel(lmb, uBound, comm)
         resid[itNo] = np.linalg.norm(P-0.01)
         
         
     # do some plotting        
-    admm.plotParallel(S,P,resid,rank)
+    S.plotParallel(P,resid,rank)
     S.writeOut()
     
     if rank == 0:
@@ -154,7 +161,7 @@ def parallel():
 
     
 if __name__ == "__main__":
-    parallel()
+    serial('contrastX')
     
     
     
