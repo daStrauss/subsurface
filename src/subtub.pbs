@@ -1,0 +1,1 @@
+mpiexec python /shared/users/dstrauss/subsurface/src/solveADMM.py
