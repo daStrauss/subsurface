@@ -8,6 +8,7 @@ Created on May 25, 2012
 from mpi4py import MPI
 import numpy as np
 import scipy.io as spio
+import time
 
 
 def delegator(solverType, freq, incAng, ranks):
@@ -96,9 +97,9 @@ def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     
     for F in S:
         uHat = F.Ms*(F.sol[1].flatten())
-        
+        ti = time.time()
         F.initOpt(uHat,rho,xi,uBound, lmb)
-    
+        print 'initalization time ' + repr(time.time()-ti)
     
     # P = np.zeros(80*25)
     P = np.zeros(S[0].nRx*S[0].nRy)
@@ -109,11 +110,13 @@ def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     # io.savemat('sigm', {'sigMap':S[0].sigmap[1]})
     
     for itNo in range(100):
-        print 'iter no ' + repr(itNo)
+        
+        ti = time.time()
         for ix in range(N):
             # run each individual update
             S[ix].runOpt(P)
         
+        print 'iter no ' + repr(itNo) + ' exec time ' + repr(time.time()-ti)
         # aggregate over all
         if solverType == 'sba':
             P += S[0].aggregatorSerial(S)
@@ -149,14 +152,15 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     
     uHat = S.Ms*(S.sol[1].flatten())
     
+    ti = time.time()
     S.initOpt(uHat, rho, xi, uBound, lmb)
+    print 'initialization time ' + repr(time.time()-ti)
     
     P = np.zeros(S.nRx*S.nRy)
     resid = np.zeros(1000)
     
     for itNo in range(1000):
-        print 'iter no ' + repr(itNo)
-        
+        ti = time.time()        
         S.runOpt(P)
         
         # i don't think i can get around this!
@@ -166,7 +170,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
             P = S.aggregatorParallel(comm)
             
         resid[itNo] = np.linalg.norm(P-pTrue)
-        
+        print 'iter no ' + repr(itNo) + ' exec time = ' + repr(time.time()-ti) + ' rank ' + repr(comm.Get_rank())
         
     # do some plotting        
     S.plotParallel(P,resid,rank)
@@ -182,5 +186,5 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
 if __name__ == "__main__":
     # parallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
     # parallel('contrastX')
-    # parallel('splitField', rho=1500, xi =2e-4, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
-    serial('splitField')
+    parallel('splitField', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
+    # parallel('splitField')
