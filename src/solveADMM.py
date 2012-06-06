@@ -76,7 +76,7 @@ def smallProj(S):
         F.fwd_solve(1)
     return S
 
-def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
+def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
 
     # rho = 1500.0
     # ho = 1e-3
@@ -90,7 +90,8 @@ def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
     ranks = np.arange(np.size(freq))
     
     S = delegator(solverType, freq, incAng, ranks)
-    S = smallProj(S)
+    # S = smallProj(S)
+    S,pTrue = bigProj(S,'basic',bkgNo)
     N = np.size(S)
     
     for F in S:
@@ -107,7 +108,7 @@ def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
     # io.savemat('bkg', {'u':S[0].sol[1]})
     # io.savemat('sigm', {'sigMap':S[0].sigmap[1]})
     
-    for itNo in range(2):
+    for itNo in range(100):
         print 'iter no ' + repr(itNo)
         for ix in range(N):
             # run each individual update
@@ -119,7 +120,7 @@ def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
         else:
             P = S[0].aggregatorSerial(S)
             
-        resid[itNo] = np.linalg.norm(P-0.01)
+        resid[itNo] = np.linalg.norm(P-pTrue)
 
     S[0].plotSerial(S, P, resid)
 
@@ -181,5 +182,5 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
 if __name__ == "__main__":
     # parallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
     # parallel('contrastX')
-    parallel('splitField', rho=1500, xi =2e-4, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
-    
+    # parallel('splitField', rho=1500, xi =2e-4, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
+    serial('splitField')

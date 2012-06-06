@@ -9,3 +9,4 @@ from maxwell import twoDim
 
 class problem(twoDim):
     '''Implementing vanilla biconvex method for subsurface imaging '''
+    
