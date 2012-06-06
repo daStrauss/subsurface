@@ -11,6 +11,7 @@ import sparseTools as spt
 import numpy as np
 from mpi4py import MPI
 import scipy.io as spio
+import gc
 
 class problem(twoDim):
     '''a class to do the born approximation iterations '''
@@ -64,6 +65,8 @@ class problem(twoDim):
         
         print 'M format ' + repr(M.format)
         Q = lin.factorized(M)
+        # Foo = gc.get_objects()
+        # print Foo
         # Q = M 
         lowb = -P.copy()
         lowb[P-self.stepSize > 0 ] = -self.stepSize
@@ -105,7 +108,9 @@ class problem(twoDim):
                 
             r = r + (p-q)
         
-        del Q
+        vv = gc.collect()
+        print vv
+        print gc.is_tracked(Q)
         self.deltaP = q
         return q
     
