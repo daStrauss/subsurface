@@ -25,7 +25,8 @@ def delegator(solverType, freq, incAng, ranks):
         S = map(sba.problem, freq, incAng, ranks)
         return S
     
-def bigProj(S):
+def bigProj(S,tag, testNo):
+    ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
     
     nx = 199
     ny = 199
@@ -34,6 +35,8 @@ def bigProj(S):
     eHS = 1.0
     sHS = 0.005
     
+    F = spio.loadmat('../mats/tMat' + repr(testNo) + '.mat')
+    pTrue = F['scrt'].flatten()
     
     for F in S:
         F.setspace(nx,ny,dx,dy)
@@ -43,11 +46,13 @@ def bigProj(S):
         F.setOperators()
         F.te_pw()
         F.fwd_solve(0)
-        F.sigmap[1] = F.sigmap[1] + (F.Md.T*np.ones(80*25)*0.01).reshape(nx,ny)
+        F.sigmap[1] = F.sigmap[1] + (F.Md.T*pTrue).reshape(nx,ny)
         
         F.fwd_solve(1)
+        
+        F.tag = '_' + repr(testNo) + tag
     
-    return S
+    return S,pTrue
 
 def smallProj(S):
     '''build for a small project, ie 99x99 '''
@@ -119,7 +124,7 @@ def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
     S[0].plotSerial(S, P, resid)
 
 
-def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
+def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
 
     
     comm = MPI.COMM_WORLD
@@ -136,7 +141,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
     # allRanks = np.arange(np.size(freq))
     
     S = delegator(solverType, [allFreq[rank]], [allIncAng[rank]], [rank])
-    S = bigProj(S)
+    S,pTrue = bigProj(S, 'basic', bkgNo)
     
     # de reference so that I don't continuously have to work with lists in parallel mode
     S = S[0]
@@ -148,7 +153,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
     P = np.zeros(S.nRx*S.nRy)
     resid = np.zeros(100)
     
-    for itNo in range(100):
+    for itNo in range(1):
         print 'iter no ' + repr(itNo)
         
         S.runOpt(P)
@@ -159,7 +164,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
         else:
             P = S.aggregatorParallel(comm)
             
-        resid[itNo] = np.linalg.norm(P-0.01)
+        resid[itNo] = np.linalg.norm(P-pTrue)
         
         
     # do some plotting        
@@ -174,7 +179,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
 
     
 if __name__ == "__main__":
-    parallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
+    # parallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
     # parallel('contrastX')
-    
+    parallel('splitField', rho=1500, xi =2e-4, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
     

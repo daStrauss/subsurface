@@ -81,7 +81,7 @@ class problem(twoDim):
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
              'v':self.v.reshape(self.nx,self.ny)}
     
-        spio.savemat('splitFieldData/splitField' + repr(self.rank), D)
+        spio.savemat('splitFieldData/splitField' + self.tag + repr(self.rank), D)
         
   
     
@@ -199,18 +199,18 @@ class problem(twoDim):
         
         plt.figure(100+rank)
         plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real, np.arange(self.nSen), vv.real)
-        plt.savefig('splitFieldFigs/fig' + repr(100+rank))
+        plt.savefig('splitFieldFigs/fig' + repr(100+rank) + self.tag)
         
         if rank==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
-            plt.savefig('splitFieldFigs/fig383')
+            plt.savefig('splitFieldFigs/fig383' + self.tag )
         
             plt.figure(387)
             plt.imshow(P.reshape(self.nRx, self.nRy), interpolation='nearest')
             plt.colorbar()
-            plt.savefig('splitFieldFigs/fig387')
+            plt.savefig('splitFieldFigs/fig387' + self.tag )
     
             plt.figure(76)
             plt.subplot(121)
@@ -220,7 +220,7 @@ class problem(twoDim):
             plt.subplot(122)
             plt.imshow(self.v.reshape(self.nx,self.ny).real)
             plt.colorbar()
-            plt.savefig('splitFieldFigs/fig76')
+            plt.savefig('splitFieldFigs/fig76' + self.tag )
         
         # all show!
 #        plt.show()

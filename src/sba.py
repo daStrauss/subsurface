@@ -11,7 +11,6 @@ import sparseTools as spt
 import numpy as np
 from mpi4py import MPI
 import scipy.io as spio
-import gc
 
 class problem(twoDim):
     '''a class to do the born approximation iterations '''
