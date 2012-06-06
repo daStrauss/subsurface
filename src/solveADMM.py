@@ -125,7 +125,7 @@ def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0):
 
 
 def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
-
+    '''Parallel solver -- i.e. has MPI calls'''
     
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
