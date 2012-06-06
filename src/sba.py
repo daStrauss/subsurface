@@ -62,8 +62,8 @@ class problem(twoDim):
                       spt.hCat([sparse.coo_matrix((m,n)), self.rho*sparse.eye(m,m), B.T.conj()]),\
                       spt.hCat([self.A, B, sparse.coo_matrix((n,n))])])
         
-        Q = lin.factorized(M)
-        
+        # Q = lin.factorized(M)
+        Q = M 
         lowb = -P.copy()
         lowb[P-self.stepSize > 0 ] = -self.stepSize
         
@@ -76,7 +76,8 @@ class problem(twoDim):
         while okgo:
             iterk += 1
             rhs = np.concatenate((Z.T*localuHat, self.rho*(q-r), c))
-            updt = Q(rhs)
+            # updt = Q(rhs)
+            updt = Q*rhs
             
             v = updt[:n]
             p = updt[n:(n+m)]
