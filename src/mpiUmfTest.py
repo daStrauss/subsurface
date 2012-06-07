@@ -12,10 +12,10 @@ from mpi4py import MPI
 
 
 def main():
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    nProc = comm.Get_size()
-    
+    #comm = MPI.COMM_WORLD
+    #rank = comm.Get_rank()
+    #nProc = comm.Get_size()
+    rank = 5
     A = numpy.random.randn(5000,5000)
     A[A<0.5] = 0
     
