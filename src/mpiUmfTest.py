@@ -11,8 +11,8 @@ import time
 
 
 def main():
-    A = numpy.random.randn(1000,1000)
-    A[A<0] = 0
+    A = numpy.random.randn(5000,5000)
+    A[A<0.5] = 0
     
     M = scipy.sparse.csc_matrix(A)
     
