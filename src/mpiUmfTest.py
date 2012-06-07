@@ -24,10 +24,10 @@ def main():
     f = open('./notes' + repr(rank) + '.txt', 'w')
     
     
-    for ix in range(2):
+    for ix in range(1000):
         ti = time.time()
         Z = lin.factorized(M)
-        f.write('rank ' + repr(rank) + ' iter ' + repr(ix) + ' exec time = ' + repr(time.time()-ti))
+        f.write('rank ' + repr(rank) + ' iter ' + repr(ix) + ' exec time = ' + repr(time.time()-ti) + '\n')
     
     f.close()
         
