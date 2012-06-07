@@ -184,7 +184,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
 
     
 if __name__ == "__main__":
-    # parallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
+    parallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
     # parallel('contrastX')
-    parallel('splitField', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
+    # parallel('splitField', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
     # parallel('splitField')
