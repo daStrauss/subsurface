@@ -135,6 +135,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     rank = comm.Get_rank()
     nProc = comm.Get_size()
     
+    fout = fopen('notes'+repr(rank), 'w')
     
     print xi
     print rho
@@ -154,7 +155,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     
     ti = time.time()
     S.initOpt(uHat, rho, xi, uBound, lmb)
-    print 'initialization time ' + repr(time.time()-ti)
+    fout.write('initialization time ' + repr(time.time()-ti), '\n')
     
     P = np.zeros(S.nRx*S.nRy)
     resid = np.zeros(50)
@@ -170,7 +171,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
             P = S.aggregatorParallel(comm)
             
         resid[itNo] = np.linalg.norm(P-pTrue)
-        print 'iter no ' + repr(itNo) + ' exec time = ' + repr(time.time()-ti) + ' rank ' + repr(comm.Get_rank())
+        fout.write('iter no ' + repr(itNo) + ' exec time = ' + repr(time.time()-ti) + ' rank ' + repr(comm.Get_rank()), +'\n')
         
     # do some plotting        
     S.plotParallel(P,resid,rank)
@@ -179,7 +180,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     if rank == 0:
         D = {'Pfinal':P.reshape(S.nRx,S.nRy), 'nProc':nProc, 'resid':resid}
         spio.savemat('pout', D)
-        
+    fout.close()
         
 
     
