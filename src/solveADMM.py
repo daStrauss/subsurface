@@ -189,14 +189,14 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     fout.close()
         
 def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
-    '''Parallel solver -- i.e. has MPI calls'''
+    '''semiParallel solver -- i.e. has MPI calls loops locally over different angles of arrival'''
     
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     nProc = comm.Get_size()
     timeFull = time.time()
     
-    fout = open('notes'+repr(rank) + '_' +repr(bkgNo) + '.nts', 'w')
+    fout = open(solverType + '_notes'+repr(rank) + '_' +repr(bkgNo) + '.nts', 'w')
     
     fout.write('xi ' + repr(xi) + ' rho = ' + repr(rho) + '\n')
         
@@ -246,7 +246,7 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     
     if rank == 0:
         D = {'Pfinal':P.reshape(S[0].nRx,S[0].nRy), 'nProc':nProc, 'resid':resid}
-        spio.savemat('pout', D)
+        spio.savemat('pout_' + solverType + repr(bkgNo), D)
         
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
     fout.close()
