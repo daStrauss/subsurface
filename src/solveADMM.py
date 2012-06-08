@@ -134,14 +134,14 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     nProc = comm.Get_size()
+    timeFull = time.time()
     
-    fout = fopen('notes'+repr(rank), 'w')
+    fout = open('notes'+repr(rank) + '_' +repr(bkgNo) + '.nts', 'w')
     
-    print xi
-    print rho
-    
+    fout.write('xi ' + repr(xi) + ' rho = ' + repr(rho) + '\n')
+        
     #  
-    allFreq = np.array([1e3, 3e3, 8e3, 1e4])
+    allFreq = np.array([1e3, 3e3, 13e3, 50e3])
     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
     # allRanks = np.arange(np.size(freq))
     
@@ -180,6 +180,8 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     if rank == 0:
         D = {'Pfinal':P.reshape(S.nRx,S.nRy), 'nProc':nProc, 'resid':resid}
         spio.savemat('pout', D)
+        
+    fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
     fout.close()
         
 
