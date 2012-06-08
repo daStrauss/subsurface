@@ -155,7 +155,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     
     ti = time.time()
     S.initOpt(uHat, rho, xi, uBound, lmb)
-    fout.write('initialization time ' + repr(time.time()-ti), '\n')
+    fout.write('initialization time ' + repr(time.time()-ti) + '\n')
     
     P = np.zeros(S.nRx*S.nRy)
     resid = np.zeros(50)
@@ -171,7 +171,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
             P = S.aggregatorParallel(comm)
             
         resid[itNo] = np.linalg.norm(P-pTrue)
-        fout.write('iter no ' + repr(itNo) + ' exec time = ' + repr(time.time()-ti) + ' rank ' + repr(comm.Get_rank()), +'\n')
+        fout.write('iter no ' + repr(itNo) + ' exec time = ' + repr(time.time()-ti) + ' rank ' + repr(comm.Get_rank()) +'\n')
         
     # do some plotting        
     S.plotParallel(P,resid,rank)
