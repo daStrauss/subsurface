@@ -38,7 +38,7 @@ class twoDim(object):
         self.l = self.c/self.f
         self.incAng = incAng
         self.rank = rank
-        print 'building a f = %d object' %freq
+        # print 'building a f = %d object' %freq
         
     def setspace(self, nx,ny,dx,dy):
         self.nx = nx # number x points
@@ -95,14 +95,14 @@ class twoDim(object):
             
         if np.any(lkt.freq==self.f):
             pmc = lkt.pmc[lkt.freq==self.f]
-            print pmc
+            # print pmc
             return pmc
         else:
             pmc = findBestAng(self.f)
             lkt.freq = np.append(lkt.freq, self.f)
             lkt.pmc = np.append(lkt.pmc, pmc)
             pickle.dump(lkt, open('pmlLib.p', 'wb'))
-            print pmc
+            # print pmc
             return pmc
             
     def setOperators(self):
@@ -161,7 +161,7 @@ class twoDim(object):
         # that y boundary.
         # Mapping is y,x because of how matlab treats these. annoying.
         # (
-        print self.div+1
+        # print self.div+1
         Y,X = np.meshgrid(x-(self.div+1+0.5)*self.dx, x); # I do things backward
         Yyh, Xyh = np.meshgrid(np.append(0.0,x)+(self.dx/2)\
                                - (self.div+1+0.5)*self.dx,x);
@@ -189,8 +189,8 @@ class twoDim(object):
         rTE = (ni*np.cos(thi) - nt*np.cos(tht))/(ni*np.cos(thi) + nt*np.cos(tht));
         tTE = (2*ni*np.cos(thi))/(ni*np.cos(thi) + nt*np.cos(tht));
         
-        print rTE
-        print tTE
+        # print rTE
+        # print tTE
 
         #   % [yy xx] = meshgrid(zeY, zeX);
         #   % Make a selector for the half space.
@@ -272,8 +272,8 @@ class twoDim(object):
 #        aliJ = self.nx*self.ny
 #        aliMx = self.nx*(self.ny+1)
 #        aliMy = (self.nx+1)*self.ny
-        print Msrcx.shape
-        print Msrcy.shape
+        # print Msrcx.shape
+        # print Msrcy.shape
         
         # note -- this is different from the MATLAB version: due to the row-ordering of arrays
         pw = (1j*self.w*self.muo)*Jsrcz.flatten() - \
@@ -372,9 +372,9 @@ def findBestAng(freq):
     # the center contains a singularity, but we'll  be forgiving and finite
     bbx[mdpt,mdpt] = 0.25*bbx[mdpt+1,mdpt] + 0.25*bbx[mdpt-1,mdpt] + 0.25*bbx[mdpt,mdpt+1] + 0.25*bbx[mdpt,mdpt-1]
     
-    sze = bbx.shape
-    print sze
-    mask = np.ones(sze)
+    # sze = bbx.shape
+    # print sze
+    mask = np.ones(bbx.shape)
     mask[:15,:] =0
     mask[(nx-15):(nx),:] = 0
     mask[:,:15]=0
@@ -406,14 +406,14 @@ def findBestAng(freq):
             bce.fwd_solve(0)
     
             localError[i] = np.linalg.norm((bce.sol[0] - bbx)*mask,'fro')
-            print 'ang = ' + repr(angChoice[i]) + ' local error ' + repr(localError[i])
+            # print 'ang = ' + repr(angChoice[i]) + ' local error ' + repr(localError[i])
     
         minIdx = np.argmin(localError)
         
         lo = np.log10(angChoice[max(0,minIdx-1)])
         hi = np.log10(angChoice[min(50,minIdx+1)])
-        print lo
-        print hi
+        # print lo
+        # print hi
         
     bce = twoDim(freq)
     bce.setspace(nx,ny,dx,dy)

@@ -135,7 +135,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     rank = comm.Get_rank()
     nProc = comm.Get_size()
     
-    uBound = 0.05
+    
     print xi
     print rho
     
@@ -157,9 +157,9 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     print 'initialization time ' + repr(time.time()-ti)
     
     P = np.zeros(S.nRx*S.nRy)
-    resid = np.zeros(1000)
+    resid = np.zeros(50)
     
-    for itNo in range(1000):
+    for itNo in range(50):
         ti = time.time()        
         S.runOpt(P)
         
