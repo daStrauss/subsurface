@@ -10,6 +10,11 @@ import numpy as np
 import scipy.io as spio
 import time
 
+import matplotlib
+matplotlib.use('PDF')
+# import matplotlib.pyplot as plt
+
+MAXIT = 1000
 
 def delegator(solverType, freq, incAng, ranks):
     ''' A function that will allocate the problem instances according to the 'type' given '''
@@ -50,7 +55,6 @@ def bigProj(S,tag, testNo):
         F.sigmap[1] = F.sigmap[1] + (F.Md.T*pTrue).reshape(nx,ny)
         
         F.fwd_solve(1)
-        
         F.tag = '_' + repr(testNo) + tag
     
     return S,pTrue
@@ -184,10 +188,73 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
     fout.close()
         
+def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
+    '''Parallel solver -- i.e. has MPI calls'''
+    
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    nProc = comm.Get_size()
+    timeFull = time.time()
+    
+    fout = open('notes'+repr(rank) + '_' +repr(bkgNo) + '.nts', 'w')
+    
+    fout.write('xi ' + repr(xi) + ' rho = ' + repr(rho) + '\n')
+        
+    #  
+    allFreq = np.array([1e3, 3e3, 13e3, 50e3])
+    allIncAng = np.array([45, -45])*np.pi/180
+#     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
+    # allRanks = np.arange(np.size(freq))
+    
+    S = delegator(solverType, allFreq[rank]*np.ones(allIncAng.shape), allIncAng, rank*np.ones(allIncAng.shape,dtype='int'))
+    S,pTrue = bigProj(S, 'basic', bkgNo)
+    
+    N = np.size(S)
+    print N
+    
+    for F in S:
+        uHat = F.Ms*(F.sol[1].flatten())
+        ti = time.time()
+        F.initOpt(uHat,rho,xi,uBound, lmb)
+        fout.write('initalization time ' + repr(time.time()-ti) + '\n')
+    
+    
+    # de reference so that I don't continuously have to work with lists in parallel mode
+    # S = S[0]
+
+    P = np.zeros(S[0].nRx*S[0].nRy)
+    resid = np.zeros(MAXIT)
+    
+    for itNo in range(MAXIT):
+        ti = time.time()
+        for ix in S:        
+            ix.runOpt(P)
+        
+        # i don't think i can get around this!
+        if solverType == 'sba':
+            P += S[0].aggregatorSemiParallel(S,comm)
+        else:
+            P = S[0].aggregatorSemiParallel(S,comm)
+            
+        resid[itNo] = np.linalg.norm(P-pTrue)
+        fout.write('iter no ' + repr(itNo) + ' exec time = ' + repr(time.time()-ti) + ' rank ' + repr(comm.Get_rank()) +'\n')
+        
+    # do some plotting        
+    for ix in range(N):
+        S[ix].plotSemiParallel(P,resid,rank,ix)
+        S[ix].writeOut(ix)
+    
+    if rank == 0:
+        D = {'Pfinal':P.reshape(S[0].nRx,S[0].nRy), 'nProc':nProc, 'resid':resid}
+        spio.savemat('pout', D)
+        
+    fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
+    fout.close()
+        
 
     
 if __name__ == "__main__":
-    parallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
-    # parallel('contrastX')
-    # parallel('splitField', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
+    # semiParallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
+    semiParallel('contrastX')
+    # semiParallel('splitField', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
     # parallel('splitField')

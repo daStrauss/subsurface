@@ -79,7 +79,7 @@ class problem(twoDim):
         self.us = updt[:N]
         self.X = updt[N:(N+self.nRx*self.nRy)]
         
-    def writeOut(self):
+    def writeOut(self, ix=0):
         import os
         if not os.path.exists('contrastXData'):
             os.mkdir('contrastXData')
@@ -88,7 +88,7 @@ class problem(twoDim):
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
              'X':self.X.reshape(self.nRx,self.nRy)}
         
-        spio.savemat('contrastXData/contrastX' + repr(self.rank), D)
+        spio.savemat('contrastXData/contrastX' + repr(self.rank) + '_' + repr(ix), D)
         
         
         
@@ -142,8 +142,40 @@ class problem(twoDim):
         P = np.maximum(P,0)
         P = np.minimum(P,self.upperBound)
         
-        gap = np.linalg.norm(U*P - self.X)
-        print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
+        # gap = np.linalg.norm(U*P - self.X)
+        # print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
+        
+        return P
+    
+    def aggregatorSemiParallel(self,S, comm):
+        ''' Do the aggregation step in parallel whoop! '''
+        N = np.size(S)
+        n = S[0].nRx*S[0].nRy
+        
+        U = np.zeros((n,N),dtype='complex128')
+        Q = np.zeros((n,N),dtype='complex128')
+        
+        for ix in range(N):
+            s = S[ix].s
+            U[:,ix] = s*S[ix].Md*(S[ix].ub + S[ix].us)
+            Q[:,ix] = S[ix].X + S[ix].Z
+            
+        numLocal = np.sum(U.real*Q.real + U.imag*Q.imag,1)
+        denLocal = np.sum(U.conj()*U,1) + self.lmb/S[0].rho
+        
+        num = np.zeros(numLocal.shape)
+        num = comm.allreduce(numLocal,num,op=MPI.SUM)
+        
+        
+        den = np.zeros(denLocal.shape)
+        den = comm.allreduce(denLocal,den,op=MPI.SUM)
+        
+        P = (num/den).real
+        P = np.maximum(P,0)
+        P = np.minimum(P,self.upperBound)
+        
+        # gap = np.linalg.norm(U*P - self.X)
+        # print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
         
         return P
     
@@ -214,6 +246,44 @@ class problem(twoDim):
         plt.savefig('contrastXFigs/fig' + repr(100+rank))
         
         if rank==0:
+            # then print some figures   
+            plt.figure(383)
+            plt.plot(resid)
+            plt.savefig('contrastXFigs/fig383')
+        
+            plt.figure(387)
+            plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
+            plt.colorbar()
+            plt.savefig('contrastXFigs/fig387')
+    
+            plt.figure(76)
+            plt.subplot(121)
+            plt.imshow(self.us.reshape(self.nx,self.ny).real)
+            plt.colorbar()
+        
+            plt.subplot(122)
+            plt.imshow(self.us.reshape(self.nx,self.ny).imag)
+            plt.colorbar()
+            plt.savefig('contrastXFigs/fig76')
+        
+    def plotSemiParallel(self,P,resid,rank,ix=0):
+        ''' Plotting routine if things are semiParallel'''
+        import matplotlib.pyplot as plt
+        import os
+        
+        if not os.path.exists('contrastXFigs'):
+            os.mkdir('contrastXFigs')
+        
+        # vv = S.Ms*S.v
+        uu = self.Ms*self.us
+        ub = self.Ms*self.ub
+        skt = self.uHat-ub
+        
+        plt.figure(100+rank+ 10*ix)
+        plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
+        plt.savefig('contrastXFigs/fig' + repr(100+rank+10*ix))
+        
+        if rank==0 & ix==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)

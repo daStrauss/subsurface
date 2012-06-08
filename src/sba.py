@@ -132,10 +132,24 @@ class problem(twoDim):
         dP = dP*(1.0/comm.Get_size())*self.alpha
         return dP
     
+    def aggregatorSemiParallel(self, S, comm):
+        ''' super simple aggregator for sba method'''
+        N = np.size(S)
+        n = S[0].nRx*S[0].nRy
+        
+        P = np.zeros(n)
+        for ix in range(N):
+            P += S[ix].deltaP
+        
+        P = (1.0/N)*P
+        dP = np.zeros(self.nRx*self.nRy)
+        dP = comm.allreduce(P,dP,op=MPI.SUM)
+        dP = dP*(1.0/comm.Get_size())*self.alpha
+        
+        return dP
+    
     def plotParallel(self,P,resid,rank):
         ''' Plotting routine if things are parallel'''
-        import matplotlib
-        matplotlib.use('PDF')
         import matplotlib.pyplot as plt
         import os
         
@@ -179,8 +193,6 @@ class problem(twoDim):
     
     def plotSerial(self,S,P,resid):
         ''' plotting routine for the serial passes '''
-        import matplotlib
-        matplotlib.use('PDF')
         import matplotlib.pyplot as plt
         import os
         
@@ -225,7 +237,7 @@ class problem(twoDim):
 
         plt.savefig('sbaFigs/fig76')
         # plt.show()
-    def writeOut(self):
+    def writeOut(self, ix=0):
         '''routine to print out information about the solve '''
         import os
         if not os.path.exists('sbaData'):
@@ -234,6 +246,47 @@ class problem(twoDim):
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1]}
         
-        spio.savemat('sbaData/sba' + repr(self.rank), D)
+        spio.savemat('sbaData/sba' + repr(self.rank) + '_' + repr(ix), D)
     
+    def plotSemiParallel(self,P,resid,rank,ix=0):
+        ''' Plotting routine if things are semiParallel'''
+        import matplotlib.pyplot as plt
+        import os
+        
+        if not os.path.exists('sbaFigs'):
+            os.makedirs('sbaFigs')
             
+        
+        # vv = S.Ms*S.v
+        self.trueSolve(P)
+            
+        uu = self.Ms*(self.us - self.sol[0].flatten())
+        ub = self.Ms*(self.sol[0].flatten())
+        skt = self.uHat-ub
+        
+        plt.figure(100 + rank + ix*10)
+        plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
+        plt.savefig('sbaFigs/fig' + repr(100+rank+ix*10))
+        
+        if rank==0 & ix==0:
+            # then print some figures   
+            plt.figure(383)
+            plt.plot(resid)
+            plt.savefig('sbaFigs/fig383')
+        
+            plt.figure(387)
+            plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
+            plt.colorbar()
+            plt.savefig('sbaFigs/fig387')
+    
+            plt.figure(76)
+            plt.subplot(121)
+            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).real)
+            plt.colorbar()
+        
+            plt.subplot(122)
+            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
+            plt.colorbar()
+            plt.title('Final Scattered Fields f = ' + repr(self.f))
+            plt.savefig('sbaFigs/fig76')
+        

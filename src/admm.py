@@ -14,6 +14,7 @@ import scipy.sparse.linalg as lin
 from mpi4py import MPI
 import scipy.io as spio
 
+
 class problem(twoDim):
     '''A function for implementing the field splitting methods'''
 #    def __init__(self, freq, rho, xi):
@@ -72,7 +73,7 @@ class problem(twoDim):
         print 'obj = ' + repr(obj) + ' Split Gap ' + repr(gap)
         # return obj
     
-    def writeOut(self):
+    def writeOut(self, ix=0):
         import os
         if not os.path.exists('splitFieldData'):
             os.mkdir('splitFieldData')
@@ -81,7 +82,7 @@ class problem(twoDim):
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
              'v':self.v.reshape(self.nx,self.ny)}
     
-        spio.savemat('splitFieldData/splitField' + self.tag + repr(self.rank), D)
+        spio.savemat('splitFieldData/splitField' + self.tag + repr(self.rank) + '_'+repr(ix), D)
         
   
     
@@ -137,6 +138,37 @@ class problem(twoDim):
         
         gap = np.linalg.norm(self.Md.T*(U*P) + self.A*self.us)
         print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
+        
+        return P
+
+    def aggregatorSemiParallel(self,S,comm):
+        ''' Do the aggregation step in parallel whoop! '''
+        N = np.size(S)
+        n = S[0].nRx*S[0].nRy
+
+        U = np.zeros((n,N),dtype='complex128')
+        Q = np.zeros((n,N),dtype='complex128')
+        
+        for ix in range(N):
+            s = S[ix].s
+            U[:,ix] = s*S[ix].Md*(S[ix].ub+S[ix].v)
+            Q[:,ix] = S[ix].Md*((S[ix].A*S[ix].us) + S[ix].F)
+        
+        numLocal = np.sum(U.real*Q.real + U.imag*Q.imag,1)
+        denLocal = np.sum(U.conj()*U,1) + self.lmb/S[0].rho
+        
+        num = np.zeros(numLocal.shape)
+        num = comm.allreduce(numLocal,num,op=MPI.SUM)
+
+        den = np.zeros(denLocal.shape)
+        den = comm.allreduce(denLocal,den,op=MPI.SUM)
+        
+        P = (-num/den).real
+        P = np.maximum(P,0)
+        P = np.minimum(P,self.uBound)
+        
+        # gap = np.linalg.norm(self.Md.T*(U*P) + self.A*self.us)
+        # print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
         
         return P
 
@@ -202,6 +234,49 @@ class problem(twoDim):
         plt.savefig('splitFieldFigs/fig' + repr(100+rank) + self.tag)
         
         if rank==0:
+            # then print some figures   
+            plt.figure(383)
+            plt.plot(resid)
+            plt.savefig('splitFieldFigs/fig383' + self.tag )
+        
+            plt.figure(387)
+            plt.imshow(P.reshape(self.nRx, self.nRy), interpolation='nearest')
+            plt.colorbar()
+            plt.savefig('splitFieldFigs/fig387' + self.tag )
+    
+            plt.figure(76)
+            plt.subplot(121)
+            plt.imshow(self.us.reshape(self.nx,self.ny).real)
+            plt.colorbar()
+        
+            plt.subplot(122)
+            plt.imshow(self.v.reshape(self.nx,self.ny).real)
+            plt.colorbar()
+            plt.savefig('splitFieldFigs/fig76' + self.tag )
+        
+        # all show!
+#        plt.show()
+        
+ 
+    
+    def plotSemiParallel(self,P,resid,rank,ix=0):
+        ''' Plotting routine if things are parallel'''
+        import os
+        import matplotlib.pyplot as plt
+        
+        if not os.path.exists('splitFieldFigs'):
+            os.mkdir('splitFieldFigs')
+        
+        vv = self.Ms*self.v
+        uu = self.Ms*self.us
+        ub = self.Ms*self.ub
+        skt = self.uHat-ub
+        
+        plt.figure(100+rank+10*ix)
+        plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real, np.arange(self.nSen), vv.real)
+        plt.savefig('splitFieldFigs/fig' + repr(100+rank+10*ix) + self.tag)
+        
+        if rank==0 & ix==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
