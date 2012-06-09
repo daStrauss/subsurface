@@ -21,13 +21,14 @@ class problem(twoDim):
     rho = 0.0001
     maxit = 2000
     
-    def initOpt(self, uHat, rho=0.005, xi=0.9, uBound=0.05, lmb=0):
+    def initOpt(self, uHat, rho=0.005, xi=0.9, uBound=0.05, lmb=0, maxiter=100):
         self.stepSize = rho
         self.alpha = xi
         self.uHat = uHat
         self.s = self.w*self.muo*1j
         self.uBound = uBound
         self.lmb = lmb
+        self.obj = np.zeros(maxiter)
         
         
     def trueSolve(self,P):
@@ -62,7 +63,7 @@ class problem(twoDim):
                       spt.hCat([sparse.coo_matrix((m,n)), self.rho*sparse.eye(m,m), B.T.conj()]),\
                       spt.hCat([self.A, B, sparse.coo_matrix((n,n))])]).tocsc()
         
-        print 'M format ' + repr(M.format)
+        # print 'M format ' + repr(M.format)
         Q = lin.splu(M)
         # Foo = gc.get_objects()
         # print Foo
@@ -97,11 +98,11 @@ class problem(twoDim):
             edual = np.sqrt(m)*self.eabs + self.erel*np.linalg.norm(r)
             
             if (np.linalg.norm(res) <= epri) & (np.linalg.norm(ser) <= edual):
-                print 'At ADMM internal limit at iter ' + repr(iterk) 
+                # print 'At ADMM internal limit at iter ' + repr(iterk) 
                 okgo = False
             elif (iterk >= self.maxit):
                 okgo = False
-                print 'Hit MAXX iterations'
+                # print 'Hit MAXX iterations'
             else:
                 okgo = True
                 
@@ -109,7 +110,10 @@ class problem(twoDim):
         
         
         self.deltaP = q
-        return q
+        
+        obj = np.linalg.norm(localuHat - self.Ms*self.v)
+        return obj
+        
     
     
     def aggregatorSerial(self,S):
@@ -153,8 +157,8 @@ class problem(twoDim):
         import matplotlib.pyplot as plt
         import os
         
-        if not os.path.exists('sbaFigs'):
-            os.makedirs('sbaFigs')
+        if not os.path.exists(self.outDir + 'Figs'):
+            os.makedirs(self.outDir + 'Figs')
             
         
         # vv = S.Ms*S.v
@@ -166,18 +170,18 @@ class problem(twoDim):
         
         plt.figure(100+rank)
         plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
-        plt.savefig('sbaFigs/fig' + repr(100+rank))
+        plt.savefig(self.outDir + 'Figs/fig' + repr(100+rank))
         
         if rank==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
-            plt.savefig('sbaFigs/fig383')
+            plt.savefig(self.outDir + 'Figs/fig383')
         
             plt.figure(387)
             plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
             plt.colorbar()
-            plt.savefig('sbaFigs/fig387')
+            plt.savefig(self.outDir + 'Figs/fig387')
     
             plt.figure(76)
             plt.subplot(121)
@@ -188,7 +192,7 @@ class problem(twoDim):
             plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
             plt.colorbar()
             plt.title('Final Scattered Fields f = ' + repr(self.f))
-            plt.savefig('sbaFigs/fig76')
+            plt.savefig(self.outDir + 'Figs/fig76')
         
     
     def plotSerial(self,S,P,resid):
@@ -196,18 +200,18 @@ class problem(twoDim):
         import matplotlib.pyplot as plt
         import os
         
-        if not os.path.exists('sbaFigs'):
-            os.makedirs('sbaFigs')
+        if not os.path.exists(self.outDir + 'Figs'):
+            os.makedirs(self.outDir + 'Figs')
         
         N = np.size(S)
         plt.figure(383)
         plt.plot(resid)
-        plt.savefig('sbaFigs/fig383')
+        plt.savefig(self.outDir + 'Figs/fig383')
         
         plt.figure(387)
         plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
         plt.colorbar()
-        plt.savefig('sbaFigs/fig387')
+        plt.savefig(self.outDir + 'Figs/fig387')
         
         for ix in range(N):
             plt.figure(50+ix)
@@ -222,7 +226,7 @@ class problem(twoDim):
     
             # plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
             plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real)
-            plt.savefig('sbaFigs/fig'+repr(50+ix))
+            plt.savefig(self.outDir + 'Figs/fig'+repr(50+ix))
             
         plt.figure(76)
         plt.subplot(121)
@@ -232,29 +236,29 @@ class problem(twoDim):
         plt.subplot(122)
         plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
         plt.colorbar()
-        plt.savefig('sbaFigs/fig76')
+        plt.savefig(self.outDir + 'Figs/fig76')
         plt.title('Final Scattered Fields f = ' + repr(self.f))
 
-        plt.savefig('sbaFigs/fig76')
+        plt.savefig(self.outDir + 'Figs/fig76')
         # plt.show()
     def writeOut(self, ix=0):
         '''routine to print out information about the solve '''
         import os
-        if not os.path.exists('sbaData'):
-            os.mkdir('sbaData')
+        if not os.path.exists(self.outDir + 'Data'):
+            os.mkdir(self.outDir + 'Data')
         
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
-             'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1]}
+             'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], 'obj':self.obj}
         
-        spio.savemat('sbaData/sba' + repr(self.rank) + '_' + repr(ix), D)
+        spio.savemat(self.outDir + 'Data/sba' + repr(self.rank) + '_' + repr(ix), D)
     
     def plotSemiParallel(self,P,resid,rank,ix=0):
         ''' Plotting routine if things are semiParallel'''
         import matplotlib.pyplot as plt
         import os
         
-        if not os.path.exists('sbaFigs'):
-            os.makedirs('sbaFigs')
+        if not os.path.exists(self.outDir + 'Figs'):
+            os.makedirs(self.outDir + 'Figs')
             
         
         # vv = S.Ms*S.v
@@ -266,18 +270,18 @@ class problem(twoDim):
         
         plt.figure(100 + rank + ix*10)
         plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
-        plt.savefig('sbaFigs/fig' + repr(100+rank+ix*10))
+        plt.savefig(self.outDir + 'Figs/fig' + repr(100+rank+ix*10))
         
         if rank==0 & ix==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
-            plt.savefig('sbaFigs/fig383')
+            plt.savefig(self.outDir + 'Figs/fig383')
         
             plt.figure(387)
             plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
             plt.colorbar()
-            plt.savefig('sbaFigs/fig387')
+            plt.savefig(self.outDir + 'Figs/fig387')
     
             plt.figure(76)
             plt.subplot(121)
@@ -288,5 +292,5 @@ class problem(twoDim):
             plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
             plt.colorbar()
             plt.title('Final Scattered Fields f = ' + repr(self.f))
-            plt.savefig('sbaFigs/fig76')
+            plt.savefig(self.outDir + 'Figs/fig76')
         

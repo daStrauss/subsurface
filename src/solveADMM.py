@@ -9,6 +9,8 @@ from mpi4py import MPI
 import numpy as np
 import scipy.io as spio
 import time
+import os
+import sys
 
 import matplotlib
 matplotlib.use('PDF')
@@ -31,7 +33,7 @@ def delegator(solverType, freq, incAng, ranks):
         S = map(sba.problem, freq, incAng, ranks)
         return S
     
-def bigProj(S,tag, testNo):
+def bigProj(S, outDir, testNo):
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
     
     nx = 199
@@ -41,7 +43,8 @@ def bigProj(S,tag, testNo):
     eHS = 1.0
     sHS = 0.005
     
-    F = spio.loadmat('../mats/tMat' + repr(testNo) + '.mat')
+    F = spio.loadmat('mats/tMat' + repr(testNo) + '.mat')
+  
     pTrue = F['scrt'].flatten()
     
     for F in S:
@@ -55,7 +58,7 @@ def bigProj(S,tag, testNo):
         F.sigmap[1] = F.sigmap[1] + (F.Md.T*pTrue).reshape(nx,ny)
         
         F.fwd_solve(1)
-        F.tag = '_' + repr(testNo) + tag
+        F.outDir = outDir
     
     return S,pTrue
 
@@ -132,7 +135,7 @@ def serial(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     S[0].plotSerial(S, P, resid)
 
 
-def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
+def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir='basic'):
     '''Parallel solver -- i.e. has MPI calls'''
     
     comm = MPI.COMM_WORLD
@@ -150,7 +153,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     # allRanks = np.arange(np.size(freq))
     
     S = delegator(solverType, [allFreq[rank]], [allIncAng[rank]], [rank])
-    S,pTrue = bigProj(S, 'basic', bkgNo)
+    S,pTrue = bigProj(S, outDir, bkgNo)
     
     # de reference so that I don't continuously have to work with lists in parallel mode
     S = S[0]
@@ -188,7 +191,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
     fout.close()
         
-def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
+def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir='basic'):
     '''semiParallel solver -- i.e. has MPI calls loops locally over different angles of arrival'''
     
     comm = MPI.COMM_WORLD
@@ -196,18 +199,18 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     nProc = comm.Get_size()
     timeFull = time.time()
     
-    fout = open(solverType + '_notes'+repr(rank) + '_' +repr(bkgNo) + '.nts', 'w')
+    fout = open(outDir + 'notes' + repr(rank) + '_' +repr(bkgNo) + '.nts', 'w')
     
     fout.write('xi ' + repr(xi) + ' rho = ' + repr(rho) + '\n')
         
     #  
     allFreq = np.array([1e3, 3e3, 13e3, 50e3])
-    allIncAng = np.array([45, -45])*np.pi/180
+    allIncAng = np.array([75, -75, 45, -45])*np.pi/180
 #     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
     # allRanks = np.arange(np.size(freq))
     
     S = delegator(solverType, allFreq[rank]*np.ones(allIncAng.shape), allIncAng, rank*np.ones(allIncAng.shape,dtype='int'))
-    S,pTrue = bigProj(S, 'basic', bkgNo)
+    S,pTrue = bigProj(S, outDir, bkgNo)
     
     N = np.size(S)
     print N
@@ -215,7 +218,7 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     for F in S:
         uHat = F.Ms*(F.sol[1].flatten())
         ti = time.time()
-        F.initOpt(uHat,rho,xi,uBound, lmb)
+        F.initOpt(uHat,rho,xi,uBound, lmb, MAXIT)
         fout.write('initalization time ' + repr(time.time()-ti) + '\n')
     
     
@@ -228,7 +231,8 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     for itNo in range(MAXIT):
         ti = time.time()
         for ix in S:        
-            ix.runOpt(P)
+            objF = ix.runOpt(P)
+            ix.obj[itNo] = objF
         
         # i don't think i can get around this!
         if solverType == 'sba':
@@ -246,7 +250,7 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1):
     
     if rank == 0:
         D = {'Pfinal':P.reshape(S[0].nRx,S[0].nRy), 'nProc':nProc, 'resid':resid}
-        spio.savemat('pout_' + solverType + repr(bkgNo), D)
+        spio.savemat(outDir + 'pout_' + solverType + repr(bkgNo), D)
         
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
     fout.close()

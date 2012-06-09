@@ -17,12 +17,13 @@ import scipy.io as spio
 
 class problem(twoDim):
     ''' class that extents the contrast - Xadmm algorithm '''
-    def initOpt(self, uHat, rho, xi, upperBound, lmb):
+    def initOpt(self, uHat, rho, xi, upperBound, lmb, maxiter):
         self.rho = rho
         self.xi = xi
         self.uHat = uHat
         self.upperBound = lmb
         self.lmb = lmb
+        self.obj = np.zeros(maxiter)
         
         # add some local vars for ease
         self.s = 1j*self.muo*self.w
@@ -79,16 +80,19 @@ class problem(twoDim):
         self.us = updt[:N]
         self.X = updt[N:(N+self.nRx*self.nRy)]
         
+        obj = np.linalg.norm(uHatLocal-self.Ms*self.us)
+        return obj
+        
     def writeOut(self, ix=0):
         import os
-        if not os.path.exists('contrastXData'):
-            os.mkdir('contrastXData')
+        if not os.path.exists(self.outDir + 'Data'):
+            os.mkdir(self.outDir + 'Data')
             
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
-             'X':self.X.reshape(self.nRx,self.nRy)}
+             'X':self.X.reshape(self.nRx,self.nRy), 'obj':self.obj}
         
-        spio.savemat('contrastXData/contrastX' + repr(self.rank) + '_' + repr(ix), D)
+        spio.savemat(self.outDir + 'Data/contrastX' + repr(self.rank) + '_' + repr(ix), D)
         
         
         
@@ -187,19 +191,19 @@ class problem(twoDim):
         import matplotlib.pyplot as plt
         
         import os
-        if not os.path.exists('contrastXFigs'):
-            os.mkdir('contrastXFigs')
+        if not os.path.exists(self.outDir + 'Figs'):
+            os.mkdir(self.outDir + 'Figs')
             
         
         N = np.size(S)
         plt.figure(383)
         plt.plot(resid)
-        plt.savefig('contrastXFigs/fig383')
+        plt.savefig(self.outDir + 'Figs/fig383')
         
         plt.figure(387)
         plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
         plt.colorbar()
-        plt.savefig('contrastXFigs/fig387')
+        plt.savefig(self.outDir + 'Figs/fig387')
         
         for ix in range(N):
             plt.figure(50+ix)
@@ -212,7 +216,7 @@ class problem(twoDim):
     
             # plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
             plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real)
-            plt.savefig('contrastXFigs/fig'+repr(50+ix))
+            plt.savefig(self.outDir + 'Figs/fig'+repr(50+ix))
             
         plt.figure(76)
         plt.subplot(121)
@@ -222,7 +226,7 @@ class problem(twoDim):
         plt.subplot(122)
         plt.imshow(S[1].us.reshape(S[0].nx,S[0].ny).real)
         plt.colorbar()
-        plt.savefig('contrastXFigs/fig76')
+        plt.savefig(self.outDir + 'Figs/fig76')
         # plt.show()
         
     def plotParallel(self,P,resid,rank):
@@ -233,8 +237,8 @@ class problem(twoDim):
         import matplotlib.pyplot as plt
         import os
         
-        if not os.path.exists('contrastXFigs'):
-            os.mkdir('contrastXFigs')
+        if not os.path.exists(self.outDir + 'Figs'):
+            os.mkdir(self.outDir + 'Figs')
         
         # vv = S.Ms*S.v
         uu = self.Ms*self.us
@@ -243,18 +247,18 @@ class problem(twoDim):
         
         plt.figure(100+rank)
         plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
-        plt.savefig('contrastXFigs/fig' + repr(100+rank))
+        plt.savefig(self.outDir + 'Figs/fig' + repr(100+rank))
         
         if rank==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
-            plt.savefig('contrastXFigs/fig383')
+            plt.savefig(self.outDir + 'Figs/fig383')
         
             plt.figure(387)
             plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
             plt.colorbar()
-            plt.savefig('contrastXFigs/fig387')
+            plt.savefig(self.outDir + 'Figs/fig387')
     
             plt.figure(76)
             plt.subplot(121)
@@ -264,15 +268,15 @@ class problem(twoDim):
             plt.subplot(122)
             plt.imshow(self.us.reshape(self.nx,self.ny).imag)
             plt.colorbar()
-            plt.savefig('contrastXFigs/fig76')
+            plt.savefig(self.outDir + 'Figs/fig76')
         
     def plotSemiParallel(self,P,resid,rank,ix=0):
         ''' Plotting routine if things are semiParallel'''
         import matplotlib.pyplot as plt
         import os
         
-        if not os.path.exists('contrastXFigs'):
-            os.mkdir('contrastXFigs')
+        if not os.path.exists(self.outDir + 'Figs'):
+            os.mkdir(self.outDir + 'Figs')
         
         # vv = S.Ms*S.v
         uu = self.Ms*self.us
@@ -281,18 +285,18 @@ class problem(twoDim):
         
         plt.figure(100+rank+ 10*ix)
         plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
-        plt.savefig('contrastXFigs/fig' + repr(100+rank+10*ix))
+        plt.savefig(self.outDir + 'Figs/fig' + repr(100+rank+10*ix))
         
         if rank==0 & ix==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
-            plt.savefig('contrastXFigs/fig383')
+            plt.savefig(self.outDir + 'Figs/fig383')
         
             plt.figure(387)
             plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
             plt.colorbar()
-            plt.savefig('contrastXFigs/fig387')
+            plt.savefig(self.outDir + 'Figs/fig387')
     
             plt.figure(76)
             plt.subplot(121)
@@ -302,7 +306,7 @@ class problem(twoDim):
             plt.subplot(122)
             plt.imshow(self.us.reshape(self.nx,self.ny).imag)
             plt.colorbar()
-            plt.savefig('contrastXFigs/fig76')
+            plt.savefig(self.outDir + 'Figs/fig76')
         
         # all show!
         # plt.show()

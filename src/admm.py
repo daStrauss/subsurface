@@ -22,7 +22,7 @@ class problem(twoDim):
 #        self.rho = rho
 #        self.xi = xi
     
-    def initOpt(self,uHat, rho, xi, upperBound, lmb):
+    def initOpt(self,uHat, rho, xi, upperBound, lmb, maxiter):
         ''' prepare for upcoming iterations '''
         self.rho = rho
         self.xi = xi
@@ -34,6 +34,7 @@ class problem(twoDim):
         self.us = np.zeros(self.N,dtype='complex128')
         self.v = np.zeros(self.N,dtype='complex128')
         self.ub = self.sol[0].flatten()
+        self.obj = np.zeros(maxiter)
         
         # the update for the first step can be precomputed
         self.A = self.nabla2+self.getk(0)
@@ -69,20 +70,21 @@ class problem(twoDim):
         self.v = lin.spsolve(M,b)
         
         obj = np.linalg.norm(self.Ms*self.v-uHatLocal)
-        gap = np.linalg.norm(self.v-self.us)
-        print 'obj = ' + repr(obj) + ' Split Gap ' + repr(gap)
+        return obj
+        # gap = np.linalg.norm(self.v-self.us)
+        # print 'obj = ' + repr(obj) + ' Split Gap ' + repr(gap)
         # return obj
     
     def writeOut(self, ix=0):
         import os
-        if not os.path.exists('splitFieldData'):
-            os.mkdir('splitFieldData')
+        if not os.path.exists(self.outDir + 'Data'):
+            os.mkdir(self.outDir + 'Data')
             
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
              'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], \
-             'v':self.v.reshape(self.nx,self.ny)}
+             'v':self.v.reshape(self.nx,self.ny), 'rho':self.rho, 'xi':self.xi, 'obj':self.obj}
     
-        spio.savemat('splitFieldData/splitField' + self.tag + repr(self.rank) + '_'+repr(ix), D)
+        spio.savemat(self.outDir + 'Data/splitField' + repr(self.rank) + '_' + repr(ix), D)
         
   
     
@@ -178,18 +180,18 @@ class problem(twoDim):
         matplotlib.use('PDF')
         import matplotlib.pyplot as plt
         import os
-        if not os.path.exists('splitFieldFigs'):
-            os.mkdir('splitFieldFigs')
+        if not os.path.exists('Figs'):
+            os.mkdir('Figs')
         
         N = np.size(S)
         plt.figure(383)
         plt.plot(resid)
-        plt.savefig('splitFieldFigs/fig383')
+        plt.savefig(self.outDir + 'Figs/fig383')
         
         plt.figure(387)
         plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
         plt.colorbar()
-        plt.savefig('splitFieldFigs/fig387')
+        plt.savefig(self.outDir + 'Figs/fig387')
         
         for ix in range(N):
             plt.figure(50+ix)
@@ -201,7 +203,7 @@ class problem(twoDim):
             # io.savemat('uHat'+repr(ix), {'uh':uHat, 'ub':ub, 'skt':skt})
     
             plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
-            plt.savefig('splitFieldFigs/fig'+repr(50+ix))
+            plt.savefig(self.outDir + 'Figs/fig'+repr(50+ix))
             
         plt.figure(76)
         plt.subplot(121)
@@ -212,7 +214,7 @@ class problem(twoDim):
         plt.imshow(S[0].v.reshape(S[0].nx,S[0].ny).real)
         plt.colorbar()
         # plt.show()
-        plt.savefig('splitFieldFigs/fig76')
+        plt.savefig(self.outDir + 'Figs/fig76')
     
     def plotParallel(self,P,resid,rank):
         ''' Plotting routine if things are parallel'''
@@ -221,8 +223,8 @@ class problem(twoDim):
         import matplotlib.pyplot as plt
         import os
         
-        if not os.path.exists('splitFieldFigs'):
-            os.mkdir('splitFieldFigs')
+        if not os.path.exists('Figs'):
+            os.mkdir('Figs')
         
         vv = self.Ms*self.v
         uu = self.Ms*self.us
@@ -231,18 +233,18 @@ class problem(twoDim):
         
         plt.figure(100+rank)
         plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real, np.arange(self.nSen), vv.real)
-        plt.savefig('splitFieldFigs/fig' + repr(100+rank) + self.tag)
+        plt.savefig(self.outDir + self.outDir + 'Figs/fig' + repr(100+rank))
         
         if rank==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
-            plt.savefig('splitFieldFigs/fig383' + self.tag )
+            plt.savefig(self.outDir + 'Figs/fig383' )
         
             plt.figure(387)
             plt.imshow(P.reshape(self.nRx, self.nRy), interpolation='nearest')
             plt.colorbar()
-            plt.savefig('splitFieldFigs/fig387' + self.tag )
+            plt.savefig(self.outDir + 'Figs/fig387'  )
     
             plt.figure(76)
             plt.subplot(121)
@@ -252,7 +254,7 @@ class problem(twoDim):
             plt.subplot(122)
             plt.imshow(self.v.reshape(self.nx,self.ny).real)
             plt.colorbar()
-            plt.savefig('splitFieldFigs/fig76' + self.tag )
+            plt.savefig(self.outDir + 'Figs/fig76'  )
         
         # all show!
 #        plt.show()
@@ -264,8 +266,8 @@ class problem(twoDim):
         import os
         import matplotlib.pyplot as plt
         
-        if not os.path.exists('splitFieldFigs'):
-            os.mkdir('splitFieldFigs')
+        if not os.path.exists(self.outDir+'Figs'):
+            os.mkdir(self.outDir + 'Figs')
         
         vv = self.Ms*self.v
         uu = self.Ms*self.us
@@ -274,18 +276,18 @@ class problem(twoDim):
         
         plt.figure(100+rank+10*ix)
         plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real, np.arange(self.nSen), vv.real)
-        plt.savefig('splitFieldFigs/fig' + repr(100+rank+10*ix) + self.tag)
+        plt.savefig(self.outDir + 'Figs/fig' + repr(100+rank+10*ix) )
         
         if rank==0 & ix==0:
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
-            plt.savefig('splitFieldFigs/fig383' + self.tag )
+            plt.savefig(self.outDir + 'Figs/fig383'  )
         
             plt.figure(387)
             plt.imshow(P.reshape(self.nRx, self.nRy), interpolation='nearest')
             plt.colorbar()
-            plt.savefig('splitFieldFigs/fig387' + self.tag )
+            plt.savefig(self.outDir + 'Figs/fig387'  )
     
             plt.figure(76)
             plt.subplot(121)
@@ -295,7 +297,7 @@ class problem(twoDim):
             plt.subplot(122)
             plt.imshow(self.v.reshape(self.nx,self.ny).real)
             plt.colorbar()
-            plt.savefig('splitFieldFigs/fig76' + self.tag )
+            plt.savefig(self.outDir + 'Figs/fig76'  )
         
         # all show!
 #        plt.show()
