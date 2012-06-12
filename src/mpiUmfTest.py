@@ -9,7 +9,7 @@ import scipy.sparse
 import scipy.sparse.linalg as lin
 import time
 from mpi4py import MPI
-
+import cProfile
 
 def main():
     comm = MPI.COMM_WORLD
@@ -32,4 +32,4 @@ def main():
     f.close()
         
 if __name__ == "__main__":
-    main()
+    cProfile.run('main()')
