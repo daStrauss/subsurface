@@ -16,7 +16,7 @@ import matplotlib
 matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 1000
+MAXIT = 100
 
 def delegator(solverType, freq, incAng, ranks):
     ''' A function that will allocate the problem instances according to the 'type' given '''
