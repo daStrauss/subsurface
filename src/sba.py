@@ -64,7 +64,7 @@ class problem(twoDim):
                       spt.hCat([self.A, B, sparse.coo_matrix((n,n))])]).tocsc()
         
         # print 'M format ' + repr(M.format)
-        Q = lin.splu(M)
+        Q = lin.factorized(M)
         # Foo = gc.get_objects()
         # print Foo
         # Q = M 
@@ -80,7 +80,7 @@ class problem(twoDim):
         while okgo:
             iterk += 1
             rhs = np.concatenate((Z.T*localuHat, self.rho*(q-r), c))
-            updt = Q.solve(rhs)
+            updt = Q(rhs)
             # updt = Q*rhs
             
             v = updt[:n]
