@@ -160,7 +160,7 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir=
     
     uHat = S.Ms*(S.sol[1].flatten())
     
-    ti = time.time()
+    ti = time.time() 
     S.initOpt(uHat, rho, xi, uBound, lmb)
     fout.write('initialization time ' + repr(time.time()-ti) + '\n')
     

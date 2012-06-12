@@ -111,7 +111,7 @@ class problem(twoDim):
         
         self.deltaP = q
         
-        obj = np.linalg.norm(localuHat - self.Ms*self.v)
+        obj = np.linalg.norm(localuHat - self.Ms*v)
         return obj
         
     
