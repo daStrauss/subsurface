@@ -23,7 +23,7 @@ class fwd(object):
     
     def __init__(self, freq, incAng):   
         '''initialize object ''' 
-        self.freq = freq
+        self.f = freq
         self.w = 2*np.pi*freq
         self.l = self.c/self.f
         self.incAng = incAng

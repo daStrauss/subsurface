@@ -3,21 +3,21 @@ Created on May 25, 2012
 
 @author: dstrauss
 '''
-import numpy as np
-import admm
-import solveADMM
 
-rho = 1500.0
-xi = 2e-3
-lmb = 0.0
 
-freq = np.array([1e4])
-S = solveADMM.bigProj(freq)
-N = np.size(S)
+class A(object):
+    def __init__(self,inpt):
+        self.a = inpt
+        self.b = 20
+        
 
-for ix in range(N):
-    uHat = S[ix].Ms*S[ix].sol[1].flatten()
-    S[ix].initOpt(rho,xi,uHat)
-    
-P = np.zeros(40*15)
-resid = np.zeros(100)
+class B(A):
+    def __init__(self,inpt):
+        self.c = 40
+        self.d = inpt
+        super(B,self).__init__(inpt)
+        
+
+
+Q = A(5)
+print Q.a

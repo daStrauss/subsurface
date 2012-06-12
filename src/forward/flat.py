@@ -8,10 +8,10 @@ import te
 import tm
 
 
-def makeMeA(strg):
+def makeMeA(strg, freq, incAng):
     if strg == 'TE':
-        return te.solver(5,99,99)
+        return te.solver(freq, incAng)
     elif strg == 'TM':
-        return tm.solver(5,99,99)
+        return tm.solver(freq, incAng)
     
     

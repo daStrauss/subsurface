@@ -116,4 +116,4 @@ class solver(fwd):
               sparse.kron(sparse.eye(self.nx,self.nx), self.d2/self.dx)*Msrcx.flatten() + \
               sparse.kron(self.d2/self.dx, sparse.eye(self.ny,self.ny))*Msrcy.flatten()
     
-        self.rhs = self.rhs + pw.flatten();
+        self.rhs = pw.flatten();
