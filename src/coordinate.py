@@ -25,7 +25,7 @@ def main():
         if not os.path.exists('splitField'):
             os.mkdir('splitField')
 
-        for ix in range(trialNs):
+        for ix in range(10,15):
             outDir = 'splitField/trial' + repr(ix) + '/'
             if not os.path.exists(outDir):
                 os.mkdir(outDir)
