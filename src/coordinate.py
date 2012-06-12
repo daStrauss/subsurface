@@ -11,6 +11,7 @@ import solveADMM
 import sys
 import os
 
+trialNs = 5
 
 def main():
     ''' simple main routine '''
@@ -24,7 +25,7 @@ def main():
         if not os.path.exists('splitField'):
             os.mkdir('splitField')
 
-        for ix in range(100):
+        for ix in range(trialNs):
             outDir = 'splitField/trial' + repr(ix) + '/'
             if not os.path.exists(outDir):
                 os.mkdir(outDir)
@@ -37,7 +38,7 @@ def main():
         if not os.path.exists('contrastX'):
             os.mkdir('contrastX')
             
-        for ix in range(100):
+        for ix in range(trialNs):
             outDir = 'contrastX/trial' + repr(ix)  + '/'
             if not os.path.exists(outDir):
                 os.mkdir(outDir)
@@ -49,7 +50,7 @@ def main():
             os.mkdir('sba')
         
         
-        for ix in range(100):
+        for ix in range(trialNs):
             outDir = 'sba/trial'+repr(ix) + '/'
             if not os.path.exists(outDir):
                 os.mkdir(outDir)
