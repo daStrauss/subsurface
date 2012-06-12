@@ -1,1 +1,0 @@
-rank 0 iter 0 exec time = 49.8883957862854rank 0 iter 1 exec time = 49.930394887924194
