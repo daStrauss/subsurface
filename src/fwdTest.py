@@ -25,7 +25,10 @@ sHS = 0.005
 MM.setspace(nx,ny,dx,dy)
 MM.setOperators()
 MM.makeGradOper()
+MM.setmats(eHS, sHS, ny/2)
+MM.setMs()
 
+print MM.Ms.shape
     
 outDir = './'
 testNo = 1
@@ -46,16 +49,16 @@ EE.sigmap[1] = EE.sigmap[1] + (EE.Md.T*pTrue).reshape(nx,ny)
 EE.fwd_solve(1)
 EE.outDir = outDir
 
-plt.figure(1)
-plt.imshow(EE.sol[0].real)
-plt.colorbar()
-
-plt.figure(2)
-plt.imshow(EE.sol[1].real)
-plt.colorbar()
-plt.title('with scatter')
-
-plt.show()
+#plt.figure(1)
+#plt.imshow(EE.sol[0].real)
+#plt.colorbar()
+#
+#plt.figure(2)
+#plt.imshow(EE.sol[1].real)
+#plt.colorbar()
+#plt.title('with scatter')
+#
+#plt.show()
 
 
 
