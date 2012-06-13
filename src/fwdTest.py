@@ -27,6 +27,7 @@ MM.setOperators()
 MM.makeGradOper()
 MM.setmats(eHS, sHS, ny/2)
 MM.setMs()
+MM.setMd([60,140], [70,95])
 
 print MM.Ms.shape
     

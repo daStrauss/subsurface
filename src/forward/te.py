@@ -24,6 +24,7 @@ class solver(fwd):
         # (
         # print self.div+1
         Y,X = np.meshgrid(x-(self.div+1+0.5)*self.dx, x); # I do things backward
+        
         Yyh, Xyh = np.meshgrid(np.append(0.0,x)+(self.dx/2)\
                                - (self.div+1+0.5)*self.dx,x);
         Yxh, Xxh = np.meshgrid(x-(self.div+1+0.5)*self.dx, \
