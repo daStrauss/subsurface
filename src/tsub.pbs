@@ -1,0 +1,2 @@
+cd /shared/users/dstrauss/subsurface/src/
+python multiproc.py
