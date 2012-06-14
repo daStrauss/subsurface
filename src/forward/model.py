@@ -139,12 +139,14 @@ class fwd(object):
         """ Does the clean solve, prints a figure """
         # self.sol[ind] = self.rhs.copy();
         # b = self.rhs.copy().flatten();
-        Q = lin.factorized(sparse.csc_matrix(self.nabla2 + self.getk(ind)))
+        self.sol[ind] = lin.spsolve(sparse.csc_matrix(self.nabla2+self.getk(ind)),\
+                                    self.rhs.flatten())
+        # Q = lin.factorized(sparse.csc_matrix(self.nabla2 + self.getk(ind)))
         
-        self.sol[ind] = Q(self.rhs.flatten())
+        # self.sol[ind] = Q(self.rhs.flatten())
         # umfpack.linsolv((self.nabla2 + self.getk(ind)), self.sol[ind])
         # self.sol[ind] = np.array(self.sol[ind])
-        self.sol[ind] = self.sol[ind].reshape(self.nx,self.ny)
+        # self.sol[ind] = self.sol[ind].reshape(self.nx,self.ny)
         
     def setMs(self, nSensors=10):
         '''Tell me the number of sensors, and I will distribute them equally across the surface
