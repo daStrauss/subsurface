@@ -38,7 +38,7 @@ def main():
     
     execT = fullT-time.time()
     D = {'times':T,'rng':runRange, 'execT':execT}
-    spio.savemat('slv/tmg'+repr(rank) + '_' + repr(nProc),D)
+    spio.savemat('all/tmg'+repr(rank) + '_' + repr(nProc),D)
     
 
 def assgnRange(rank, nProc):
