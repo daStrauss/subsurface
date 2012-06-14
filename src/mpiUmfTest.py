@@ -10,7 +10,7 @@ import scipy.sparse.linalg as lin
 import time
 
 import mpi4py.rc
-mpi4py.rc.threaded = True
+mpi4py.rc.threaded = False
 mpi4py.rc.thread_level = "funneled"
 
 from mpi4py import MPI
@@ -27,6 +27,8 @@ def main():
     # rank = 5
     
     runRange = assgnRange(rank,nProc)
+    print 'qt = ' + repr(MPI.Query_thread())
+    print 'isinit = ' + repr(MPI.Is_thread_main())
     
     T = np.zeros(totalIters)
     fullT = time.time()
@@ -43,7 +45,7 @@ def main():
     
     execT = fullT-time.time()
     D = {'times':T,'rng':runRange, 'execT':execT}
-    spio.savemat('ser/tmg'+repr(rank) + '_' + repr(nProc),D)
+    spio.savemat('noThr/tmg'+repr(rank) + '_' + repr(nProc),D)
     
 
 def assgnRange(rank, nProc):
