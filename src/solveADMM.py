@@ -17,7 +17,7 @@ import matplotlib
 matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 1
+MAXIT = 1000
 
 def delegator(solverType, flavor, freq, incAng):
     ''' A function that will allocate the problem instances according to the 'type' given 
@@ -204,8 +204,8 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
         
     #  
     allFreq = np.array([1e3, 3e3, 13e3, 50e3])
-#    allIncAng = np.array([75, -75, 45, -45])*np.pi/180
-    allIncAng = np.array([75])*np.pi/180
+    allIncAng = np.array([75, -75, 45, -45])*np.pi/180
+#    allIncAng = np.array([75])*np.pi/180
     flavors = ['TE']*allIncAng.size
 #     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
     # allRanks = np.arange(np.size(freq))
