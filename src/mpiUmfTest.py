@@ -8,6 +8,11 @@ import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg as lin
 import time
+
+import mpi4py.rc
+mpi4py.rc.threaded = True
+mpi4py.rc.thread_level = "funneled"
+
 from mpi4py import MPI
 import scipy.io as spio
 # import cProfile

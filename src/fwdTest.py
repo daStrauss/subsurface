@@ -20,7 +20,7 @@ ny = 199
 dx = 5.0
 dy = 5.0
 eHS = 1.0
-sHS = 0.0
+sHS = 0.0001
     
 MM.setspace(nx,ny,dx,dy)
 MM.setOperators()
@@ -40,9 +40,10 @@ MM.setMd([60,140], [70,95])
 # MM.rhs = rhs
 
 bndl = MM.planeWave()
-MM.fwd_solve(0)
+MM.fwd_solve(1)
 
-ex,ey,hz = MM.parseFields(MM.sol[0])
+
+ex,ey,hz = MM.parseFields(MM.sol[1  ])
 rex,rey,rhz = MM.parseFields(MM.rhs)
 
 
