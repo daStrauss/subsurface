@@ -13,5 +13,7 @@ def makeMeA(strg, freq, incAng):
         return te.solver(freq, incAng)
     elif strg == 'TM':
         return tm.solver(freq, incAng)
+    else:
+        print 'Easy Tiger: ' + repr(strg) + 'aint around'
     
     

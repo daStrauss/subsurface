@@ -13,52 +13,51 @@ import os
 import sys
 
 import matplotlib
+
 matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 100
+MAXIT = 1
 
-def delegator(solverType, freq, incAng, ranks):
-    ''' A function that will allocate the problem instances according to the 'type' given '''
+def delegator(solverType, flavor, freq, incAng):
+    ''' A function that will allocate the problem instances according to the 'type' given 
+    Since I don't mix solvers, it helps to keep the import load low
+    '''
     if solverType == 'contrastX':
         import contrastADMM
-        S = map(contrastADMM.problem, freq, incAng, ranks)
+        S = map(contrastADMM.problem, flavor, freq, incAng)
         return S
     elif solverType == 'splitField':
         import admm
-        S = map(admm.problem, freq, incAng, ranks)
+        S = map(admm.problem, freq, incAng, flavor)
         return S
     elif solverType == 'sba':
         import sba
-        S = map(sba.problem, freq, incAng, ranks)
+        S = map(sba.problem, flavor, freq, incAng)
         return S
     
 def bigProj(S, outDir, testNo):
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
     
-    nx = 199
-    ny = 199
-    dx = 5.0
-    dy = 5.0
-    eHS = 1.0
-    sHS = 0.005
-    
-    F = spio.loadmat('mats/tMat' + repr(testNo) + '.mat')
+    trm = spio.loadmat('mats/tMat' + repr(testNo) + '.mat')
   
-    pTrue = F['scrt'].flatten()
+    pTrue = trm['scrt'].flatten()
     
     for F in S:
-        F.setspace(nx,ny,dx,dy)
-        F.setmats(eHS,sHS,ny/2);
-        F.setMd([60,140],[70,95])
-        F.setMs(30)   
-        F.setOperators()
-        F.te_pw()
-        F.fwd_solve(0)
-        F.sigmap[1] = F.sigmap[1] + (F.Md.T*pTrue).reshape(nx,ny)
-        
-        F.fwd_solve(1)
+        F.fwd.initBig(pTrue)
         F.outDir = outDir
+#        
+#        F.setspace(nx,ny,dx,dy)
+#        F.setmats(eHS,sHS,ny/2);
+#        F.setMd([60,140],[70,95])
+#        F.setMs(30)   
+#        F.setOperators()
+#        F.te_pw()
+#        F.fwd_solve(0)
+#        F.sigmap[1] = F.sigmap[1] + (F.Md.T*pTrue).reshape(nx,ny)
+#        
+#        F.fwd_solve(1)
+#        F.outDir = outDir
     
     return S,pTrue
 
@@ -199,24 +198,26 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
     nProc = comm.Get_size()
     timeFull = time.time()
     
-    fout = open(outDir + 'notes' + repr(rank) + '_' +repr(bkgNo) + '.nts', 'w')
+    fout = open(outDir + 'notes' + repr(rank) + '_' + repr(bkgNo) + '.nts', 'w')
     
     fout.write('xi ' + repr(xi) + ' rho = ' + repr(rho) + '\n')
         
     #  
     allFreq = np.array([1e3, 3e3, 13e3, 50e3])
-    allIncAng = np.array([75, -75, 45, -45])*np.pi/180
+#    allIncAng = np.array([75, -75, 45, -45])*np.pi/180
+    allIncAng = np.array([75])*np.pi/180
+    flavors = ['TE']*allIncAng.size
 #     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
     # allRanks = np.arange(np.size(freq))
     
-    S = delegator(solverType, allFreq[rank]*np.ones(allIncAng.shape), allIncAng, rank*np.ones(allIncAng.shape,dtype='int'))
+    S = delegator(solverType, flavors, allFreq[rank]*np.ones(allIncAng.shape), allIncAng)
     S,pTrue = bigProj(S, outDir, bkgNo)
     
     N = np.size(S)
     print N
     
     for F in S:
-        uHat = F.Ms*(F.sol[1].flatten())
+        uHat = F.fwd.Ms*(F.fwd.sol[1].flatten())
         ti = time.time()
         F.initOpt(uHat,rho,xi,uBound, lmb, MAXIT)
         fout.write('initalization time ' + repr(time.time()-ti) + '\n')
@@ -225,14 +226,14 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
     # de reference so that I don't continuously have to work with lists in parallel mode
     # S = S[0]
 
-    P = np.zeros(S[0].nRx*S[0].nRy)
+    P = np.zeros(S[0].fwd.nRx*S[0].fwd.nRy)
     resid = np.zeros(MAXIT)
     
     for itNo in range(MAXIT):
         ti = time.time()
-        for ix in S:        
-            objF = ix.runOpt(P)
-            ix.obj[itNo] = objF
+        for F in S:        
+            objF = F.runOpt(P)
+            F.obj[itNo] = objF
         
         # i don't think i can get around this!
         if solverType == 'sba':
@@ -246,10 +247,10 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
     # do some plotting        
     for ix in range(N):
         S[ix].plotSemiParallel(P,resid,rank,ix)
-        S[ix].writeOut(ix)
+        S[ix].writeOut(rank,ix)
     
     if rank == 0:
-        D = {'Pfinal':P.reshape(S[0].nRx,S[0].nRy), 'nProc':nProc, 'resid':resid}
+        D = {'Pfinal':P.reshape(S[0].fwd.nRx,S[0].fwd.nRy), 'nProc':nProc, 'resid':resid}
         spio.savemat(outDir + 'pout_' + solverType + repr(bkgNo), D)
         
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
@@ -259,6 +260,6 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
     
 if __name__ == "__main__":
     # semiParallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
-    semiParallel('contrastX')
-    # semiParallel('splitField', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
+    # semiParallel('contrastX')
+    semiParallel('splitField', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
     # parallel('splitField')

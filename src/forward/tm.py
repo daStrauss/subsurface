@@ -12,13 +12,7 @@ from scipy.sparse import linalg as lin
 import scipy.io as spio
 
 class solver(fwd):
-    def setspace(self, nx,ny,dx,dy):
-        super(solver,self).setspace(nx,ny,dx,dy)
-        # self.ExNx = nx+1
-        # self.ExNy = ny
-        # self.EyNx = nx
-        # self.EyNy = ny+1
-        
+
     def makeGradOper(self):
         hz2ex = sparse.kron(sparse.eye(self.nx+1,self.nx+1), self.po*self.d2);
         hz2ey = sparse.kron(-self.po*self.d2, sparse.eye(self.nx+1,self.nx+1));
@@ -51,7 +45,7 @@ class solver(fwd):
         sigX[:,:(div+1)] = self.sHS
         
         sigY = np.zeros((self.nx,self.nx+1))
-        sigY[:,:(div+1)] = self.sHS
+        sigY[:,:(div+2)] = self.sHS
         
         # and keep this as zeros- reason being, it is going to be much more effective, and lingustically simple
         # to not have to deal with doing things other than Md*u
@@ -64,13 +58,14 @@ class solver(fwd):
         self.sigmap = [self.sigmap, self.sigmap.copy()]
         
         
-        self.N = 2*(self.nx+1)*self.nx + (self.nx+1)*(self.nx+1)
+        self.N = (self.ny+1)*self.nx + (self.nx+1)*self.nx + (self.nx+1)*(self.ny+1)
         self.sol = [np.zeros((self.N,1)), np.zeros((self.N,1))]
 
     
     def parseFields(self, u):
         ''' given a full space vector, u, it parses it into the three objects and returns them 
-        ex, ey, hz. -- could also be used for the sigmaps if wanted '''
+        [hz, ex, ey] -- could also be used for the sigmaps if wanted. a permutation, sure, but 
+         '''
         hi = (self.nx+1)*(self.ny)
         print hi
         ex = u[:hi]
@@ -83,7 +78,7 @@ class solver(fwd):
         hz = u[hj:]
         hz = hz.reshape(self.nx+1,self.ny+1)
         
-        return ex,ey,hz 
+        return [hz,ex,ey]
         
         
             
@@ -177,6 +172,17 @@ class solver(fwd):
         
         # umfpack.linsolv((self.nabla2 + self.getk(ind)), self.sol[ind])
         # self.sol[ind] = np.array(self.sol[ind])
+
+    def pointSource(self,x,y):
+        ''' Make a magnetic field point source ''' 
+        rhsz = np.zeros((self.nx+1,self.ny+1))
+        rhsz[x,y] = -1
+        
+        rhsx = np.zeros((self.nx+1,self.ny))
+        rhsy = np.zeros((self.nx,self.ny+1))
+
+        self.rhs = np.concatenate((rhsx.flatten(), rhsy.flatten(), rhsz.flatten()))
+
                               
     def planeWave(self):
         ''' Make the plane wave illumination for the given frequency and inc angle '''
@@ -299,7 +305,5 @@ class solver(fwd):
         Msrcz[xr+1,(yb+1):(yt+1)] += ((-1.0)*Eyinc[xr, (yb+1):(yt+1)]/self.dx)
         
         
-        D = {'Mz':Msrcz, 'Jx':Jsrcx, 'Jy':Jsrcy}
-        spio.savemat('tmSrc', D)
         self.rhs = np.concatenate((Jsrcx.flatten(), Jsrcy.flatten(), Msrcz.flatten()))
         return bnd

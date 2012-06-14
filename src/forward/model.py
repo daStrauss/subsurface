@@ -11,6 +11,7 @@ import pickle
 import scipy.io as spio
 import numpy as np
 
+
 class pmlList(object):
     freq = np.ndarray(0)
     dx = np.ndarray(0)
@@ -21,13 +22,27 @@ class fwd(object):
     muo = 4*np.pi*1e-7
     c = np.sqrt(1/(muo*epso))
     
-    def __init__(self, freq, incAng):   
+    def __init__(self, freq, incAng=0.0, rank=0):   
         '''initialize object ''' 
         self.f = freq
         self.w = 2*np.pi*freq
         self.l = self.c/self.f
         self.incAng = incAng
         
+    def initBig(self, p):
+        '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
+        self.setspace(199,199,5.0,5.0)
+        self.setmats(1,0.005,199/2)
+        self.setOperators()
+        self.makeGradOper()
+        self.setMs()
+        self.setMd([60,140], [70,95])
+        self.sigmap[1] += self.Md.T*p
+        
+        self.planeWave()
+        self.fwd_solve(0)
+        self.fwd_solve(1)
+         
     def setspace(self, nx,ny,dx,dy):
         self.nx = nx # number x points
         self.ny = ny # number y points
@@ -38,33 +53,15 @@ class fwd(object):
         self.npml = min(10,round((nx+2.0)/10)) # size of pml borders
     
     def setmats(self, eHSr, sHS, div):
-        """This quick routine starts the process to
-        setup the location of the background halfspace 
-        It is also true that this set the space for the ON GRID locations
-        """
-        self.eHS = eHSr*self.epso # half space permitivity
-        self.sHS = sHS # half space conductivity
-        self.div = div # hslf space dividing line
-        self.kfree = 2*np.pi/self.l; # define k in free space
-        self.kHS = np.sqrt(self.muo*self.eHS*(self.w**2) \
-                         + 1j*self.w*self.muo*self.sHS); # k in subsurface
-
-        self.epsmap = [self.epso*np.ones((self.nx,self.ny)), self.epso*np.ones((self.nx,self.ny))]
-        self.sigmap = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
-        self.sol = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
-
-        for x in range(2):
-            self.epsmap[x][:,:(div+1)] = self.eHS
-            self.sigmap[x][:,:(div+1)] = self.sHS
+        """Routine to setup and allocate the materials - epsilon and sigma. 
+        Only sigma is implemented for the TM mode. Settings taken for ON Grid Locations"""
+        pass
         
-    def getk(self, ind):
-        """ This routine assembles a diagonal matrix with the materials indexed by ind
-        """
-        kl = (self.muo*self.epsmap[ind]*(self.w**2) + 1j*self.w*self.muo*self.sigmap[ind]   )
-        
-        return sparse.spdiags(kl.flatten(), 0, self.N, self.N)
+    def getk(self,ind):
+        '''Routine to assemble diagonal matrix that adds in the materials for the entire space.
+        Indexed by ind for the two spaces held by the model'''
+        pass    
 
-    
     def getPMLparm(self):
         ''' Returns the proper PML parameter either from a library if it has already been calculated,
         or it is able to explicitly calculate it otherwise
@@ -82,7 +79,7 @@ class fwd(object):
             pmc = findBestAng(self.f, self.dx)
             lkt.freq = np.append(lkt.freq, self.f)
             lkt.pmc = np.append(lkt.pmc, pmc)
-            lkt.dx = np.append(lkt.pmc, self.dx)
+            lkt.dx = np.append(lkt.dx, self.dx)
             pickle.dump(lkt, open('pmlLib.p', 'wb'))
             # print pmc
             return pmc
@@ -95,9 +92,13 @@ class fwd(object):
             
         
     def makeFD(self, pmc):
-        """A routine that will define the following operators:
-        A, ox, oy"""
-        # h = (self.dx)*np.mat(np.ones((self.nx+1,1)));
+        ''''A routine that will define the following operators:
+            d1: derivative mapping from on grid to half grid
+            d2: derivative mapping from half grid to on grid
+            po: pml scaling for on grid
+            ph: pml scaling for half grid
+        '''
+            
         hi = np.zeros(self.nx+1);
     
         hi[:self.npml] = (pmc)*np.linspace(1,0,self.npml);
@@ -128,94 +129,61 @@ class fwd(object):
         self.nabla2 = sparse.kron(oper1d,sparse.eye(self.nx,self.nx)) \
                  + sparse.kron(sparse.eye(self.nx,self.nx), oper1d);
                  
-        
-    def point_source(self, x,y):
-        """ A routine to add a point source at the grid loc (x,y) """
-        self.rhs.reshape(self.nx,self.ny)[x,y] = -1.0
-
-
+    def pointSource(self, x,y):
+        ''' This routine puts a point source in the z direction, whichever field that may be'''
+        print 'Not yet implemented pointSource'
+        pass    
 
     def fwd_solve(self, ind):
-        """ Does the clean solve, prints a figure """
-        # self.sol[ind] = self.rhs.copy();
-        # b = self.rhs.copy().flatten();
+        '''Does the clean solve for the given index. The factorization is not cached'''
         self.sol[ind] = lin.spsolve(sparse.csc_matrix(self.nabla2+self.getk(ind)),\
                                     self.rhs.flatten())
-        # Q = lin.factorized(sparse.csc_matrix(self.nabla2 + self.getk(ind)))
-        
-        # self.sol[ind] = Q(self.rhs.flatten())
-        # umfpack.linsolv((self.nabla2 + self.getk(ind)), self.sol[ind])
-        # self.sol[ind] = np.array(self.sol[ind])
-        # self.sol[ind] = self.sol[ind].reshape(self.nx,self.ny)
-        
+    def parseFields(self,u):
+        '''method to reshape and return according to internal dimensions '''
+        print 'not yet implemented parseFields'
+        pass
+
     def setMs(self, nSensors=10):
-        '''Tell me the number of sensors, and I will distribute them equally across the surface
-        '''
-        self.nSen = nSensors
-        indx = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
-        oprx = np.zeros((self.nx,self.ny),dtype='bool')
-        
-        oprx[indx,self.div] = 1;
-        
-        idx = np.arange(self.N)
-        oprx = oprx.flatten()
-        idx = idx[oprx]
-        
-        self.Ms = sparse.dok_matrix((self.N,idx.size))
-        
-        for i in range(sum(oprx)):
-            self.Ms[idx[i],i] = 1.0
-        self.Ms = self.Ms.tocsc()
-        self.Ms = self.Ms.T
-        
-        
+        '''Tell me the number of sensors, and I will distribute them equally across the surface'''
+        pass
+         
     def setMd(self, xrng, yrng):
-        '''Tell me the xrange and the yrange and I'll make selector
-        '''
-        oprx = np.zeros((self.nx,self.ny),dtype='bool')
-        oprx[xrng[0]:xrng[1],yrng[0]:yrng[1]] = 1
-        self.nRx = xrng[1]-xrng[0]
-        self.nRy = yrng[1]-yrng[0]
-        
-        idx = np.arange(self.N)
-        oprx = oprx.flatten()
-        idx = idx[oprx]
-        self.Md = sparse.dok_matrix((self.N,idx.size))
-        
-        for i in range(idx.size):
-            self.Md[idx[i],i]=1.0
-        self.Md = self.Md.tocsc()
-        self.Md = self.Md.T
+        '''Tell me the xrange and the yrange and I'll make selector'''  
+        pass
         
     def plotSol(self,ind):
         pass
 
     def writeOut(self,ind):
+        '''write out the juicy parts in matlab format'''
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.simap[ind], 'fld':self.sol[ind]}
         spio.savemat('maxPrint' + repr(self.rank), D)
                      
     
 def findBestAng(freq,dx):
     '''for a particular frequency, find the best PML complex angle 
+    Universal for both te, tm models, but calculates based on the TE model
     '''
+    import te 
+    print 'blast -- recalculating proper PML for f = ' + repr(freq)
     # set some internal parameters
     nx = 99
     ny = nx
-    # dx = 5.0
     dy = dx
     
     # this means free space
     eHS = 1.0
     sHS = 0
     
+    # need basic constants
     epso = 8.854e-12
     muo = 4.0*np.pi*1e-7
+    c = 1/np.sqrt(muo*epso)
     
+    # to calculate the Greens function, the true spatial locations are needed
     x = np.array(range(nx))*dx - dx*(nx/2)
     Y,X = np.meshgrid(x, x);
     dist = np.sqrt(Y**2+X**2) 
-    
-    c = 1/np.sqrt(muo*epso)
     
     k = (2*np.pi)/(c/freq)
     bbx = dx*dx*(1j/4)*spec.hankel1(0,k*dist)
@@ -223,20 +191,13 @@ def findBestAng(freq,dx):
     # the center contains a singularity, but we'll  be forgiving and finite
     bbx[mdpt,mdpt] = 0.25*bbx[mdpt+1,mdpt] + 0.25*bbx[mdpt-1,mdpt] + 0.25*bbx[mdpt,mdpt+1] + 0.25*bbx[mdpt,mdpt-1]
     
-    # sze = bbx.shape
-    # print sze
+    # create a mask so that PML effects don't adversely affect the quality of the solutions
     mask = np.ones(bbx.shape)
     mask[:15,:] =0
     mask[(nx-15):(nx),:] = 0
     mask[:,:15]=0
     mask[:,(nx-15):(nx)] = 0
     
-#    print mask[:,98]
-#    
-#    plt.figure(388)
-#    plt.imshow(mask)
-#    plt.show()
-#       
     lo = 0
     hi = 5
     
@@ -246,18 +207,19 @@ def findBestAng(freq,dx):
         angChoice = np.logspace(lo,hi,50)
     
         for i in range(50):    
-            #     create a single object
-            bce = fwd(freq)
+            # Create a single new object on frequency
+            # use the te routine for this
+            bce = te.solver(freq)
             bce.setspace(nx,ny,dx,dy)
             bce.setmats(eHS, sHS, nx/2)
-    
-            # pmc = 22.229964825261945
+            
             bce.makeFD(angChoice[i])
             bce.makeGradOper()
-            bce.point_source(49, 49)
+            bce.pointSource(49, 49)
             bce.fwd_solve(0)
-    
-            localError[i] = np.linalg.norm((bce.sol[0] - bbx)*mask,'fro')
+            u = bce.parseFields(bce.sol[0])
+            
+            localError[i] = np.linalg.norm((u[0] - bbx)*mask,'fro')
             # print 'ang = ' + repr(angChoice[i]) + ' local error ' + repr(localError[i])
     
         minIdx = np.argmin(localError)

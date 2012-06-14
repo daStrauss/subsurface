@@ -10,6 +10,84 @@ from scipy import sparse
 
 class solver(fwd):
     ''' class to implement the transverse electric mode, rather - the case where we have Ez only ''' 
+    def setmats(self, eHSr, sHS, div):
+        """This quick routine starts the process to
+        setup the location of the background halfspace 
+        It is also true that this set the space for the ON GRID locations
+        """
+        self.eHS = eHSr*self.epso # half space permitivity
+        self.sHS = sHS # half space conductivity
+        self.div = div # hslf space dividing line
+        self.kfree = 2*np.pi/self.l; # define k in free space
+        self.kHS = np.sqrt(self.muo*self.eHS*(self.w**2) \
+                         + 1j*self.w*self.muo*self.sHS); # k in subsurface
+
+        self.epsmap = [self.epso*np.ones((self.nx,self.ny)), self.epso*np.ones((self.nx,self.ny))]
+        self.sigmap = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
+        self.sol = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
+        
+        self.N = self.nx*self.ny
+        
+        for x in range(2):
+            self.epsmap[x][:,:(div+1)] = self.eHS
+            self.sigmap[x][:,:(div+1)] = self.sHS
+            self.epsmap[x] = self.epsmap[x].flatten()
+            self.sigmap[x] = self.sigmap[x].flatten()
+            
+    def getk(self, ind):
+        """ This routine assembles a diagonal matrix with the materials indexed by ind
+        """
+        kl = (self.muo*self.epsmap[ind]*(self.w**2) + 1j*self.w*self.muo*self.sigmap[ind]   )
+        
+        return sparse.spdiags(kl.flatten(), 0, self.N, self.N)
+    
+    def setMs(self, nSensors=10):
+        '''Tell me the number of sensors, and I will distribute them equally across the surface
+        '''
+        self.nSen = nSensors
+        indx = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
+        oprx = np.zeros((self.nx,self.ny),dtype='bool')
+        
+        oprx[indx,self.div] = 1;
+        
+        idx = np.arange(self.N)
+        oprx = oprx.flatten()
+        idx = idx[oprx]
+        
+        self.Ms = sparse.lil_matrix((self.N,idx.size))
+        
+        for i in range(sum(oprx)):
+            self.Ms[idx[i],i] = 1.0
+        self.Ms = self.Ms.tocsc()
+        self.Ms = self.Ms.T
+        
+    def setMd(self, xrng, yrng):
+        '''Tell me the xrange and the yrange and I'll make selector'''
+        oprx = np.zeros((self.nx,self.ny),dtype='bool')
+        oprx[xrng[0]:xrng[1],yrng[0]:yrng[1]] = 1
+        self.nRx = xrng[1]-xrng[0]
+        self.nRy = yrng[1]-yrng[0]
+        
+        idx = np.arange(self.N)
+        oprx = oprx.flatten()
+        idx = idx[oprx]
+        self.Md = sparse.dok_matrix((self.N,idx.size))
+        
+        for i in range(idx.size):
+            self.Md[idx[i],i]=1.0
+        self.Md = self.Md.tocsc()
+        self.Md = self.Md.T
+        
+    def parseFields(self,u):
+        ''' Method to return the field in its square form'''
+        return [u.reshape(self.nx,self.ny)]
+    
+    def pointSource(self, x,y):
+        """ A routine to add a point source at the grid loc (x,y) """
+        self.rhs = np.zeros((self.nx,self.ny),dtype='complex128') 
+        self.rhs[x,y] = -1.0
+        self.rhs = self.rhs.flatten()
+    
     def planeWave(self):
         """ A routine to add a te planewave at angle as spec'd """
         thi = self.incAng 

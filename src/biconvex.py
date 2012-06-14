@@ -5,8 +5,9 @@ Created on Jun 6, 2012
 '''
 
 import numpy as np
-from maxwell import twoDim
+from optimize import optimizer
 
-class problem(twoDim):
+class problem(optimizer):
     '''Implementing vanilla biconvex method for subsurface imaging '''
+    pass
     
