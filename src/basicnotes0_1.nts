@@ -1,4 +1,23 @@
 xi 0.002 rho = 1500
-initalization time 8.681492805480957
-iter no 0 exec time = 0.2404160499572754 rank 0
-Solve time = 15.660024881362915
+initalization time 27.747719049453735
+iter no 0 exec time = 0.7881588935852051 rank 0
+iter no 1 exec time = 0.7543158531188965 rank 0
+iter no 2 exec time = 0.7697999477386475 rank 0
+iter no 3 exec time = 0.7733809947967529 rank 0
+iter no 4 exec time = 0.7627339363098145 rank 0
+iter no 5 exec time = 0.7705509662628174 rank 0
+iter no 6 exec time = 0.7605628967285156 rank 0
+iter no 7 exec time = 0.7839171886444092 rank 0
+iter no 8 exec time = 0.7587640285491943 rank 0
+iter no 9 exec time = 0.7604770660400391 rank 0
+iter no 10 exec time = 0.7682590484619141 rank 0
+iter no 11 exec time = 0.7599549293518066 rank 0
+iter no 12 exec time = 0.7724359035491943 rank 0
+iter no 13 exec time = 0.7658469676971436 rank 0
+iter no 14 exec time = 0.7592198848724365 rank 0
+iter no 15 exec time = 0.7547011375427246 rank 0
+iter no 16 exec time = 0.7563340663909912 rank 0
+iter no 17 exec time = 0.7625200748443604 rank 0
+iter no 18 exec time = 0.7627310752868652 rank 0
+iter no 19 exec time = 0.7694239616394043 rank 0
+Solve time = 58.73319602012634

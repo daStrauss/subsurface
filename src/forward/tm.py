@@ -99,8 +99,8 @@ class solver(fwd):
         idx = np.arange((self.nx+1)*(self.nx+1))
         oprx = oprx.flatten()
         idx = idx[oprx]
-        
-        self.Ms = sparse.dok_matrix((self.N,idx.size))
+        nLocal = (self.nx+1)*(self.ny+1)
+        self.Ms = sparse.dok_matrix((nLocal,idx.size))
         
         # there's probably a more pythonic way here ---
         for i in range(sum(oprx)):
