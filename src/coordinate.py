@@ -11,7 +11,7 @@ import solveADMM
 import sys
 import os
 
-trialNs = 2
+trialNs = 1
 
 def main():
     ''' simple main routine '''
@@ -25,12 +25,12 @@ def main():
         if not os.path.exists('splitField'):
             os.mkdir('splitField')
 
-        for ix in range(5,7):
+        for ix in range(trialNs):
             outDir = 'splitField/trial' + repr(ix) + '/'
             if not os.path.exists(outDir):
                 os.mkdir(outDir)
             
-            solveADMM.semiParallel('splitField', rho=1500, xi =2e-3, \
+            solveADMM.semiParallel('splitField', rho=0.10, xi =0.050, \
                                    uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir =outDir)
             
             

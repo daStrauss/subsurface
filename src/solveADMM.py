@@ -17,7 +17,7 @@ import matplotlib
 matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 1000
+MAXIT = 20
 
 def delegator(solverType, flavor, freq, incAng):
     ''' A function that will allocate the problem instances according to the 'type' given 
@@ -204,8 +204,8 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
         
     #  
     allFreq = np.array([1e3, 3e3, 13e3, 50e3])
-    allIncAng = np.array([75, -75, 45, -45])*np.pi/180
-#    allIncAng = np.array([75])*np.pi/180
+#    allIncAng = np.array([75, -75, 45, -45])*np.pi/180
+    allIncAng = np.array([75])*np.pi/180
     flavors = ['TM']*allIncAng.size
 #     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
     # allRanks = np.arange(np.size(freq))
@@ -214,8 +214,7 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
     S,pTrue = bigProj(S, outDir, bkgNo)
     
     N = np.size(S)
-    print N
-    
+
     for F in S:
         uHat = F.fwd.Ms*(F.fwd.sol[1].flatten())
         ti = time.time()
@@ -233,13 +232,16 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
         ti = time.time()
         for F in S:        
             objF = F.runOpt(P)
+            
             F.obj[itNo] = objF
         
         # i don't think i can get around this!
         if solverType == 'sba':
             P += S[0].aggregatorSemiParallel(S,comm)
         else:
+            
             P = S[0].aggregatorSemiParallel(S,comm)
+            
             
         resid[itNo] = np.linalg.norm(P-pTrue)
         fout.write('iter no ' + repr(itNo) + ' exec time = ' + repr(time.time()-ti) + ' rank ' + repr(comm.Get_rank()) +'\n')

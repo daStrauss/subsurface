@@ -196,3 +196,8 @@ class solver(fwd):
               sparse.kron(self.d2/self.dx, sparse.eye(self.ny,self.ny))*Msrcy.flatten()
     
         self.rhs = pw.flatten();
+        
+        
+    def getS(self):
+        ''' return the coefficient necessary in the Md*P part to make things work '''
+        return self.w*self.muo*1j

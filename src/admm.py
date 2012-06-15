@@ -38,7 +38,7 @@ class problem(optimizer):
         
         # the update for the first step can be precomputed
         self.A = self.fwd.nabla2+self.fwd.getk(0)
-        self.s = 1j*self.fwd.muo*self.fwd.w
+        self.s = self.fwd.getS()
         
         self.Q = sparse.vstack([self.A, -self.xi*sparse.eye(self.fwd.N,self.fwd.N)])
         self.Moo = self.rho*(self.Q.conj().T*self.Q) + self.fwd.Ms.T*self.fwd.Ms
@@ -159,26 +159,34 @@ class problem(optimizer):
         ''' Do the aggregation step in parallel whoop! '''
         N = np.size(S)
         n = S[0].fwd.nRx*S[0].fwd.nRy
+        
+        QL = sparse.lil_matrix( (n,n), dtype='complex128' )
+        bL = np.zeros(n, dtype='complex128')
+        # U = np.zeros((n,N),dtype='complex128')
+        # Q = np.zeros((n,N),dtype='complex128')
+        
+        for L in S:
+            D = sparse.spdiags(L.s*(L.ub+L.v),0, self.fwd.N,self.fwd.N)
+            g = D*L.fwd.Md.T
+            bL += g.T.conj()*((L.A*L.us) + L.F)
+            QL += g.T.conj()*g
 
-        U = np.zeros((n,N),dtype='complex128')
-        Q = np.zeros((n,N),dtype='complex128')
         
-        for ix in range(N):
-            s = S[ix].s
-            U[:,ix] = s*S[ix].fwd.Md*(S[ix].ub+S[ix].v)
-            Q[:,ix] = S[ix].fwd.Md*((S[ix].A*S[ix].us) + S[ix].F)
-        
-        numLocal = np.sum(U.real*Q.real + U.imag*Q.imag,1)
-        denLocal = np.sum(U.conj()*U,1) + self.lmb/S[0].rho
-        
-        num = np.zeros(numLocal.shape)
-        num = comm.allreduce(numLocal,num,op=MPI.SUM)
 
-        den = np.zeros(denLocal.shape)
-        den = comm.allreduce(denLocal,den,op=MPI.SUM)
+        QL = QL/N
+        bL = bL/N
+        
+        Q = sparse.lil_matrix((n,n), dtype='complex128')
+        
+        Q = comm.allreduce(QL,Q,op=MPI.SUM)
+        Q = Q/comm.Get_size()
+        
+        b = np.zeros(n)
+        b = comm.allreduce(bL,b,op=MPI.SUM)
+        b = b/comm.Get_size()
         
         # hah, no 1/n's because the all got em
-        P = (-num/den).real
+        P = lin.spsolve(Q,-b).real
         P = np.maximum(P,0)
         P = np.minimum(P,self.uBound)
         
@@ -192,6 +200,7 @@ class problem(optimizer):
         import matplotlib
         matplotlib.use('PDF')
         import matplotlib.pyplot as plt
+        plt.close('all')
         import os
         if not os.path.exists('Figs'):
             os.mkdir('Figs')
@@ -237,6 +246,7 @@ class problem(optimizer):
         import matplotlib
         matplotlib.use('PDF')
         import matplotlib.pyplot as plt
+        plt.close('all')
         import os
         
         if not os.path.exists('Figs'):
@@ -283,6 +293,7 @@ class problem(optimizer):
         ''' Plotting routine if things are parallel'''
         import os
         import matplotlib.pyplot as plt
+        plt.close('all')
         
         if not os.path.exists(self.outDir+'Figs'):
             os.mkdir(self.outDir + 'Figs')

@@ -27,6 +27,7 @@ class solver(fwd):
                                 spt.hCat([sparse.coo_matrix((n,n)), sparse.coo_matrix((n,n)), hz2ey]), \
                                 spt.hCat([ex2hz, ey2hz, sparse.coo_matrix((N,N))]) ])
                               
+    
                               
     def setmats(self, eHSr, sHS, div):
         """This quick routine starts the process to
@@ -67,7 +68,7 @@ class solver(fwd):
         [hz, ex, ey] -- could also be used for the sigmaps if wanted. a permutation, sure, but 
          '''
         hi = (self.nx+1)*(self.ny)
-        print hi
+
         ex = u[:hi]
         ex = ex.reshape(self.nx+1,self.ny)
         
@@ -136,10 +137,10 @@ class solver(fwd):
         idx = np.arange((self.nx+1)*self.nx)
         oprx = oprx.flatten()
         idx = idx[oprx]
-        Mdx = sparse.dok_matrix(((self.nx+1)*self.nx,idx.size), 'bool')
+        Mdx = sparse.dok_matrix(((self.nx+1)*self.nx,idx.size))
         
         for i in range(idx.size):
-            Mdx[idx[i],i]=1
+            Mdx[idx[i],i]=1.0
             
         opry = np.zeros((self.nx,self.ny+1),dtype='bool')
         # might have to revise this later.
@@ -148,10 +149,10 @@ class solver(fwd):
         idx = np.arange((self.nx+1)*self.nx)
         opry = opry.flatten()
         idx = idx[opry]
-        Mdy = sparse.dok_matrix(((self.nx+1)*self.nx,idx.size), 'bool')
+        Mdy = sparse.dok_matrix(((self.nx+1)*self.nx,idx.size))
         
         for i in range(idx.size):
-            Mdy[idx[i],i] = 1
+            Mdy[idx[i],i] = 1.0
         # only do one conversion to csc    
         N = (self.nx+1)*(self.nx+1)
         assert Mdx.shape == Mdy.shape
@@ -211,7 +212,7 @@ class solver(fwd):
         nt = np.sqrt((self.eHS-self.sHS/(1j*self.w))*self.muo)/np.sqrt(self.epso*self.muo)
         #incident angle
         tht = np.arcsin(ni*np.sin(self.incAng)/nt)
-        print tht
+
         #Create the coefficients to specify the space. 
         kinc = -np.array([np.sin(self.incAng), np.cos(self.incAng)])
         ktx = -np.array([np.sin(tht), np.cos(tht)])
@@ -307,3 +308,7 @@ class solver(fwd):
         
         self.rhs = np.concatenate((Jsrcx.flatten(), Jsrcy.flatten(), Msrcz.flatten()))
         return bnd
+    
+    def getS(self):
+        '''return the parameter for scaling within the Md*p part. '''
+        return -1.0+0j
