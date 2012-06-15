@@ -35,7 +35,7 @@ def main():
             for ix, r in enumerate(rhos):
                 outDir = 'splitField/mat' + repr(supIx) + '/trial' + repr(ix) + '/'
                 assert os.path.exists(outDir)            
-                solveADMM.semiParallel('splitField', rho=r, xi=xis[ix], \
+                solveADMM.semiParallel('splitField', 'TM', rho=r, xi=xis[ix], \
                       uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
             
             

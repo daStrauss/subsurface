@@ -11,7 +11,7 @@ import solveADMM
 import sys
 import os
 
-trialNs = 1
+trialNs = 100
 
 def main():
     ''' simple main routine '''
@@ -30,8 +30,8 @@ def main():
             if not os.path.exists(outDir):
                 os.mkdir(outDir)
             
-            solveADMM.semiParallel('splitField', rho=0.10, xi =0.050, \
-                                   uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir =outDir)
+            solveADMM.semiParallel('splitField', 'TE', rho=1500, xi =2e-3, \
+                                   uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
             
             
     elif sys.argv[1] == 'contrastX':

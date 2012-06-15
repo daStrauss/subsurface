@@ -189,8 +189,21 @@ def parallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir=
         
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
     fout.close()
-        
-def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir='basic'):
+
+def balancingAct(freqs,incAngs,rank,nProc):
+    ''' splits the full set of freqs, and incAngs into equal sections according to rank, nProc'''
+    allFreqs, allAngs = np.meshgrid(freqs,incAngs)
+    allFreqs = allFreqs.flatten()
+    allAngs = allAngs.flatten()
+    
+    nPer = allFreqs.size/nProc
+    assert nPer*nProc == allFreqs.size
+    
+    lRng = rank*nPer + np.arange(nPer)
+    return allFreqs[lRng],allAngs[lRng]
+    
+    
+def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir='basic'):
     '''semiParallel solver -- i.e. has MPI calls loops locally over different angles of arrival'''
     
     comm = MPI.COMM_WORLD
@@ -206,11 +219,15 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
     allFreq = np.array([1e3, 3e3, 13e3, 50e3])
     allIncAng = np.array([75, -75, 45, -45])*np.pi/180
 #    allIncAng = np.array([75])*np.pi/180
-    flavors = ['TM']*allIncAng.size
-#     allIncAng = np.ones(allFreq.shape)*45*np.pi/180.0
-    # allRanks = np.arange(np.size(freq))
     
-    S = delegator(solverType, flavors, allFreq[rank]*np.ones(allIncAng.shape), allIncAng)
+    freqLocal,angLocal = balancingAct(allFreq,allIncAng, rank, nProc)
+    
+    print freqLocal
+    print angLocal
+    
+    flavors = [flavor]*freqLocal.size
+    S = delegator(solverType, flavors, freqLocal, angLocal)
+    
     S,pTrue = bigProj(S, outDir, bkgNo)
     
     N = np.size(S)
