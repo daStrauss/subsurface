@@ -1,1 +1,1 @@
-mpiexec -npernode 4 -wdir /shared/users/dstrauss/subsurface/src python -m cProfile coordinate.py splitField
+mpiexec -npernode 2 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py splitField
