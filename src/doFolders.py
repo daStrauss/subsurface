@@ -10,18 +10,23 @@ import os
 def traceBuild(baseTag):
     if not os.path.exists(baseTag):
             os.mkdir(baseTag)
-
-    for ix in range(100):
-        outDir = baseTag + '/trial' + repr(ix) + '/'
-        if not os.path.exists(outDir):
-            os.mkdir(outDir)
+    
+    for supIx in range(5):
+        mid = baseTag + '/mat' + repr(supIx) + '/'
+        if not os.path.exists(mid):
+            os.mkdir(mid)
+        
+            for ix in range(100):
+                outDir = mid + '/trial' + repr(ix) + '/'
+                if not os.path.exists(outDir):
+                    os.mkdir(outDir)
             
-        figDir = outDir + 'Figs/'
-        datDir = outDir + 'Data/'
-        if not os.path.exists(figDir):
-            os.mkdir(figDir)
-        if not os.path.exists(datDir):
-            os.mkdir(datDir)
+                figDir = outDir + 'Figs/'
+                datDir = outDir + 'Data/'
+                if not os.path.exists(figDir):
+                    os.mkdir(figDir)
+                if not os.path.exists(datDir):
+                    os.mkdir(datDir)
 
 def main():
     ''' simple main routine '''

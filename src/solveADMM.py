@@ -9,15 +9,15 @@ from mpi4py import MPI
 import numpy as np
 import scipy.io as spio
 import time
-import os
-import sys
+# import os
+# import sys
 
 import matplotlib
 
 matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 20
+MAXIT = 1000
 
 def delegator(solverType, flavor, freq, incAng):
     ''' A function that will allocate the problem instances according to the 'type' given 
@@ -227,6 +227,7 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
 
     P = np.zeros(S[0].fwd.nRx*S[0].fwd.nRy)
     resid = np.zeros(MAXIT)
+    tmvc = np.zeros(MAXIT)
     
     for itNo in range(MAXIT):
         ti = time.time()
@@ -242,7 +243,7 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
             
             P = S[0].aggregatorSemiParallel(S,comm)
             
-            
+        tmvc[itNo] = time.time()-ti    
         resid[itNo] = np.linalg.norm(P-pTrue)
         fout.write('iter no ' + repr(itNo) + ' exec time = ' + repr(time.time()-ti) + ' rank ' + repr(comm.Get_rank()) +'\n')
         
@@ -252,7 +253,8 @@ def semiParallel(solverType, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, out
         S[ix].writeOut(rank,ix)
     
     if rank == 0:
-        D = {'Pfinal':P.reshape(S[0].fwd.nRx,S[0].fwd.nRy), 'nProc':nProc, 'resid':resid}
+        D = {'Pfinal':P.reshape(S[0].fwd.nRx,S[0].fwd.nRy), 'nProc':nProc, 'resid':resid, \
+             'timing':tmvc}
         spio.savemat(outDir + 'pout_' + solverType + repr(bkgNo), D)
         
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')

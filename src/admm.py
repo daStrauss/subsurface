@@ -39,7 +39,7 @@ class problem(optimizer):
         # the update for the first step can be precomputed
         self.A = self.fwd.nabla2+self.fwd.getk(0)
         self.s = self.fwd.getS()
-        
+        print self.xi
         self.Q = sparse.vstack([self.A, -self.xi*sparse.eye(self.fwd.N,self.fwd.N)])
         self.Moo = self.rho*(self.Q.conj().T*self.Q) + self.fwd.Ms.T*self.fwd.Ms
         
