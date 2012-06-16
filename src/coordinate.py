@@ -43,7 +43,7 @@ def main():
             if not os.path.exists(outDir):
                 os.mkdir(outDir)
 
-            solveADMM.semiParallel('contrastX', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir = outDir)
+            solveADMM.semiParallel('contrastX', 'TE', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir = outDir)
 
     elif sys.argv[1] == 'sba':
         if not os.path.exists('sba'):
@@ -55,7 +55,7 @@ def main():
             if not os.path.exists(outDir):
                 os.mkdir(outDir)
 
-            solveADMM.semiParallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir=outDir)
+            solveADMM.semiParallel('sba', 'TE', rho=0.005, xi=0.9, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir=outDir)
     else: 
         print 'I think you asked for the wrong thing:'
  

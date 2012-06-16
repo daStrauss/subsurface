@@ -14,6 +14,6 @@ def makeMeA(strg, freq, incAng):
     elif strg == 'TM':
         return tm.solver(freq, incAng)
     else:
-        print 'Easy Tiger: ' + repr(strg) + 'aint around'
+        print 'Easy Tiger: ' + repr(strg) + ' aint around'
     
     

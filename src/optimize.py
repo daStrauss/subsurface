@@ -11,4 +11,5 @@ class optimizer(object):
     
     def __init__(self,freq,incAng,flavor):
         self.fwd = forward.flat.makeMeA(flavor, freq, incAng)
-        
+    
+    

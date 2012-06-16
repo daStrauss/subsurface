@@ -3,16 +3,17 @@ Created on Jun 4, 2012
 
 @author: dstrauss
 '''
-
-from maxwell import twoDim
+# maxwell decomissioned
+# from maxwell import twoDim
 import scipy.sparse as sparse
 import scipy.sparse.linalg as lin
 import sparseTools as spt
 import numpy as np
 from mpi4py import MPI
 import scipy.io as spio
+from optimize import optimizer
 
-class problem(twoDim):
+class problem(optimizer):
     '''a class to do the born approximation iterations '''
     
     #internal parameters of the solver
@@ -25,7 +26,7 @@ class problem(twoDim):
         self.stepSize = rho
         self.alpha = xi
         self.uHat = uHat
-        self.s = self.w*self.muo*1j
+        self.s = self.fwd.getS()
         self.uBound = uBound
         self.lmb = lmb
         self.obj = np.zeros(maxiter)
@@ -34,30 +35,31 @@ class problem(twoDim):
     def trueSolve(self,P):
         ''' an "internal" method to use for obtaining the current value of us '''
         
-        self.A = self.nabla2 + self.getk(0) + sparse.spdiags(self.s*self.Md.T*P,0,self.nx*self.ny, self.nx*self.ny)
-        self.us = lin.spsolve(self.A,self.rhs)
+        self.A = self.fwd.nabla2 + self.fwd.getk(0) + \
+          sparse.spdiags(self.s*self.fwd.Md.T*P,0,self.fwd.N, self.fwd.N)
+        self.us = lin.spsolve(self.A,self.fwd.rhs)
 
     
     def runOpt(self,P):
         ''' runtime module'''
         # get the local background -- requires a new solve!
         self.trueSolve(P)
-        localuHat = self.uHat - self.Ms*self.us
+        localuHat = self.uHat - self.fwd.Ms*self.us
         
         # produce some local matrices
-        B = self.s*sparse.spdiags(self.us,0,self.nx*self.ny,self.nx*self.ny)*self.Md.T
-        c = np.zeros(self.nx*self.ny)
-        Z = self.Ms
+        B = self.s*sparse.spdiags(self.us,0,self.fwd.N,self.fwd.N)*self.fwd.Md.T
+        c = np.zeros(self.fwd.N)
+        Z = self.fwd.Ms
         
         # grab some internal dimensions -- non ROM for now.
-        n = self.nx*self.ny
-        m = self.nRx*self.nRy
+        n = self.fwd.N
+        m = self.fwd.nRx*self.fwd.nRy
         
         # initialize some empty variables
-        v = np.zeros(n) # update to fields (du)
-        p = np.zeros(m) # estimate 1 for materials
-        q = np.zeros(m) # estimate 2 for materials
-        r = np.zeros(m) # dual variable for materials
+        v = np.zeros(n, dtype='complex128') # update to fields (du)
+        p = np.zeros(m, dtype='complex128') # estimate 1 for materials
+        q = np.zeros(m, dtype='complex128') # estimate 2 for materials
+        r = np.zeros(m, dtype='complex128') # dual variable for materials
         
         M = spt.vCat([spt.hCat([Z.T*Z, sparse.coo_matrix((n,m)), self.A.T.conj()]), \
                       spt.hCat([sparse.coo_matrix((m,n)), self.rho*sparse.eye(m,m), B.T.conj()]),\
@@ -111,186 +113,195 @@ class problem(twoDim):
         
         self.deltaP = q
         
-        obj = np.linalg.norm(localuHat - self.Ms*v)
+        obj = np.linalg.norm(localuHat - self.fwd.Ms*v)
         return obj
         
     
-    
-    def aggregatorSerial(self,S):
-        ''' super simple aggregator for sba method'''
-        N = np.size(S)
-        n = S[0].nRx*S[0].nRy
-        
-        P = np.zeros(n)
-        
-        for ix in range(N):
-            P += S[ix].deltaP
-        
-        return (1.0/N)*P*self.alpha
-    
-    def aggregatorParallel(self,comm):
-        ''' SUPER simple aggregator for sba method for working over parallel '''
-        dP = np.zeros(self.nRx*self.nRy)
-        
-        dP = comm.allreduce(self.deltaP,dP,op=MPI.SUM)
-        dP = dP*(1.0/comm.Get_size())*self.alpha
-        return dP
+#     decommisioned!
+#    def aggregatorSerial(self,S):
+#        ''' super simple aggregator for sba method'''
+#        N = np.size(S)
+#        n = S[0].nRx*S[0].nRy
+#        
+#        P = np.zeros(n)
+#        
+#        for ix in range(N):
+#            P += S[ix].deltaP
+#        
+#        return (1.0/N)*P*self.alpha
+#    
+#    def aggregatorParallel(self,comm):
+#        ''' SUPER simple aggregator for sba method for working over parallel '''
+#        dP = np.zeros(self.nRx*self.nRy)
+#        
+#        dP = comm.allreduce(self.deltaP,dP,op=MPI.SUM)
+#        dP = dP*(1.0/comm.Get_size())*self.alpha
+#        return dP
     
     def aggregatorSemiParallel(self, S, comm):
         ''' super simple aggregator for sba method'''
+        # I think that this one stays easy easy
         N = np.size(S)
-        n = S[0].nRx*S[0].nRy
+        n = self.fwd.nRx*self.fwd.nRy
         
         P = np.zeros(n)
         for ix in range(N):
             P += S[ix].deltaP
         
         P = (1.0/N)*P
-        dP = np.zeros(self.nRx*self.nRy)
+        dP = np.zeros(self.fwd.nRx*self.fwd.nRy)
         dP = comm.allreduce(P,dP,op=MPI.SUM)
         dP = dP*(1.0/comm.Get_size())*self.alpha
         
         return dP
     
-    def plotParallel(self,P,resid,rank):
-        ''' Plotting routine if things are parallel'''
-        import matplotlib.pyplot as plt
-        import os
-        
-        if not os.path.exists(self.outDir + 'Figs'):
-            os.makedirs(self.outDir + 'Figs')
-            
-        
-        # vv = S.Ms*S.v
-        self.trueSolve(P)
-            
-        uu = self.Ms*(self.us - self.sol[0].flatten())
-        ub = self.Ms*(self.sol[0].flatten())
-        skt = self.uHat-ub
-        
-        plt.figure(100+rank)
-        plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
-        plt.savefig(self.outDir + 'Figs/fig' + repr(100+rank))
-        
-        if rank==0:
-            # then print some figures   
-            plt.figure(383)
-            plt.plot(resid)
-            plt.savefig(self.outDir + 'Figs/fig383')
-        
-            plt.figure(387)
-            plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
-            plt.colorbar()
-            plt.savefig(self.outDir + 'Figs/fig387')
-    
-            plt.figure(76)
-            plt.subplot(121)
-            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).real)
-            plt.colorbar()
-        
-            plt.subplot(122)
-            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
-            plt.colorbar()
-            plt.title('Final Scattered Fields f = ' + repr(self.f))
-            plt.savefig(self.outDir + 'Figs/fig76')
-        
-    
-    def plotSerial(self,S,P,resid):
-        ''' plotting routine for the serial passes '''
-        import matplotlib.pyplot as plt
-        import os
-        
-        if not os.path.exists(self.outDir + 'Figs'):
-            os.makedirs(self.outDir + 'Figs')
-        
-        N = np.size(S)
-        plt.figure(383)
-        plt.plot(resid)
-        plt.savefig(self.outDir + 'Figs/fig383')
-        
-        plt.figure(387)
-        plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
-        plt.colorbar()
-        plt.savefig(self.outDir + 'Figs/fig387')
-        
-        for ix in range(N):
-            plt.figure(50+ix)
-            # vv = S[ix].Ms*S[0].v
-            S[ix].trueSolve(P)
-            
-            uu = S[ix].Ms*(self.us - S[ix].sol[0].flatten())
-            ub = S[ix].Ms*(S[0].sol[0].flatten())
-            skt = S[ix].uHat-ub
-        
-            # io.savemat('uHat'+repr(ix), {'uh':uHat, 'ub':ub, 'skt':skt})
-    
-            # plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
-            plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real)
-            plt.savefig(self.outDir + 'Figs/fig'+repr(50+ix))
-            
-        plt.figure(76)
-        plt.subplot(121)
-        plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).real)
-        plt.colorbar()
-    
-        plt.subplot(122)
-        plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
-        plt.colorbar()
-        plt.savefig(self.outDir + 'Figs/fig76')
-        plt.title('Final Scattered Fields f = ' + repr(self.f))
-
-        plt.savefig(self.outDir + 'Figs/fig76')
+#    def plotParallel(self,P,resid,rank):
+#        ''' Plotting routine if things are parallel'''
+#        import matplotlib.pyplot as plt
+#        import os
+#        
+#        if not os.path.exists(self.outDir + 'Figs'):
+#            os.makedirs(self.outDir + 'Figs')
+#            
+#        
+#        # vv = S.Ms*S.v
+#        self.trueSolve(P)
+#            
+#        uu = self.Ms*(self.us - self.sol[0].flatten())
+#        ub = self.Ms*(self.sol[0].flatten())
+#        skt = self.uHat-ub
+#        
+#        plt.figure(100+rank)
+#        plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
+#        plt.savefig(self.outDir + 'Figs/fig' + repr(100+rank))
+#        
+#        if rank==0:
+#            # then print some figures   
+#            plt.figure(383)
+#            plt.plot(resid)
+#            plt.savefig(self.outDir + 'Figs/fig383')
+#        
+#            plt.figure(387)
+#            plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
+#            plt.colorbar()
+#            plt.savefig(self.outDir + 'Figs/fig387')
+#    
+#            plt.figure(76)
+#            plt.subplot(121)
+#            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).real)
+#            plt.colorbar()
+#        
+#            plt.subplot(122)
+#            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
+#            plt.colorbar()
+#            plt.title('Final Scattered Fields f = ' + repr(self.f))
+#            plt.savefig(self.outDir + 'Figs/fig76')
+#        
+#    
+#    def plotSerial(self,S,P,resid):
+#        ''' plotting routine for the serial passes '''
+#        import matplotlib.pyplot as plt
+#        import os
+#        
+#        if not os.path.exists(self.outDir + 'Figs'):
+#            os.makedirs(self.outDir + 'Figs')
+#        
+#        N = np.size(S)
+#        plt.figure(383)
+#        plt.plot(resid)
+#        plt.savefig(self.outDir + 'Figs/fig383')
+#        
+#        plt.figure(387)
+#        plt.imshow(P.reshape(S[0].nRx,S[0].nRy), interpolation='nearest')
+#        plt.colorbar()
+#        plt.savefig(self.outDir + 'Figs/fig387')
+#        
+#        for ix in range(N):
+#            plt.figure(50+ix)
+#            # vv = S[ix].Ms*S[0].v
+#            S[ix].trueSolve(P)
+#            
+#            uu = S[ix].Ms*(self.us - S[ix].sol[0].flatten())
+#            ub = S[ix].Ms*(S[0].sol[0].flatten())
+#            skt = S[ix].uHat-ub
+#        
+#            # io.savemat('uHat'+repr(ix), {'uh':uHat, 'ub':ub, 'skt':skt})
+#    
+#            # plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real, np.arange(S[0].nSen), vv.real)
+#            plt.plot(np.arange(S[0].nSen), skt.real, np.arange(S[0].nSen), uu.real)
+#            plt.savefig(self.outDir + 'Figs/fig'+repr(50+ix))
+#            
+#        plt.figure(76)
+#        plt.subplot(121)
+#        plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).real)
+#        plt.colorbar()
+#    
+#        plt.subplot(122)
+#        plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
+#        plt.colorbar()
+#        plt.savefig(self.outDir + 'Figs/fig76')
+#        plt.title('Final Scattered Fields f = ' + repr(self.f))
+#
+#        plt.savefig(self.outDir + 'Figs/fig76')
         # plt.show()
-    def writeOut(self, ix=0):
+    def writeOut(self, rank, ix=0):
         '''routine to print out information about the solve '''
         import os
         if not os.path.exists(self.outDir + 'Data'):
             os.mkdir(self.outDir + 'Data')
+            
         
-        D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.sigmap[0], 'ub':self.sol[0], \
-             'us':self.us.reshape(self.nx,self.ny), 'uTrue':self.sol[1], 'obj':self.obj}
+        sgm = self.fwd.parseFields(self.fwd.sigmap[0])
+        ub = self.fwd.parseFields(self.fwd.sol[0])
+        us = self.fwd.parseFields(self.us)
+        uTrue = self.fwd.parseFields(self.fwd.sol[1])
         
-        spio.savemat(self.outDir + 'Data/sba' + repr(self.rank) + '_' + repr(ix), D)
+        
+        D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgm[0], 'ub':ub[0], \
+             'us':us[0], 'uTrue':uTrue[0], 'obj':self.obj}
+        
+        spio.savemat(self.outDir + 'Data/sba' + repr(rank) + '_' + repr(ix), D)
     
     def plotSemiParallel(self,P,resid,rank,ix=0):
         ''' Plotting routine if things are semiParallel'''
         import matplotlib.pyplot as plt
+        plt.close('all')
         import os
         
-        if not os.path.exists(self.outDir + 'Figs'):
-            os.makedirs(self.outDir + 'Figs')
-            
+        assert os.path.exists(self.outDir + 'Figs')
         
         # vv = S.Ms*S.v
         self.trueSolve(P)
             
-        uu = self.Ms*(self.us - self.sol[0].flatten())
-        ub = self.Ms*(self.sol[0].flatten())
+        uu = self.fwd.Ms*(self.us - self.fwd.sol[0])
+        ub = self.fwd.Ms*(self.fwd.sol[0])
         skt = self.uHat-ub
         
         plt.figure(100 + rank + ix*10)
-        plt.plot(np.arange(self.nSen), skt.real, np.arange(self.nSen), uu.real)
+        plt.plot(np.arange(self.fwd.nSen), skt.real, np.arange(self.fwd.nSen), uu.real)
         plt.savefig(self.outDir + 'Figs/fig' + repr(100+rank+ix*10))
         
-        if rank==0 & ix==0:
+        if (rank==0) & (ix==0):
             # then print some figures   
             plt.figure(383)
             plt.plot(resid)
             plt.savefig(self.outDir + 'Figs/fig383')
         
             plt.figure(387)
-            plt.imshow(P.reshape(self.nRx,self.nRy), interpolation='nearest')
+            plt.imshow(P.reshape(self.fwd.nRx,self.fwd.nRy), interpolation='nearest')
             plt.colorbar()
             plt.savefig(self.outDir + 'Figs/fig387')
-    
+            
+            us = self.fwd.parseFields(self.us)
+            ub = self.fwd.parseFields(self.fwd.sol[0])
             plt.figure(76)
             plt.subplot(121)
-            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).real)
+            plt.imshow((us[0]-ub[0]).real)
             plt.colorbar()
         
             plt.subplot(122)
-            plt.imshow((self.us.reshape(self.nx,self.ny)-self.sol[0]).imag)
+            plt.imshow((us[0] - ub[0]).imag)
             plt.colorbar()
-            plt.title('Final Scattered Fields f = ' + repr(self.f))
+            plt.title('Final Scattered Fields f = ' + repr(self.fwd.f))
             plt.savefig(self.outDir + 'Figs/fig76')
         
