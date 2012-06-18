@@ -7,6 +7,7 @@ Created on Jun 18, 2012
 import xml.etree.ElementTree as xml
 import subprocess
 import time
+import sys
  
     
 def waitForExit(jobName):
@@ -23,12 +24,26 @@ def waitForExit(jobName):
                 elif z.text == 'C':
                     doExit = True
                     print 'Finished ' + jobName
-#        
+        
         time.sleep(5)
-#        
-##    return 1
 
 
+def submitJob(cmd):
+    pipeOut = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    f = pipeOut.stdout.read()
+    return f
+
+def main():
+    for ix in range(100):
+        jobTitle = 'run' + sys.argv[1] + repr(ix)
+        fileName = 'sub' + sys.argv[1] + '.pbs'
+        fid = open(fileName, 'w')
+        fid.write('mpiexec -npernode 2 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
+        fid.close()
+        cmd = ['qsub', '-N ', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=4:ppn=8', fileName]
+        print cmd
+        ppid = submitJob(cmd)
+        waitForExit(ppid)
+        
 if __name__=='__main__':
-    jobName = '33591.nansen'
-    waitForExit(jobName)
+    main()
