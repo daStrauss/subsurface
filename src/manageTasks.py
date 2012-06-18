@@ -13,8 +13,8 @@ def waitForExit(jobName):
     ''' Routine to check and see if a particular job is still running, if not, return '''
     doExit = False
     while doExit == False:
-        xmlOut = subprocess.check_output('qstat ' + jobName + ' -x')
-        P = xml.parse(xmlOut)
+        pipeOut = subprocess.Popen('qstat ' + jobName + ' -x', stdout=subprocess.PIPE)
+        P = xml.parse(pipeOut.stdout.read())
         for z in P.iter():
             if z.tag == 'job_state':
                 if z.text == 'R':
