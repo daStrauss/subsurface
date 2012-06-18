@@ -11,20 +11,20 @@ import time
     
 def waitForExit(jobName):
     ''' Routine to check and see if a particular job is still running, if not, return '''
-#    doExit = False
-#    while doExit == False:
-    pipeOut = subprocess.Popen(['qstat', '-x', jobName], stdout=subprocess.PIPE)
-    f = pipeOut.stdout.read()
-    P = xml.fromstring(f)
-    for z in P.iter():
-        if z.tag == 'job_state':
-            if z.text == 'R':
-                print 'Still Running'
-#            elif z.text == 'C':
-##                doExit = True
-#                print 'Finished ' + jobName
+    doExit = False
+    while doExit == False:
+        pipeOut = subprocess.Popen(['qstat', '-x', jobName], stdout=subprocess.PIPE)
+        f = pipeOut.stdout.read()
+        P = xml.fromstring(f)
+        for z in P.getiterator():
+            if z.tag == 'job_state':
+                if z.text == 'R':
+                    print 'Still Running'
+                elif z.text == 'C':
+                    doExit = True
+                    print 'Finished ' + jobName
 #        
-##        time.sleep(5)
+        time.sleep(5)
 #        
 ##    return 1
 
