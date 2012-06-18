@@ -20,7 +20,8 @@ def waitForExit(jobName):
         for z in P.getiterator():
             if z.tag == 'job_state':
                 if z.text == 'R':
-                    print 'Still Running'
+                    pass
+                    # print 'Still Running ' + jobName
                 elif z.text == 'C':
                     doExit = True
                     print 'Finished ' + jobName
@@ -31,6 +32,9 @@ def waitForExit(jobName):
 def submitJob(cmd):
     pipeOut = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     f = pipeOut.stdout.read()
+    f = f[:-1]
+    print f + ' ' + time.asctime(time.localtime())
+    time.sleep(1)
     return f
 
 def main():
@@ -40,7 +44,7 @@ def main():
         fid = open(fileName, 'w')
         fid.write('mpiexec -npernode 2 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
         fid.close()
-        cmd = ['qsub', '-N ', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=4:ppn=8', fileName]
+        cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=4:ppn=8', fileName]
         print cmd
         ppid = submitJob(cmd)
         waitForExit(ppid)
