@@ -15,7 +15,7 @@ def waitForExit(jobName):
 #    while doExit == False:
     pipeOut = subprocess.Popen(['qstat', '-x', jobName], stdout=subprocess.PIPE)
     f = pipeOut.stdout.read()
-    P = xml.parse(f)
+    P = xml.fromstring(f)
     for z in P.iter():
         if z.tag == 'job_state':
             if z.text == 'R':
