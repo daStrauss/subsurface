@@ -1,0 +1,1 @@
+mpiexec -npernode 2 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py sba 11

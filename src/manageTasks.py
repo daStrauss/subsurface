@@ -38,7 +38,7 @@ def submitJob(cmd):
     return f
 
 def main():
-    for ix in range(100):
+    for ix in range(11,100):
         jobTitle = 'run' + sys.argv[1] + repr(ix)
         fileName = 'sub' + sys.argv[1] + '.pbs'
         fid = open(fileName, 'w')

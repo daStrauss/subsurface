@@ -11,13 +11,15 @@ def traceBuild(baseTag):
     if not os.path.exists(baseTag):
             os.mkdir(baseTag)
     
-    for supIx in range(5):
-        mid = baseTag + '/mat' + repr(supIx) + '/'
+    for supIx in range(1):
+	#mid = baseTag + '/mat' + repr(supIx) + '/'
+	mid = baseTag
         if not os.path.exists(mid):
             os.mkdir(mid)
         
-            for ix in range(100):
-                outDir = mid + '/trial' + repr(ix) + '/'
+	for ix in range(200):
+		outDir = mid + '/trial' + repr(ix) + '/'
+		print outDir
                 if not os.path.exists(outDir):
                     os.mkdir(outDir)
             
