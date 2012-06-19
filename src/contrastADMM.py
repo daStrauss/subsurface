@@ -168,7 +168,7 @@ class problem(optimizer):
         
         for ix in range(N):
             s = S[ix].s
-            print s
+            # print s
             U[:,ix] = s*S[ix].fwd.Md*(S[ix].ub + S[ix].us)
             Q[:,ix] = S[ix].X + S[ix].Z
             
@@ -181,16 +181,16 @@ class problem(optimizer):
         den = np.zeros(denLocal.shape)
         den = comm.allreduce(denLocal,den,op=MPI.SUM)
         
-        print num
-        print den
+        # print num
+        # print den
         
         P = (num/den).real
         
-        print P[1]
+        # print P[1]
         P = np.maximum(P,0)
-        print self.upperBound
+        # print self.upperBound
         P = np.minimum(P,self.upperBound)
-        print P[1]
+        # print P[1]
         
         # gap = np.linalg.norm(U*P - self.X)
         # print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
