@@ -12,12 +12,12 @@ import time
 # import os
 # import sys
 
-import matplotlib
+# import matplotlib
 
-matplotlib.use('PDF')
+# matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 1000
+MAXIT = 10
 
 def delegator(solverType, flavor, freq, incAng):
     ''' A function that will allocate the problem instances according to the 'type' given 
@@ -34,6 +34,10 @@ def delegator(solverType, flavor, freq, incAng):
     elif solverType == 'sba':
         import sba
         S = map(sba.problem, freq, incAng, flavor)
+        return S
+    elif solverType == 'biconvex':
+        import biconvex
+        S = map(biconvex.problem, freq, incAng, flavor)
         return S
     
 def bigProj(S, outDir, testNo):
@@ -105,7 +109,7 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
     freqLocal,angLocal = balancingAct(allFreq,allIncAng, rank, nProc)
     
     # switch for local testing
-    # freqLocal = [freqLocal[0]]; angLocal = [angLocal[0]]
+    freqLocal = [freqLocal[0]]; angLocal = [angLocal[0]]
     flavors = [flavor]*len(freqLocal)
     
     # the delegator makes the local set of problems
@@ -119,7 +123,7 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
         uHat = F.fwd.Ms*(F.fwd.sol[1].flatten())
         ti = time.time()
         F.initOpt(uHat,rho,xi,uBound, lmb, MAXIT)
-        fout.write('initalization time ' + repr(time.time()-ti) + '\n')
+        fout.write('initialize time ' + repr(time.time()-ti) + '\n')
 
     P = np.zeros(S[0].fwd.nRx*S[0].fwd.nRy)
     resid = np.zeros(MAXIT)
@@ -145,7 +149,7 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
         
     # do some plotting        
     for ix in range(N):
-        # S[ix].plotSemiParallel(P,resid,rank,ix)
+        S[ix].plotSemiParallel(P,resid,rank,ix)
         S[ix].writeOut(rank,ix)
     
     if rank == 0:
@@ -159,7 +163,9 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
 
     
 if __name__ == "__main__":
-    semiParallel('sba', 'TE', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
+#    semiParallel('sba', 'TE', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
+    semiParallel('biconvex', 'TE', rho=0.001, xi=1e-5, lmb=0, uBound=0.05,bkgNo=1)
 #    semiParallel('contrastX', 'TM', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1)
 #    semiParallel('splitField','TE', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
     # parallel('splitField')
+    
