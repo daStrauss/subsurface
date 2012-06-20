@@ -17,7 +17,7 @@ import time
 # matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 1000
+MAXIT = 30
 
 def delegator(solverType, flavor, freq, incAng):
     ''' A function that will allocate the problem instances according to the 'type' given 
@@ -44,7 +44,6 @@ def bigProj(S, outDir, testNo):
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
     
     trm = spio.loadmat('mats/tMat' + repr(testNo) + '.mat')
-  
     pTrue = trm['scrt'].flatten()
     
     for F in S:
@@ -53,27 +52,15 @@ def bigProj(S, outDir, testNo):
     
     return S,pTrue
 
-def smallProj(S):
+def smallProj(S,outDir,testNo):
     '''build for a small project, ie 99x99 '''
-    nx = 99
-    ny = 99
-    dx = 5.0
-    dy = 5.0
-    eHS = 1.0
-    sHS = 0.005
-    
     for F in S:
-        F.setspace(nx,ny,dx,dy)
-        F.setmats(eHS,sHS,ny/2)
-        F.setMd([30, 70], [35, 45])
-        F.setMs(15)
-        F.setOperators()
-        F.te_pw()
-        F.fwd_solve(0)
-        F.sigmap[1] = F.sigmap[1] +(F.Md.T*np.ones(40*10)*0.01).reshape(nx,ny)
-        
-        F.fwd_solve(1)
-    return S
+        F.fwd.initSmall(0)
+        F.outDir = outDir
+    
+    pTrue = np.ones((40,10))*0.01
+    pTrue = pTrue.flatten()
+    return S,pTrue 
 
 def balancingAct(freqs,incAngs,rank,nProc):
     ''' splits the full set of freqs, and incAngs into equal sections according to rank, nProc'''
@@ -90,7 +77,6 @@ def balancingAct(freqs,incAngs,rank,nProc):
     
 def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir='basic'):
     '''semiParallel solver -- i.e. has MPI calls loops locally over different angles of arrival'''
-    
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     nProc = comm.Get_size()
@@ -109,13 +95,15 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
     freqLocal,angLocal = balancingAct(allFreq,allIncAng, rank, nProc)
     
     # switch for local testing
-    # freqLocal = [freqLocal[0]]; angLocal = [angLocal[0]]
+    freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
+    print freqLocal
+    print angLocal
     flavors = [flavor]*len(freqLocal)
     
     # the delegator makes the local set of problems
     S = delegator(solverType, flavors, freqLocal, angLocal)
     
-    S,pTrue = bigProj(S, outDir, bkgNo)
+    S,pTrue = smallProj(S, outDir, bkgNo)
     
     N = np.size(S)
 
@@ -146,6 +134,7 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
         tmvc[itNo] = time.time()-ti    
         resid[itNo] = np.linalg.norm(P-pTrue)
         fout.write('iter no ' + repr(itNo) + ' exec time = ' + repr(time.time()-ti) + ' rank ' + repr(comm.Get_rank()) +'\n')
+        fout.flush()
         
     # do some plotting        
     for ix in range(N):
@@ -164,8 +153,8 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
     
 if __name__ == "__main__":
 #    semiParallel('sba', 'TE', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
-    semiParallel('biconvex', 'TE', rho=0.001, xi=1e-5, lmb=0, uBound=0.05,bkgNo=1)
-#    semiParallel('contrastX', 'TM', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1)
+    # semiParallel('biconvex', 'TE', rho=0.001, xi=1e-5, lmb=0, uBound=0.05,bkgNo=1)
+    semiParallel('contrastX', 'TM', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1)
 #    semiParallel('splitField','TE', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
     # parallel('splitField')
     

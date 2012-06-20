@@ -42,6 +42,19 @@ class fwd(object):
         self.planeWave()
         self.fwd_solve(0)
         self.fwd_solve(1)
+        
+    def initSmall(self, p):
+        '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
+        self.setspace(99,99,5.0,5.0)
+        self.setmats(1,0.005,99/2)
+        self.setOperators()
+        self.makeGradOper()
+        self.setMs(10)
+        self.setMd([30, 70], [35, 45])
+        self.sigmap[1] += self.Md.T*np.ones(40*10)*0.01 # don't worry about specific shapes.        
+        self.planeWave()
+        self.fwd_solve(0)
+        self.fwd_solve(1)
          
     def setspace(self, nx,ny,dx,dy):
         self.nx = nx # number x points

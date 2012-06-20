@@ -8,7 +8,6 @@ Both parallel and serial methods are implemented
 '''
 
 import numpy as np
-
 import scipy.sparse as sparse
 import scipy.sparse.linalg as lin
 from mpi4py import MPI

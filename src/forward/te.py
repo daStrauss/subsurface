@@ -61,6 +61,16 @@ class solver(fwd):
         self.Ms = self.Ms.tocsc()
         self.Ms = self.Ms.T
         
+    def setCTRX(self):
+        self.p2x = sparse.eye(self.nRx*self.nRy,self.nRx*self.nRy)
+        print self.p2x.shape
+        self.x2u = self.Md.T
+        print self.x2u.shape
+    
+    def getXSize(self):
+        ''' return the proper size of X so that the optimizatoin routine can work its magic '''
+        return self.nRx*self.nRy
+        
     def setMd(self, xrng, yrng):
         '''Tell me the xrange and the yrange and I'll make selector'''
         oprx = np.zeros((self.nx,self.ny),dtype='bool')
