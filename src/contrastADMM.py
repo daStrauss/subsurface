@@ -54,8 +54,8 @@ class problem(optimizer):
         
         nX = self.fwd.getXSize()
         pm = sparse.spdiags(self.s*self.fwd.p2x*P, 0, nX, nX)
-        print pm.shape
-        print self.fwd.x2u.shape
+        # print pm.shape
+        # print self.fwd.x2u.shape
         ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
   
         # Construct the KKT Matrix
@@ -182,7 +182,7 @@ class problem(optimizer):
             # print s
 #            U[:,ix] = s*S[ix].fwd.Md*(S[ix].ub + S[ix].us)
 #            Q[:,ix] = S[ix].X + S[ix].Z
-            print L.fwd.x2u.shape
+            # print L.fwd.x2u.shape
             
             M = L.s*(sparse.spdiags(L.fwd.x2u.T*(L.ub+L.us),0,nX,nX))*self.fwd.p2x
             uL += M.T.conj()*M

@@ -130,7 +130,7 @@ class solver(fwd):
         self.p2x = spt.vCat([sparse.eye(self.nRx*self.nRy,self.nRx*self.nRy), \
                              sparse.eye(self.nRx*self.nRy,self.nRx*self.nRy)])
         self.p2x = self.p2x.tocsc()
-        print self.p2x.shape
+#        print self.p2x.shape
         
         N = (self.nx+1)*(self.ny+1)
         Nx = (self.nx+1)*self.ny
@@ -140,16 +140,16 @@ class solver(fwd):
         lMd = self.Md.tolil()
         Mdx = lMd[:,:Nx].T.tocoo()
         Mdy = lMd[:,Nx:(Nx+Ny)].T.tocoo()
-        print 'sliced'
+#        print 'sliced'
 #        assert self.nRx*self.nRy == 
         self.x2u = spt.vCat([spt.hCat([Mdx, sparse.coo_matrix((Nx,NR))]),\
                              spt.hCat([sparse.coo_matrix((Ny,NR)), Mdy]),\
                              sparse.coo_matrix((N, 2*NR)) ])  #oh bugger, problems. 
-        print 'assembled'
+#        print 'assembled'
         self.x2u = self.x2u.tocsc()
-        print 'converted'
+#        print 'converted'
 #        self.x2u = self.x2u
-        print self.x2u.shape
+#        print self.x2u.shape
         
     def getXSize(self):
         ''' return the proper size of X so that the optimizatoin routine can work its magic '''

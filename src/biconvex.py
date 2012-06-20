@@ -64,30 +64,44 @@ class problem(optimizer):
         through the cluster'''
         
         N = np.size(S)
-        n = self.fwd.nRx*self.fwd.nRy
+        n = self.fwd.nRx*self.fwd.nRy # ie size of P.
         
         uL = np.zeros(n,dtype='complex128')
         qL = np.zeros(n,dtype='complex128')
+
+#        aL = sparse.lil_matrix((n,n),dtype='complex128')
+#        bL = np.zeros(n,dtype='complex128')
         
         for L in S:
-            uL += L.s*L.fwd.Md*(self.ub + self.us)
-            qL += L.fwd.Md*(L.A*(self.us + self.F))
+#            D = sparse.spdiags(L.s*(L.ub+L.us),0, self.fwd.N,self.fwd.N)
+#            g = D*L.fwd.Md.T
+#            bL += g.T.conj()*((L.A*L.us) + L.F)
+#            aL += g.T.conj()*g
+            
+             uL += L.s*L.fwd.Md*(self.ub + self.us)
+             qL += L.fwd.Md*(L.A*self.us + self.F)
 
-        uL = uL*(1.0/N)
-        qL = qL*(1.0/N)
+        # uL = uL*(1.0/N)
+        # qL = qL*(1.0/N)
+        
+#        A = sparse.lil_matrix((n,n),dtype='complex128')
+#        B = np.zeros(n,dtype='complex128')
         
         U = np.zeros(n,dtype='complex128')
         Q = np.zeros(n,dtype='complex128')
         
         U = comm.allreduce(uL,U,op=MPI.SUM)
         Q = comm.allreduce(qL,Q,op=MPI.SUM)
-        
-        U = U*(1.0/comm.Get_size())
-        Q = Q*(1.0/comm.Get_size())
+#        A = comm.allreduce(aL,A,op=MPI.SUM)
+#        B = comm.allreduce(bL,B,op=MPI.SUM)
+        # U = U*(1.0/comm.Get_size())
+        # Q = Q*(1.0/comm.Get_size())
         
         num = self.rho*(U.real*Q.real + U.imag*Q.imag)
         den = self.rho*(U.conj()*U) + self.lmb
-
+#        A += sparse.eye(n,n)*self.lmb/self.rho
+        
+#        P = lin.spsolve(A.tocsr(),-B).real
         P = (-num/den).real
         P = np.maximum(P,0)
         P = np.minimum(P,self.uBound)

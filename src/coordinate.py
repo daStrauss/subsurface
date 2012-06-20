@@ -24,19 +24,24 @@ def main():
     elif sys.argv[1] == 'splitField':
         ix = int(sys.argv[2])
         outDir = 'splitField/trial' + repr(ix) + '/'
-        solveADMM.semiParallel('splitField', 'TE', rho=1500, xi =2e-3, \
+        solveADMM.semiParallel('splitField', sys.argv[3], rho=1500, xi =2e-3, \
                                uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
             
     elif sys.argv[1] == 'contrastX':
         ix = int(sys.argv[2])
         outDir = 'contrastX/trial' + repr(ix)  + '/'
         
-        solveADMM.semiParallel('contrastX', 'TE', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir = outDir)
+        solveADMM.semiParallel('contrastX', sys.argv[3], rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir = outDir)
 
     elif sys.argv[1] == 'sba':
         ix = int(sys.argv[2])
         outDir = 'sba/trial'+repr(ix) + '/'
-        solveADMM.semiParallel('sba', 'TE', rho=0.005, xi=0.9, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir=outDir)
+        solveADMM.semiParallel('sba', sys.argv[3], rho=0.005, xi=0.9, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir=outDir)
+        
+    elif sys.argv[1] == 'biconvex':
+        ix = int(sys.argv[2])
+        outDir = 'biconvex/trial' + repr(ix) + '/'
+        solveADMM.semiParallel('biconvex', sys.argv[3], rho=0.001, xi=1e-5, lmb=0, uBound=0.05,bkgNo=(ix+1), outDir=outDir)
         
     else: 
         print 'I think you asked for the wrong thing:'

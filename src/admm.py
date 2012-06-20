@@ -170,19 +170,17 @@ class problem(optimizer):
             bL += g.T.conj()*((L.A*L.us) + L.F)
             QL += g.T.conj()*g
 
-        
-
-        QL = QL/N
-        bL = bL/N
+#        QL = QL/N
+#        bL = bL/N
         
         Q = sparse.lil_matrix((n,n), dtype='complex128')
         
         Q = comm.allreduce(QL,Q,op=MPI.SUM)
-        Q = Q/comm.Get_size()
+#        Q = Q/comm.Get_size()
         
         b = np.zeros(n)
         b = comm.allreduce(bL,b,op=MPI.SUM)
-        b = b/comm.Get_size()
+#        b = b/comm.Get_size()
         
         # hah, no 1/n's because the all got em
         P = lin.spsolve(Q,-b).real

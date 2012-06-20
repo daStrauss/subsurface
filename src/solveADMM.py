@@ -17,7 +17,7 @@ import time
 # matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 30
+MAXIT = 100
 
 def delegator(solverType, flavor, freq, incAng):
     ''' A function that will allocate the problem instances according to the 'type' given 
@@ -95,15 +95,15 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
     freqLocal,angLocal = balancingAct(allFreq,allIncAng, rank, nProc)
     
     # switch for local testing
-    freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
-    print freqLocal
-    print angLocal
+    # freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
+    # print freqLocal
+    # print angLocal
     flavors = [flavor]*len(freqLocal)
     
     # the delegator makes the local set of problems
     S = delegator(solverType, flavors, freqLocal, angLocal)
     
-    S,pTrue = smallProj(S, outDir, bkgNo)
+    S,pTrue = bigProj(S, outDir, bkgNo)
     
     N = np.size(S)
 
@@ -152,9 +152,8 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
 
     
 if __name__ == "__main__":
-#    semiParallel('sba', 'TE', rho=0.005, xi=0.9, uBound=0.05, lmb=0)
-    # semiParallel('biconvex', 'TE', rho=0.001, xi=1e-5, lmb=0, uBound=0.05,bkgNo=1)
-    semiParallel('contrastX', 'TM', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1)
+#    semiParallel('sba', 'TM', rho=0.005, xi=0.9, uBound=0.05, lmb=0,bkgNo=1)
+    semiParallel('biconvex', 'TM', rho=0.001, xi=1e-5, lmb=0, uBound=0.05,bkgNo=1)
+#    semiParallel('contrastX', 'TM', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1)
 #    semiParallel('splitField','TE', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
-    # parallel('splitField')
-    
+
