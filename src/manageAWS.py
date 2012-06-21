@@ -34,20 +34,20 @@ def submitJob(cmd):
     f = pipeOut.stdout.read()
     f = f[:-1]
     print f + ' ' + time.asctime(time.localtime())
-    time.sleep(1)
+    # time.sleep(1)
     return f
 
 def main():
-    for ix in range(119,200):
+    for ix in range(0,5):
         jobTitle = 'run' + sys.argv[1] + repr(ix)
-        fileName = 'sub' + sys.argv[1] + '.pbs'
+        fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
         fid = open(fileName, 'w')
-        fid.write('mpiexec -npernode 4 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
+        fid.write('mpiexec -wdir /home/sgeadmin/subsurface/src/ python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' ' + 'TE')
         fid.close()
-        cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', fileName]
+        cmd = ['qsub', '-pe', 'orte', '16', '-cwd', fileName]
         print cmd
-        ppid = submitJob(cmd)
-        waitForExit(ppid)
+        # ppid = submitJob(cmd)
+        # waitForExit(ppid)
         
 if __name__=='__main__':
     main()
