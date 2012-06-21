@@ -6,7 +6,7 @@ Created on Jun 21, 2012
 
 from mpi4py import MPI
 import time
-N = 1e7
+N = 1e8
 
 
 def main():
