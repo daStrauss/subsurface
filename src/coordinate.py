@@ -11,7 +11,7 @@ import solveADMM
 import sys
 import os
 
-trialNs = 100
+# trialNs = 100
 
 def main():
     ''' simple main routine '''

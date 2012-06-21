@@ -17,7 +17,7 @@ import time
 # matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 100
+MAXIT = 1000
 
 def delegator(solverType, flavor, freq, incAng):
     ''' A function that will allocate the problem instances according to the 'type' given 
@@ -95,7 +95,7 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
     freqLocal,angLocal = balancingAct(allFreq,allIncAng, rank, nProc)
     
     # switch for local testing
-    freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
+    # freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
     # print freqLocal
     # print angLocal
     flavors = [flavor]*len(freqLocal)
