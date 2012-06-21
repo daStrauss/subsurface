@@ -46,7 +46,7 @@ def main():
         fid.close()
         cmd = ['qsub', '-pe', 'orte', '16', '-cwd', fileName]
         print cmd
-        # ppid = submitJob(cmd)
+        ppid = submitJob(cmd)
         # waitForExit(ppid)
         
 if __name__=='__main__':
