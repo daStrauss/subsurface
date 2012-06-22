@@ -41,10 +41,18 @@ def main():
     for ix in range(119,200):
         jobTitle = 'run' + sys.argv[1] + repr(ix)
         fileName = 'sub' + sys.argv[1] + '.pbs'
-        fid = open(fileName, 'w')
-        fid.write('mpiexec -npernode 4 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
-        fid.close()
-        cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', fileName]
+        
+        if sys.argv[1] == 'sba':
+            fid = open(fileName, 'w')
+            fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
+            fid.close()
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=8:ppn=8', fileName]
+        
+        elif sys.argv[1] == 'splitField':           
+            fid = open(fileName, 'w')
+            fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
+            fid.close()
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', fileName]
         print cmd
         ppid = submitJob(cmd)
         waitForExit(ppid)

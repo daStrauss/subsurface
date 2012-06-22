@@ -5,6 +5,9 @@ Created on Jun 15, 2012
 
 Putting together a script to do a coordinated search and find the optimal parameters for the solver
 (6/15) - Trying first with the semiParallel routine and the TM splitField formulation.
+
+(6/21) -- adding the ability to separate each of the tasks into a separate job. Don't overload the queue.
+
 '''
 
 
@@ -12,8 +15,35 @@ import solveADMM
 import sys
 import os
 import numpy as np
+import subprocess
 
-trialNs = 3
+def waitForExit(jobName):
+    ''' Routine to check and see if a particular job is still running, if not, return '''
+    doExit = False
+    while doExit == False:
+        pipeOut = subprocess.Popen(['qstat', '-x', jobName], stdout=subprocess.PIPE)
+        f = pipeOut.stdout.read()
+        P = xml.fromstring(f)
+        for z in P.getiterator():
+            if z.tag == 'job_state':
+                if z.text == 'R':
+                    pass
+                    # print 'Still Running ' + jobName
+                elif z.text == 'C':
+                    doExit = True
+                    print 'Finished ' + jobName
+        
+        time.sleep(5)
+
+
+def submitJob(cmd):
+    pipeOut = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    f = pipeOut.stdout.read()
+    f = f[:-1]
+    print f + ' ' + time.asctime(time.localtime())
+    time.sleep(1)
+    return f
+
 
 def main():
     ''' simple main routine '''

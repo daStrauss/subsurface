@@ -63,9 +63,9 @@ class solver(fwd):
         
     def setCTRX(self):
         self.p2x = sparse.eye(self.nRx*self.nRy,self.nRx*self.nRy)
-        print self.p2x.shape
+        # print self.p2x.shape
         self.x2u = self.Md.T
-        print self.x2u.shape
+        # print self.x2u.shape
     
     def getXSize(self):
         ''' return the proper size of X so that the optimizatoin routine can work its magic '''
