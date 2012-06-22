@@ -1,0 +1,1 @@
+mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python parameterSearch.py splitField 0
