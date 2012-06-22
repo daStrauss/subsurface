@@ -46,7 +46,7 @@ def ensureFolders(baseTag,flavor):
         os.mkdir(baseTag)
     
     #mid = baseTag + '/mat' + repr(supIx) + '/'
-    mid = baseTag + '/' + flavor + '/'
+    mid = baseTag + '/' + flavor
     if not os.path.exists(mid):
         os.mkdir(mid)
         
@@ -66,17 +66,12 @@ def ensureFolders(baseTag,flavor):
 
 def main():
     ''' wrap around for making scripts and submiting them and waiting '''
+    ensureFolders(sys.argv[1], 'TM')
     for ix in range(0,64):
         jobTitle = 'paramS' + sys.argv[1] + repr(ix)
         fileName = 'paramS' + sys.argv[1] + '.pbs'
-        
-        if sys.argv[1] == 'sba':
-            fid = open(fileName, 'w')
-            fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
-            fid.close()
-            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=8:ppn=8', fileName]
-        
-        elif sys.argv[1] == 'splitField':           
+
+        if sys.argv[1] == 'splitField':           
             fid = open(fileName, 'w')
             fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python parameterSearch.py ' + sys.argv[1] + ' ' + repr(ix)) 
             fid.close()
