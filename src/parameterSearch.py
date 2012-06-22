@@ -15,36 +15,19 @@ import solveADMM
 import sys
 import os
 import numpy as np
-import subprocess
 
-def waitForExit(jobName):
-    ''' Routine to check and see if a particular job is still running, if not, return '''
-    doExit = False
-    while doExit == False:
-        pipeOut = subprocess.Popen(['qstat', '-x', jobName], stdout=subprocess.PIPE)
-        f = pipeOut.stdout.read()
-        P = xml.fromstring(f)
-        for z in P.getiterator():
-            if z.tag == 'job_state':
-                if z.text == 'R':
-                    pass
-                    # print 'Still Running ' + jobName
-                elif z.text == 'C':
-                    doExit = True
-                    print 'Finished ' + jobName
-        
-        time.sleep(5)
+numXi = 8
+numRho = 8
+totStates = numXi*numRho
 
 
-def submitJob(cmd):
-    pipeOut = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    f = pipeOut.stdout.read()
-    f = f[:-1]
-    print f + ' ' + time.asctime(time.localtime())
-    time.sleep(1)
-    return f
-
-
+def getMyVars(parseNumber):
+    '''routine to return the parameters to test at the current iteration.'''
+    rhos, xis = np.meshgrid(np.logspace(-2,2,numRho), np.logspace(-3,0,numXi))
+    rhos = rhos.flatten()
+    xis = xis.flatten()
+    return rhos[parseNumber], xis[parseNumber]
+    
 def main():
     ''' simple main routine '''
     
@@ -57,42 +40,14 @@ def main():
     elif sys.argv[1] == 'splitField':
         assert os.path.exists('splitField')
         
-        rhos, xis = np.meshgrid(np.logspace(-2,2,8), np.logspace(-3,0,8))
-        rhos = rhos.flatten()
-        xis = xis.flatten()
+        lRho,lXi = getMyVars(int(sys.argv[2]))
         
-        for supIx in range(trialNs):
-            for ix, r in enumerate(rhos):
-                outDir = 'splitField/mat' + repr(supIx) + '/trial' + repr(ix) + '/'
-                assert os.path.exists(outDir)            
-                solveADMM.semiParallel('splitField', 'TM', rho=r, xi=xis[ix], \
-                      uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
-            
-            
-    elif sys.argv[1] == 'contrastX':
-        if not os.path.exists('contrastX'):
-            os.mkdir('contrastX')
-            
-        for ix in range(trialNs):
-            outDir = 'contrastX/trial' + repr(ix)  + '/'
-            if not os.path.exists(outDir):
-                os.mkdir(outDir)
-
-            solveADMM.semiParallel('contrastX', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir = outDir)
-
-    elif sys.argv[1] == 'sba':
-        if not os.path.exists('sba'):
-            os.mkdir('sba')
+        outDir = 'splitField/' + 'TM/' + '/prmTrial' + sys.argv[2] + '/'
         
-        
-        for ix in range(trialNs):
-            outDir = 'sba/trial'+repr(ix) + '/'
-            if not os.path.exists(outDir):
-                os.mkdir(outDir)
+        assert os.path.exists(outDir)            
+        solveADMM.semiParallel('splitField', 'TM', rho=lRho, xi=lXi, \
+              uBound = 0.05, lmb = 1e-8, bkgNo=1, outDir=outDir)
+            
 
-            solveADMM.semiParallel('sba', rho=0.005, xi=0.9, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir=outDir)
-    else: 
-        print 'I think you asked for the wrong thing:'
- 
 if __name__ == "__main__":
     main()

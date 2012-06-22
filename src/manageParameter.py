@@ -1,17 +1,19 @@
 '''
-Created on Jun 18, 2012
+Created on Jun 21, 2012
 
 @author: dstrauss
 '''
 
-import xml.etree.ElementTree as xml
 import subprocess
+import xml.etree.ElementTree as xml
 import time
+import os
 import sys
- 
-    
+
+
 def waitForExit(jobName):
-    ''' Routine to check and see if a particular job is still running, if not, return '''
+    ''' Routine to check and see if a particular job is still running, if not, return 
+        This only works well on nansen'''
     doExit = False
     while doExit == False:
         pipeOut = subprocess.Popen(['qstat', '-x', jobName], stdout=subprocess.PIPE)
@@ -37,10 +39,36 @@ def submitJob(cmd):
     time.sleep(1)
     return f
 
+def ensureFolders(baseTag,flavor):
+    ''' here's where the folder making mechanism goes! '''
+    
+    if not os.path.exists(baseTag):
+        os.mkdir(baseTag)
+    
+    #mid = baseTag + '/mat' + repr(supIx) + '/'
+    mid = baseTag + '/' + flavor + '/'
+    if not os.path.exists(mid):
+        os.mkdir(mid)
+        
+    for ix in range(100):
+        outDir = mid + '/prmTrial' + repr(ix) + '/'
+        print outDir
+        if not os.path.exists(outDir):
+            os.mkdir(outDir)
+            
+        figDir = outDir + 'Figs/'
+        datDir = outDir + 'Data/'
+        if not os.path.exists(figDir):
+            os.mkdir(figDir)
+        if not os.path.exists(datDir):
+            os.mkdir(datDir)
+
+
 def main():
-    for ix in range(32,200):
-        jobTitle = 'run' + sys.argv[1] + repr(ix)
-        fileName = 'sub' + sys.argv[1] + '.pbs'
+    ''' wrap around for making scripts and submiting them and waiting '''
+    for ix in range(0,64):
+        jobTitle = 'paramS' + sys.argv[1] + repr(ix)
+        fileName = 'paramS' + sys.argv[1] + '.pbs'
         
         if sys.argv[1] == 'sba':
             fid = open(fileName, 'w')
@@ -50,12 +78,9 @@ def main():
         
         elif sys.argv[1] == 'splitField':           
             fid = open(fileName, 'w')
-            fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
+            fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python parameterSearch.py ' + sys.argv[1] + ' ' + repr(ix)) 
             fid.close()
             cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', fileName]
         print cmd
         ppid = submitJob(cmd)
         waitForExit(ppid)
-        
-if __name__=='__main__':
-    main()
