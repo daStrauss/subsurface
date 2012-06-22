@@ -79,3 +79,6 @@ def main():
         print cmd
         ppid = submitJob(cmd)
         waitForExit(ppid)
+        
+if __name__ =='__main__':
+    main()
