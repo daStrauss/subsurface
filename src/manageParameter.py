@@ -73,7 +73,7 @@ def main():
 
         if sys.argv[1] == 'splitField':           
             fid = open(fileName, 'w')
-            fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python parameterSearch.py ' + sys.argv[1] + ' ' + repr(ix)) 
+            fid.write('mpiexec -npernode 4 -wdir /shared/users/dstrauss/subsurface/src python parameterSearch.py ' + sys.argv[1] + ' ' + repr(ix)) 
             fid.close()
             cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', fileName]
         print cmd
