@@ -23,7 +23,7 @@ totStates = numXi*numRho
 
 def getMyVars(parseNumber):
     '''routine to return the parameters to test at the current iteration.'''
-    rhos, xis = np.meshgrid(np.logspace(-2,2,numRho), np.logspace(-3,0,numXi))
+    rhos, xis = np.meshgrid(np.logspace(-4,0,numRho), np.logspace(-5,-2,numXi))
     rhos = rhos.flatten()
     xis = xis.flatten()
     return rhos[parseNumber], xis[parseNumber]
