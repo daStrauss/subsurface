@@ -12,7 +12,7 @@ import scipy.sparse.linalg as lin
 
 # EE = flat.makeMeA('TE', 1e6, 45*np.pi/180)
 
-EE = flat.makeMeA('TE', 1e6, 45*np.pi/180)    
+EE = flat.makeMeA('TE', 1e4, 45*np.pi/180)    
 
 trm = spio.loadmat('mats/tMat' + repr(1) + '.mat')
 pTrue = trm['scrt'].flatten()
@@ -21,29 +21,41 @@ EE.initBig(pTrue)
 
 EE.buildROM(100, force=False)
 
-
 M = (EE.nabla2+EE.getk(1))*EE.Phi
 
 print M.shape
-S = np.dot(M.T.conj(),M)
+S = np.dot(M.conj().T,M)
 b = np.dot(M.conj().T,EE.rhs)
 
 print 'starting solve'
 ur = lin.spsolve(S,b)
-print ur.shape
 
 
 
 plt.figure(1)
 plt.subplot(1,2,1)
-plt.imshow(EE.sol[1].reshape(199,199).real)
+plt.imshow((EE.sol[1]).reshape(199,199).real)
+plt.colorbar()
+
+apxSol = np.dot(EE.Phi,ur)
+
+plt.subplot(1,2,2)
+plt.imshow(apxSol.reshape(199,199).real)
+plt.colorbar()
+
+plt.figure(2)
+plt.subplot(1,2,1)
+plt.imshow((apxSol-EE.sol[1]).reshape(199,199).real)
 plt.colorbar()
 
 plt.subplot(1,2,2)
-plt.imshow((np.dot(EE.Phi,ur)).reshape(199,199).real)
+plt.imshow((apxSol-EE.sol[1]).reshape(199,199).imag)
 plt.colorbar()
 
+print np.linalg.norm(apxSol-EE.sol[1])
+
 plt.show()
+
 
 #MM = flat.makeMeA('TM', 50e3, 45*np.pi/180)
 #

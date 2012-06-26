@@ -197,11 +197,12 @@ class fwd(object):
         if force:
             # do all of the points in the Md region
             M = self.nRx*self.nRy
-            X = np.zeros((self.N,M),dtype='complex128')
+            X = np.zeros((self.N,M+1),dtype='complex128')
+            X[:,0] = self.sol[0]
             for ix in range(M):
                 p = np.zeros(M,dtype='complex128')
                 p[ix] = 1j/self.w
-                X[:,ix] = self.gogo[0](self.Md.T*p)
+                X[:,ix+1] = self.gogo[0](self.Md.T*p)
             
             u,s,v = linalg.svd(X,full_matrices=False)
             
