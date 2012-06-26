@@ -45,6 +45,7 @@ def main():
         if sys.argv[1] == 'sba':
             fid = open(fileName, 'w')
             fid.write('mpiexec -npernode 2 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
+
             fid.close()
             cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=8:ppn=8','-l', 'nice=0', fileName]
         
