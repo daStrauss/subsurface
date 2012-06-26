@@ -8,6 +8,7 @@ from model import fwd
 import numpy as np
 from scipy import sparse
 
+
 class solver(fwd):
     ''' class to implement the transverse electric mode, rather - the case where we have Ez only ''' 
     def setmats(self, eHSr, sHS, div):
@@ -211,3 +212,5 @@ class solver(fwd):
     def getS(self):
         ''' return the coefficient necessary in the Md*P part to make things work '''
         return self.w*self.muo*1j
+    
+        
