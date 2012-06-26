@@ -12,14 +12,14 @@ import scipy.sparse.linalg as lin
 
 # EE = flat.makeMeA('TE', 1e6, 45*np.pi/180)
 
-EE = flat.makeMeA('TE', 1e4, 45*np.pi/180)    
+EE = flat.makeMeA('TM', 1e4, 45*np.pi/180)    
 
 trm = spio.loadmat('mats/tMat' + repr(1) + '.mat')
 pTrue = trm['scrt'].flatten()
 
 EE.initBig(pTrue)
 
-EE.buildROM(100, force=False)
+EE.buildROM(100, force=True)
 
 M = (EE.nabla2+EE.getk(1))*EE.Phi
 

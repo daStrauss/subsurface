@@ -196,12 +196,13 @@ class solver(fwd):
         self.Md = self.Md.tocsc()
         self.Md = self.Md.T
 #                              
-    def fwd_solve(self, ind):
-        """ Does the clean solve, prints a figure """
-        # self.sol[ind] = self.rhs.copy();
-        # b = self.rhs.copy().flatten();
-        self.sol[ind] = lin.spsolve(sparse.csc_matrix(self.nabla2+ self.getk(ind)), \
-                                    self.rhs.flatten())
+# no need to overload the fwd_solve method -- its the same!
+#    def fwd_solve(self, ind):
+#        """ Does the clean solve, prints a figure """
+#        # self.sol[ind] = self.rhs.copy();
+#        # b = self.rhs.copy().flatten();
+#        self.sol[ind] = lin.spsolve(sparse.csc_matrix(self.nabla2+ self.getk(ind)), \
+#                                    self.rhs.flatten())
         
         # umfpack.linsolv((self.nabla2 + self.getk(ind)), self.sol[ind])
         # self.sol[ind] = np.array(self.sol[ind])
