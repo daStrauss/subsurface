@@ -143,7 +143,7 @@ def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgN
     
     if rank == 0:
         D = {'Pfinal':P.reshape(S[0].fwd.nRx,S[0].fwd.nRy), 'nProc':nProc, 'resid':resid, \
-             'timing':tmvc}
+             'timing':tmvc, 'rho':rho, 'xi':xi}
         spio.savemat(outDir + 'pout_' + solverType + repr(bkgNo), D)
         
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
