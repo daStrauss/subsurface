@@ -19,7 +19,7 @@ pTrue = trm['scrt'].flatten()
 
 EE.initBig(pTrue)
 
-EE.buildROM(100, force=True)
+EE.buildROM(100, force=False)
 
 M = (EE.nabla2+EE.getk(1))*EE.Phi
 
@@ -31,28 +31,48 @@ print 'starting solve'
 ur = lin.spsolve(S,b)
 
 
+ptb = EE.parseFields(EE.sol[1])
+apxSol = EE.parseFields(np.dot(EE.phi,ur))
 
 plt.figure(1)
 plt.subplot(1,2,1)
-plt.imshow((EE.sol[1]).reshape(199,199).real)
+plt.imshow(ptb[0].real)
 plt.colorbar()
 
-apxSol = np.dot(EE.Phi,ur)
-
 plt.subplot(1,2,2)
-plt.imshow(apxSol.reshape(199,199).real)
+plt.imshow(apxSol[0].real)
 plt.colorbar()
 
 plt.figure(2)
 plt.subplot(1,2,1)
-plt.imshow((apxSol-EE.sol[1]).reshape(199,199).real)
+plt.imshow((apxSol[0]-ptb[0]).real)
 plt.colorbar()
 
 plt.subplot(1,2,2)
-plt.imshow((apxSol-EE.sol[1]).reshape(199,199).imag)
+plt.imshow((apxSol[0]-ptb[0]).imag)
 plt.colorbar()
 
-print np.linalg.norm(apxSol-EE.sol[1])
+print np.linalg.norm(apxSol[0]-ptb[0])
+
+plt.figure(10)
+plt.subplot(1,2,1)
+plt.imshow(ptb[1].real)
+plt.colorbar()
+
+plt.subplot(1,2,2)
+plt.imshow(apxSol[1].real)
+plt.colorbar()
+
+
+plt.figure(20)
+plt.subplot(1,2,1)
+plt.imshow(ptb[2].real)
+plt.colorbar()
+
+plt.subplot(1,2,2)
+plt.imshow(apxSol[2].real)
+plt.colorbar()
+
 
 plt.show()
 
