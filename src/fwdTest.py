@@ -32,7 +32,7 @@ ur = lin.spsolve(S,b)
 
 
 ptb = EE.parseFields(EE.sol[1])
-apxSol = EE.parseFields(np.dot(EE.phi,ur))
+apxSol = EE.parseFields(np.dot(EE.Phi,ur))
 
 plt.figure(1)
 plt.subplot(1,2,1)
