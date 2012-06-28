@@ -24,7 +24,11 @@ def main():
     elif sys.argv[1] == 'splitField':
         ix = int(sys.argv[2])
         outDir = 'splitField/trial' + repr(ix) + '/'
-        solveADMM.semiParallel('splitField', sys.argv[3], rho=1500, xi =2e-3, \
+        if sys.argv[3] == 'TE':
+            solveADMM.semiParallel('splitField', sys.argv[3], rho=1500, xi =2e-3, \
+                               uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
+        elif sys.argv[3] == 'TM':
+            solveADMM.semiParallel('splitField', sys.argv[3], rho=0.019307, xi =1.3895e-3, \
                                uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
             
     elif sys.argv[1] == 'contrastX':

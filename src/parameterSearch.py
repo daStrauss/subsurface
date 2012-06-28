@@ -23,7 +23,7 @@ totStates = numXi*numRho
 
 def getMyVars(parseNumber):
     '''routine to return the parameters to test at the current iteration.'''
-    rhos, xis = np.meshgrid(np.logspace(-4,0,numRho), np.logspace(-5,-2,numXi))
+    rhos, xis = np.meshgrid(np.logspace(-3,3,numRho), np.logspace(-4,0,numXi))
     rhos = rhos.flatten()
     xis = xis.flatten()
     return rhos[parseNumber], xis[parseNumber]
@@ -42,10 +42,10 @@ def main():
         
         lRho,lXi = getMyVars(int(sys.argv[2]))
         
-        outDir = 'splitField/' + 'TM/' + '/prmTrial' + sys.argv[2] + '/'
+        outDir = 'splitField/' + 'TE/' + '/prmTrial' + sys.argv[2] + '/'
         
         assert os.path.exists(outDir)            
-        solveADMM.semiParallel('splitField', 'TM', rho=lRho, xi=lXi, \
+        solveADMM.semiParallel('splitField', 'TE', rho=lRho, xi=lXi, \
               uBound = 0.05, lmb = 1e-8, bkgNo=1, outDir=outDir)
             
 
