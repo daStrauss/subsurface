@@ -23,7 +23,7 @@ def main():
         
     elif sys.argv[1] == 'splitField':
         ix = int(sys.argv[2])
-        outDir = 'splitField/trial' + repr(ix) + '/'
+        outDir = 'splitField/' + sys.argv[3] + '/trial' + repr(ix) + '/'
         if sys.argv[3] == 'TE':
             solveADMM.semiParallel('splitField', sys.argv[3], rho=1500, xi =2e-3, \
                                uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)

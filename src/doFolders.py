@@ -39,13 +39,13 @@ def main():
         print 'sba'
         
     elif sys.argv[1] == 'splitField':
-        traceBuild('splitField')
+        traceBuild('splitField/' + sys.argv[2] )
 
     elif sys.argv[1] == 'contrastX':
-        traceBuild('contrastX')
+        traceBuild('contrastX/' + sys.argv[2] )
         
     elif sys.argv[1] == 'sba':
-        traceBuild('sba')
+        traceBuild('sba/' + sys.argv[2] )
     else: 
         print 'I think you asked for the wrong thing:'
  
