@@ -51,7 +51,7 @@ def ensureFolders(baseTag,flavor):
         os.mkdir(mid)
         
     for ix in range(100):
-        outDir = mid + '/prmTrial' + repr(ix) + '/'
+        outDir = mid + '/bkgTrial' + repr(ix) + '/'
         print outDir
         if not os.path.exists(outDir):
             os.mkdir(outDir)
@@ -67,7 +67,7 @@ def ensureFolders(baseTag,flavor):
 def main():
     ''' wrap around for making scripts and submiting them and waiting '''
     ensureFolders(sys.argv[1], 'TE')
-    for ix in range(0,64):
+    for ix in range(0,100):
         jobTitle = 'paramS' + sys.argv[1] + repr(ix)
         fileName = 'paramS' + sys.argv[1] + '.pbs'
 

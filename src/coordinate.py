@@ -25,8 +25,11 @@ def main():
         ix = int(sys.argv[2])
         outDir = 'splitField/' + sys.argv[3] + '/trial' + repr(ix) + '/'
         if sys.argv[3] == 'TE':
-            solveADMM.semiParallel('splitField', sys.argv[3], rho=1500, xi =2e-3, \
+            # did a parameter search just as I've done for the TM, found some 'new' numbers.
+            solveADMM.semiParallel('splitField', sys.argv[3], rho=138, xi =1e-3, \
                                uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
+#            solveADMM.semiParallel('splitField', sys.argv[3], rho=1500, xi =2e-3, \
+#                               uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
         elif sys.argv[3] == 'TM':
             solveADMM.semiParallel('splitField', sys.argv[3], rho=0.019307, xi =1.3895e-3, \
                                uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)

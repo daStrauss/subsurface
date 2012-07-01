@@ -29,10 +29,10 @@ class fwd(object):
         self.l = self.c/self.f
         self.incAng = incAng
         
-    def initBig(self, p):
+    def initBig(self, p, bkg=0.005):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
         self.setspace(199,199,5.0,5.0)
-        self.setmats(1,0.005,199/2)
+        self.setmats(1,bkg,199/2)
         self.setOperators()
         self.makeGradOper()
         self.setMs()
@@ -43,10 +43,10 @@ class fwd(object):
         self.fwd_solve(0)
         self.fwd_solve(1)
         
-    def initSmall(self, p):
+    def initSmall(self, p, bkg=0.005):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
         self.setspace(99,99,5.0,5.0)
-        self.setmats(1,0.005,99/2)
+        self.setmats(1,bkg,99/2)
         self.setOperators()
         self.makeGradOper()
         self.setMs(10)

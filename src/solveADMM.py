@@ -40,22 +40,22 @@ def delegator(solverType, flavor, freq, incAng):
         S = map(biconvex.problem, freq, incAng, flavor)
         return S
     
-def bigProj(S, outDir, testNo):
+def bigProj(S, outDir, testNo, bkg=0.005):
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
     
     trm = spio.loadmat('mats/tMat' + repr(testNo) + '.mat')
     pTrue = trm['scrt'].flatten()
     
     for F in S:
-        F.fwd.initBig(pTrue)
+        F.fwd.initBig(pTrue,bkg=bkg)
         F.outDir = outDir
     
     return S,pTrue
 
-def smallProj(S,outDir,testNo):
+def smallProj(S,outDir,testNo, bkg=0.005):
     '''build for a small project, ie 99x99 '''
     for F in S:
-        F.fwd.initSmall(0)
+        F.fwd.initSmall(0,bkg=bkg)
         F.outDir = outDir
     
     pTrue = np.ones((40,10))*0.01
@@ -75,7 +75,7 @@ def balancingAct(freqs,incAngs,rank,nProc):
     return allFreqs[lRng],allAngs[lRng]
     
     
-def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir='basic'):
+def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir='basic', bkg=0.005):
     '''semiParallel solver -- i.e. has MPI calls loops locally over different angles of arrival'''
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
