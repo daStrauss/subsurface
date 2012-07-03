@@ -38,16 +38,16 @@ def submitJob(cmd):
     return f
 
 def main():
-    for ix in range(1,200):
+    for ix in range(151,200):
         jobTitle = 'run' + sys.argv[1] + repr(ix)
         fileName = 'sub' + sys.argv[1] + '.pbs'
         
         if sys.argv[1] == 'sba':
             fid = open(fileName, 'w')
-            fid.write('mpiexec -npernode 1 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
+            fid.write('mpiexec -npernode 2 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
 
             fid.close()
-            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=8:ppn=8', fileName]
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=4:ppn=8', '-l', 'nice=0', fileName]
         
         elif sys.argv[1] == 'splitField':           
             fid = open(fileName, 'w')
