@@ -41,23 +41,23 @@ def delegator(solverType, flavor, freq, incAng):
         S = map(biconvex.problem, freq, incAng, flavor)
         return S
     
-def bigProj(S, outDir, testNo):
+def bigProj(S, D):
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
     
-    trm = spio.loadmat('mats/tMat' + repr(testNo) + '.mat')
+    trm = spio.loadmat('mats/tMat' + repr(D['bkgNo']+1) + '.mat')
     pTrue = trm['scrt'].flatten()
     
     for F in S:
         F.fwd.initBig(pTrue)
-        F.outDir = outDir
+        F.outDir = D['outDir']
     
     return S,pTrue
 
-def smallProj(S,outDir,testNo):
+def smallProj(S,D):
     '''build for a small project, ie 99x99 '''
     for F in S:
         F.fwd.initSmall(0)
-        F.outDir = outDir
+        F.outDir = D['outDir']
     
     pTrue = np.ones((40,10))*0.01
     pTrue = pTrue.flatten()
@@ -76,35 +76,30 @@ def balancingAct(freqs,incAngs,rank,nProc):
     return allFreqs[lRng],allAngs[lRng]
     
     
-def semiParallel(solverType, flavor, rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1, outDir='basic'):
+def semiParallel(solverType, flavor, **kwargs): 
+    ''' The main coordination routine'''
+    D = solverDefaults.getDefaults(solverType,flavor, kwargs)
+    
     '''semiParallel solver -- i.e. has MPI calls loops locally over different angles of arrival'''
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     nProc = comm.Get_size()
     timeFull = time.time()
     
-    fout = open(outDir + 'notes' + repr(rank) + '_' + repr(bkgNo) + '.nts', 'w')
+    fout = open(D['outDir'] + 'notes' + repr(rank) + '_' + repr(D['bkgNo']) + '.nts', 'w')
     
-    fout.write('xi ' + repr(xi) + ' rho = ' + repr(rho) + '\n')
-        
-    # define the selection that we are interested in
-    # remember, they get meshed
-    allFreq = np.array([1e3, 3e3, 13e3, 50e3])
-    allIncAng = np.array([75, -75, 45, -45])*np.pi/180
-    
+    fout.write('xi ' + repr(D['xi']) + ' rho = ' + repr(D['rho']) + '\n')
+
     # allocate according to the number of processors available
-    freqLocal,angLocal = balancingAct(allFreq,allIncAng, rank, nProc)
+    freqLocal,angLocal = balancingAct(D['freqs'],D['inc'], rank, nProc)
     
     # switch for local testing
     # freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
-    # print freqLocal
-    # print angLocal
     flavors = [flavor]*len(freqLocal)
-    
     # the delegator makes the local set of problems
     S = delegator(solverType, flavors, freqLocal, angLocal)
     
-    S,pTrue = bigProj(S, outDir, bkgNo)
+    S,pTrue = bigProj(S, D)
     
     N = np.size(S)
 
