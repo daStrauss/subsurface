@@ -9,6 +9,7 @@ from mpi4py import MPI
 import numpy as np
 import scipy.io as spio
 import time
+import solverDefaults
 # import os
 # import sys
 
