@@ -40,12 +40,15 @@ def main():
         b = np.random.randn(N)
         ti = time.time()
         u = lin.spsolve(A,b)
+        p = np.random.rand()
+        dP = np.random.rand()
+        dP = comm.allreduce(p,dP,op=MPI.SUM)
         T[ix] = time.time()-ti
         
     
     execT = fullT-time.time()
     D = {'times':T,'rng':runRange, 'execT':execT}
-    spio.savemat('noThr/tmg'+repr(rank) + '_' + repr(nProc),D)
+    spio.savemat('arNice/tmg'+repr(rank) + '_' + repr(nProc),D)
     
 
 def assgnRange(rank, nProc):
