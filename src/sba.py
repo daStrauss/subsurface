@@ -22,40 +22,58 @@ class problem(optimizer):
     rho = 0.0001
     maxit = 2000
     
-    def initOpt(self, uHat, rho=0.005, xi=0.9, uBound=0.05, lmb=0, maxiter=100):
-        self.stepSize = rho
-        self.alpha = xi
+    def initOpt(self, uHat, D):
+        self.stepSize = D['rho']
+        self.alpha = D['xi']
         self.uHat = uHat
         self.s = self.fwd.getS()
-        self.uBound = uBound
-        self.lmb = lmb
-        self.obj = np.zeros(maxiter)
+        self.uBound = D['uBound']
+        self.lmb = D['lmb']
+        self.obj = np.zeros(D['maxIter'])
         
         
     def trueSolve(self,P):
         ''' an "internal" method to use for obtaining the current value of us '''
-        
         self.A = self.fwd.nabla2 + self.fwd.getk(0) + \
-          sparse.spdiags(self.s*self.fwd.Md.T*P,0,self.fwd.N, self.fwd.N)
-        self.us = lin.spsolve(self.A,self.fwd.rhs)
+                sparse.spdiags(self.s*self.fwd.Md.T*P,0,self.fwd.N, self.fwd.N)
+        if not self.fwd.rom:
+            self.us = lin.spsolve(self.A,self.fwd.rhs)
+        else:           
+            self.J = self.A*self.fwd.Phi
+            self.A = np.dot(self.J.T.conj(), self.J)
+            
+            self.us = lin.spsolve(self.A, np.dot(self.J.T.conj(),self.fwd.rhs))
 
     
     def runOpt(self,P):
         ''' runtime module'''
         # get the local background -- requires a new solve!
         self.trueSolve(P)
-        localuHat = self.uHat - self.fwd.Ms*self.us
         
-        # produce some local matrices
-        B = self.s*sparse.spdiags(self.us,0,self.fwd.N,self.fwd.N)*self.fwd.Md.T
-        c = np.zeros(self.fwd.N)
-        Z = self.fwd.Ms
+        if not self.fwd.rom:
+            localuHat = self.uHat - self.fwd.Ms*self.us
         
-        # grab some internal dimensions -- non ROM for now.
-        n = self.fwd.N
-        m = self.fwd.nRx*self.fwd.nRy
+            # produce some local matrices
+            B = self.s*sparse.spdiags(self.us,0,self.fwd.N,self.fwd.N)*self.fwd.Md.T
+            c = np.zeros(self.fwd.N)
+            Z = self.fwd.Ms
         
-        # initialize some empty variables
+            # grab some internal dimensions -- non ROM for now.
+            n = self.fwd.N
+            m = self.fwd.nRx*self.fwd.nRy
+        else:
+            
+            
+            # produce some local matrices
+            B = self.A.T.conj()*self.s*sparse.spdiags(self.fwd.Phi*self.us,0,self.fwd.N,self.fwd.N)*self.fwd.Md.T
+            c = np.zeros(self.fwd.rom)
+            Z = self.fwd.Ms*self.fwd.Phi
+            
+            n = self.fwd.rom
+            m = self.fwd.nRx*self.fwd.nRy
+            localuHat = self.uHat - np.dot(self.Z,self.us)
+            
+            # initialize some empty variables
         v = np.zeros(n, dtype='complex128') # update to fields (du)
         p = np.zeros(m, dtype='complex128') # estimate 1 for materials
         q = np.zeros(m, dtype='complex128') # estimate 2 for materials
@@ -64,7 +82,8 @@ class problem(optimizer):
         M = spt.vCat([spt.hCat([Z.T*Z, sparse.coo_matrix((n,m)), self.A.T.conj()]), \
                       spt.hCat([sparse.coo_matrix((m,n)), self.rho*sparse.eye(m,m), B.T.conj()]),\
                       spt.hCat([self.A, B, sparse.coo_matrix((n,n))])]).tocsc()
-        
+
+                         
         # print 'M format ' + repr(M.format)
         Q = lin.factorized(M)
         # Foo = gc.get_objects()
@@ -113,7 +132,7 @@ class problem(optimizer):
         
         self.deltaP = q
         
-        obj = np.linalg.norm(localuHat - self.fwd.Ms*v)
+        obj = np.linalg.norm(localuHat - self.Z*v)
         return obj
         
     

@@ -9,10 +9,12 @@ import numpy as np
 import scipy.io as spio
 import matplotlib.pyplot as plt
 import scipy.sparse.linalg as lin
+import scipy.linalg
+import time
 
 # EE = flat.makeMeA('TE', 1e6, 45*np.pi/180)
 
-EE = flat.makeMeA('TM', 1e4, 45*np.pi/180)    
+EE = flat.makeMeA('TE', 1e4, 45*np.pi/180)    
 
 trm = spio.loadmat('mats/tMat' + repr(1) + '.mat')
 pTrue = trm['scrt'].flatten()
@@ -28,7 +30,10 @@ S = np.dot(M.conj().T,M)
 b = np.dot(M.conj().T,EE.rhs)
 
 print 'starting solve'
+ti = time.time()
 ur = lin.spsolve(S,b)
+# ur = scipy.linalg.solve(S,b)
+print 'Solve time = ' + repr(time.time()-ti)
 
 
 ptb = EE.parseFields(EE.sol[1])
@@ -54,24 +59,24 @@ plt.colorbar()
 
 print np.linalg.norm(apxSol[0]-ptb[0])
 
-plt.figure(10)
-plt.subplot(1,2,1)
-plt.imshow(ptb[1].real)
-plt.colorbar()
-
-plt.subplot(1,2,2)
-plt.imshow(apxSol[1].real)
-plt.colorbar()
-
-
-plt.figure(20)
-plt.subplot(1,2,1)
-plt.imshow(ptb[2].real)
-plt.colorbar()
-
-plt.subplot(1,2,2)
-plt.imshow(apxSol[2].real)
-plt.colorbar()
+#plt.figure(10)
+#plt.subplot(1,2,1)
+#plt.imshow(ptb[0].real)
+#plt.colorbar()
+#
+#plt.subplot(1,2,2)
+#plt.imshow(apxSol[1].real)
+#plt.colorbar()
+#
+#
+#plt.figure(20)
+#plt.subplot(1,2,1)
+#plt.imshow(ptb[2].real)
+#plt.colorbar()
+#
+#plt.subplot(1,2,2)
+#plt.imshow(apxSol[2].real)
+#plt.colorbar()
 
 
 plt.show()

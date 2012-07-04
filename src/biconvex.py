@@ -13,20 +13,20 @@ from mpi4py import MPI
 
 class problem(optimizer):
     '''Implementing vanilla biconvex method for subsurface imaging '''
-    def initOpt(self, uHat, rho, xi, upperBound, lmb, maxiter):
+    def initOpt(self, uHat, D):
         '''initialization routine with common prototype'''
-        self.rho = rho
-        self.xi = xi
+        self.rho = D['rho']
+        self.xi = D['xi']
         self.uHat = uHat
-        self.lmb = lmb
-        self.uBound = upperBound
+        self.lmb = D['lmb']
+        self.uBound = D['uBound']
         self.F = np.zeros(self.fwd.N, dtype='complex128')
         self.us = np.zeros(self.fwd.N, dtype='complex128')
         
         self.A = self.fwd.nabla2 + self.fwd.getk(0)
         self.s = self.fwd.getS()
         self.ub = self.fwd.sol[0]
-        self.obj = np.zeros(maxiter)
+        self.obj = np.zeros(D['maxIter'])
         
         # not much else to do but initialize variables
         

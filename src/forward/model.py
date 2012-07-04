@@ -31,6 +31,7 @@ class fwd(object):
         self.l = self.c/self.f
         self.incAng = incAng
         self.gogo = ['', '']
+        self.rom = False
         
     def initBig(self, p):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
@@ -182,6 +183,7 @@ class fwd(object):
         ''' Extending to be able to do the reduced order model:
         buildRom(nBases, force) : nBases is the number of modes to keep, force means should I really do it
         or look for something in the files.'''
+        self.rom = nBases
         ti = time.time()
         if not force:
             try:
@@ -199,11 +201,14 @@ class fwd(object):
             M = self.nRx*self.nRy
             X = np.zeros((self.N,M+1),dtype='complex128')
             X[:,0] = self.sol[0]
+            
             for ix in range(M):
+                print 'computing derivative solution ' + repr(ix) + ' of ' + repr(M)
                 p = np.zeros(M,dtype='complex128')
                 p[ix] = 1j/self.w
                 X[:,ix+1] = self.gogo[0](self.Md.T*p)
             
+            print 'Computing SVD'
             u,s,v = linalg.svd(X,full_matrices=False)
             
             self.Phi = u[:,:nBases]

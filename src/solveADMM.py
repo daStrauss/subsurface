@@ -18,7 +18,6 @@ import solverDefaults
 # matplotlib.use('PDF')
 # import matplotlib.pyplot as plt
 
-MAXIT = 1000
 
 def delegator(solverType, flavor, freq, incAng):
     ''' A function that will allocate the problem instances according to the 'type' given 
@@ -50,6 +49,12 @@ def bigProj(S, D):
     for F in S:
         F.fwd.initBig(pTrue)
         F.outDir = D['outDir']
+        if not D['rom']:
+            F.fwd.isRom = False
+        else:
+            F.fwd.buildROM(D['rom'],force=False)
+            
+        
     
     return S,pTrue
 
@@ -106,14 +111,14 @@ def semiParallel(solverType, flavor, **kwargs):
     for F in S:
         uHat = F.fwd.Ms*(F.fwd.sol[1].flatten())
         ti = time.time()
-        F.initOpt(uHat,rho,xi,uBound, lmb, MAXIT)
+        F.initOpt(uHat,D)
         fout.write('initialize time ' + repr(time.time()-ti) + '\n')
 
     P = np.zeros(S[0].fwd.nRx*S[0].fwd.nRy)
-    resid = np.zeros(MAXIT)
-    tmvc = np.zeros(MAXIT)
+    resid = np.zeros(D['maxIter'])
+    tmvc = np.zeros(D['maxIter'])
     
-    for itNo in range(MAXIT):
+    for itNo in range(D['maxIter']):
         ti = time.time()
         for F in S:        
             objF = F.runOpt(P)
@@ -138,9 +143,9 @@ def semiParallel(solverType, flavor, **kwargs):
         S[ix].writeOut(rank,ix)
     
     if rank == 0:
-        D = {'Pfinal':P.reshape(S[0].fwd.nRx,S[0].fwd.nRy), 'nProc':nProc, 'resid':resid, \
+        exitVars = {'Pfinal':P.reshape(S[0].fwd.nRx,S[0].fwd.nRy), 'nProc':nProc, 'resid':resid, \
              'timing':tmvc}
-        spio.savemat(outDir + 'pout_' + solverType + repr(bkgNo), D)
+        spio.savemat(D['outDir'] + 'pout_' + solverType + repr(D['bkgNo']), exitVars)
         
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
     fout.close()
@@ -149,7 +154,8 @@ def semiParallel(solverType, flavor, **kwargs):
     
 if __name__ == "__main__":
 #    semiParallel('sba', 'TM', rho=0.005, xi=0.9, uBound=0.05, lmb=0,bkgNo=1)
-    semiParallel('biconvex', 'TM', rho=0.001, xi=1e-5, lmb=0, uBound=0.05,bkgNo=1)
+    # semiParallel('biconvex', 'TM')
+    semiParallel('sba', 'TE', freqs=np.array([1e3]), inc=np.array([75*np.pi/180]), maxIter=10, rom=50)
 #    semiParallel('contrastX', 'TM', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1)
 #    semiParallel('splitField','TE', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
 
