@@ -16,15 +16,18 @@ def waitForExit(jobName):
     while doExit == False:
         pipeOut = subprocess.Popen(['qstat', '-x', jobName], stdout=subprocess.PIPE)
         f = pipeOut.stdout.read()
-        P = xml.fromstring(f)
-        for z in P.getiterator():
-            if z.tag == 'job_state':
-                if z.text == 'R':
-                    pass
-                    # print 'Still Running ' + jobName
-                elif z.text == 'C':
-                    doExit = True
-                    print 'Finished ' + jobName
+        try:
+            P = xml.fromstring(f)
+            for z in P.getiterator():
+                if z.tag == 'job_state':
+                    if z.text == 'R':
+                        pass
+                        # print 'Still Running ' + jobName
+                    elif z.text == 'C':
+                        doExit = True
+                        print 'Finished ' + jobName
+        except:
+            print 'wrong string or something?'
         
         time.sleep(5)
 
