@@ -47,7 +47,8 @@ def main():
         
     elif sys.argv[1] == 'biconvex':
         ix = int(sys.argv[2])
-        outDir = 'biconvex/trial' + repr(ix) + '/'
+        outDir = 'splitField/' + sys.argv[3] + '/trial' + repr(ix) + '/'
+#        outDir = 'biconvex/trial' + repr(ix) + '/'
         solveADMM.semiParallel('biconvex', sys.argv[3], rho=0.001, xi=1e-5, lmb=0, uBound=0.05,bkgNo=(ix+1), outDir=outDir)
         
     else: 
