@@ -41,7 +41,12 @@ def submitJob(cmd):
     return f
 
 def main():
-    for ix in range(172,200):
+    if len(sys.argv) == 3:
+        startIx = int(sys.argv[2])
+    else:
+        startIx = 0
+        
+    for ix in range(startIx,200):
         jobTitle = 'run' + sys.argv[1] + repr(ix)
         fileName = 'sub' + sys.argv[1] + '.pbs'
         
@@ -49,6 +54,12 @@ def main():
             fid = open(fileName, 'w')
             fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
 
+            fid.close()
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
+            
+        elif sys.argv[1] == 'biconvex':
+            fid = open(fileName, 'w')
+            fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
             fid.close()
             cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
         

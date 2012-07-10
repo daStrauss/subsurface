@@ -7,9 +7,10 @@ Created on Jun 6, 2012
 import numpy as np
 from optimize import optimizer
 import scipy.sparse as sparse
-import scipy.sparse.linalg as lin
+# import scipy.sparse.linalg as lin
 import scipy.io as spio
 from mpi4py import MPI
+import superSolve.wrapCvxopt
 
 class problem(optimizer):
     '''Implementing vanilla biconvex method for subsurface imaging '''
@@ -43,7 +44,8 @@ class problem(optimizer):
             self.rho*(aL.T.conj()*(self.s*self.ub*(self.fwd.Md.T*P) + self.F ))
         
         # solve dat dere set of equations
-        self.us = lin.spsolve(M,b)
+#        self.us = lin.spsolve(M,b)
+        self.us = superSolve.wrapCvxopt.linsolve(M, b)
         
         obj = np.linalg.norm(self.fwd.Ms*self.us - uHatLocal)
         return obj
