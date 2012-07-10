@@ -6,12 +6,13 @@ Created on Jun 4, 2012
 # maxwell decomissioned
 # from maxwell import twoDim
 import scipy.sparse as sparse
-import scipy.sparse.linalg as lin
+# import scipy.sparse.linalg as lin
 import sparseTools as spt
 import numpy as np
 from mpi4py import MPI
 import scipy.io as spio
 from optimize import optimizer
+import superSolve.wrapCvxopt 
 
 class problem(optimizer):
     '''a class to do the born approximation iterations '''
@@ -37,8 +38,10 @@ class problem(optimizer):
         
         self.A = self.fwd.nabla2 + self.fwd.getk(0) + \
           sparse.spdiags(self.s*self.fwd.Md.T*P,0,self.fwd.N, self.fwd.N)
-        self.us = lin.spsolve(self.A,self.fwd.rhs)
+        
+#        self.us = lin.spsolve(self.A,self.fwd.rhs)
 
+        self.us = superSolve.wrapCvxopt.linsolve(self.A, self.fwd.rhs)
     
     def runOpt(self,P):
         ''' runtime module'''
@@ -66,7 +69,8 @@ class problem(optimizer):
                       spt.hCat([self.A, B, sparse.coo_matrix((n,n))])]).tocsc()
         
         # print 'M format ' + repr(M.format)
-        Q = lin.factorized(M)
+#        Q = lin.factorized(M)
+        Q = superSolve.wrapCvxopt.staticSolver(M)
         # Foo = gc.get_objects()
         # print Foo
         # Q = M 
