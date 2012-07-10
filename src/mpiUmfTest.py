@@ -9,8 +9,8 @@ import scipy.sparse
 import scipy.sparse.linalg as lin
 import time
 
-# import mpi4py.rc
-# mpi4py.rc.threaded = False
+import mpi4py.rc
+mpi4py.rc.threaded = False
 # mpi4py.rc.thread_level = "funneled"
 
 from mpi4py import MPI
@@ -43,7 +43,7 @@ def main():
         u = lin.spsolve(A,b)
         p = np.random.rand()
         dP = np.random.rand()
-        dP = comm.allreduce(p,dP,op=MPI.SUM)
+        # dP = comm.allreduce(p,dP,op=MPI.SUM)
         T[ix] = time.time()-ti
         
     

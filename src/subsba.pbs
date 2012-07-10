@@ -1,1 +1,1 @@
-mpiexec -npernode 2 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py sba 153 TE
+mpiexec -npernode 2 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py sba 171 TE
