@@ -5,14 +5,14 @@ Created on Jun 12, 2012
 '''
 
 from scipy import sparse
-from scipy.sparse import linalg as lin
+# from scipy.sparse import linalg as lin
 import scipy.special as spec
 import pickle
 import scipy.io as spio
 import numpy as np
-import scipy.linalg as linalg
+import superSolve.wrapCvxopt
 import time
-
+from scipy import linalg
 
 class pmlList(object):
     freq = np.ndarray(0)
@@ -33,10 +33,10 @@ class fwd(object):
         self.gogo = ['', '']
         self.rom = False
         
-    def initBig(self, p):
+    def initBig(self, p, bkg=0.005):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
         self.setspace(199,199,5.0,5.0)
-        self.setmats(1,0.005,199/2)
+        self.setmats(1,bkg,199/2)
         self.setOperators()
         self.makeGradOper()
         self.setMs()
@@ -47,10 +47,10 @@ class fwd(object):
         self.fwd_solve(0)
         self.fwd_solve(1)
         
-    def initSmall(self, p):
+    def initSmall(self, p, bkg=0.005):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
         self.setspace(99,99,5.0,5.0)
-        self.setmats(1,0.005,99/2)
+        self.setmats(1,bkg,99/2)
         self.setOperators()
         self.makeGradOper()
         self.setMs(10)
@@ -152,12 +152,12 @@ class fwd(object):
         pass    
 
     def fwd_solve(self, ind):
-        '''Does the clean solve for the given index. The factorization is not cached'''
-        
-        self.gogo[ind] = lin.factorized(sparse.csc_matrix(self.nabla2+self.getk(ind)) )
+        '''Does the clean solve for the given index. The factorization is not cached'''      
+#        self.gogo[ind] = lin.factorized(sparse.csc_matrix(self.nabla2+self.getk(ind)) )
+        self.gogo[ind] = superSolve.wrapCvxopt.staticSolver(self.nabla2+self.getk(ind))
         
         self.sol[ind] = self.gogo[ind](self.rhs.flatten())
-        
+
     def parseFields(self,u):
         '''method to reshape and return according to internal dimensions '''
         print 'not yet implemented parseFields'

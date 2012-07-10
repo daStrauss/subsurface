@@ -1,4 +1,13 @@
 '''
+Created on Jun 30, 2012
+
+@author: dstrauss
+Want to coordinate a search through 10 background profiles and 10 sigmas.
+Created on Jun 15, 2012
+
+@author: dstrauss
+'''
+'''
 Created on Jun 15, 2012
 
 @author: dstrauss
@@ -16,17 +25,17 @@ import sys
 import os
 import numpy as np
 
-numXi = 8
-numRho = 8
+numXi = 10
+numRho = 10
 totStates = numXi*numRho
 
 
 def getMyVars(parseNumber):
     '''routine to return the parameters to test at the current iteration.'''
-    rhos, xis = np.meshgrid(np.logspace(-3,3,numRho), np.logspace(-4,0,numXi))
-    rhos = rhos.flatten()
-    xis = xis.flatten()
-    return rhos[parseNumber], xis[parseNumber]
+    sigmaBkg, profileNo = np.meshgrid(np.logspace(-3,0,numRho), np.arange(10))
+    sigmaBkg = sigmaBkg.flatten()
+    profileNo = profileNo.flatten()
+    return profileNo[parseNumber], sigmaBkg[parseNumber]
     
 def main():
     ''' simple main routine '''
@@ -40,13 +49,13 @@ def main():
     elif sys.argv[1] == 'splitField':
         assert os.path.exists('splitField')
         
-        lRho,lXi = getMyVars(int(sys.argv[2]))
+        localProfileNo,localSigmaBkg = getMyVars(int(sys.argv[2]))
         
-        outDir = 'splitField/' + 'TE/' + '/prmTrial' + sys.argv[2] + '/'
+        outDir = 'splitField/' + 'TE/' + '/bkgTrial' + sys.argv[2] + '/'
         
         assert os.path.exists(outDir)            
-        solveADMM.semiParallel('splitField', 'TE', rho=lRho, xi=lXi, \
-              uBound = 0.05, lmb = 1e-8, bkgNo=1, outDir=outDir)
+        # solveADMM.semiParallel('splitField', 'TE', rho=140, xi=1e-3, \
+        #       uBound = 0.05, lmb = 1e-8, bkgNo=localProfileNo, outDir=outDir, bkg=localSigmaBkg)
             
 
 if __name__ == "__main__":

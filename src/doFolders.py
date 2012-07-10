@@ -38,16 +38,8 @@ def main():
         print 'contrastX'
         print 'sba'
         
-    elif sys.argv[1] == 'splitField':
-        traceBuild('splitField')
-
-    elif sys.argv[1] == 'contrastX':
-        traceBuild('contrastX')
-        
-    elif sys.argv[1] == 'sba':
-        traceBuild('sba')
-    else: 
-        print 'I think you asked for the wrong thing:'
- 
+    else:
+        traceBuild(sys.argv[1] + '/' + sys.argv[2])
+     
 if __name__ == "__main__":
     main()

@@ -11,7 +11,7 @@ import time
 
 import mpi4py.rc
 mpi4py.rc.threaded = False
-mpi4py.rc.thread_level = "funneled"
+# mpi4py.rc.thread_level = "funneled"
 
 from mpi4py import MPI
 import scipy.io as spio
@@ -25,6 +25,7 @@ def main():
     rank = comm.Get_rank()
     nProc = comm.Get_size()
     # rank = 5
+    print MPI.Query_thread()
     
     runRange = assgnRange(rank,nProc)
     print 'qt = ' + repr(MPI.Query_thread())
@@ -40,12 +41,15 @@ def main():
         b = np.random.randn(N)
         ti = time.time()
         u = lin.spsolve(A,b)
+        p = np.random.rand()
+        dP = np.random.rand()
+        # dP = comm.allreduce(p,dP,op=MPI.SUM)
         T[ix] = time.time()-ti
         
     
     execT = fullT-time.time()
     D = {'times':T,'rng':runRange, 'execT':execT}
-    spio.savemat('noThr/tmg'+repr(rank) + '_' + repr(nProc),D)
+    spio.savemat('arNice/tmg'+repr(rank) + '_' + repr(nProc),D)
     
 
 def assgnRange(rank, nProc):

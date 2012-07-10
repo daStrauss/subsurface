@@ -41,6 +41,7 @@ def delegator(solverType, flavor, freq, incAng):
         return S
     
 def bigProj(S, D):
+
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
     
     trm = spio.loadmat('mats/tMat' + repr(D['bkgNo']+1) + '.mat')
@@ -146,6 +147,7 @@ def semiParallel(solverType, flavor, **kwargs):
         exitVars = {'Pfinal':P.reshape(S[0].fwd.nRx,S[0].fwd.nRy), 'nProc':nProc, 'resid':resid, \
              'timing':tmvc}
         spio.savemat(D['outDir'] + 'pout_' + solverType + repr(D['bkgNo']), exitVars)
+
         
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
     fout.close()

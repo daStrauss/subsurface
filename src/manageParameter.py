@@ -51,7 +51,7 @@ def ensureFolders(baseTag,flavor):
         os.mkdir(mid)
         
     for ix in range(100):
-        outDir = mid + '/prmTrial' + repr(ix) + '/'
+        outDir = mid + '/bkgTrial' + repr(ix) + '/'
         print outDir
         if not os.path.exists(outDir):
             os.mkdir(outDir)
@@ -66,14 +66,14 @@ def ensureFolders(baseTag,flavor):
 
 def main():
     ''' wrap around for making scripts and submiting them and waiting '''
-    ensureFolders(sys.argv[1], 'TM')
-    for ix in range(0,64):
+    ensureFolders(sys.argv[1], 'TE')
+    for ix in range(0,100):
         jobTitle = 'paramS' + sys.argv[1] + repr(ix)
         fileName = 'paramS' + sys.argv[1] + '.pbs'
 
         if sys.argv[1] == 'splitField':           
             fid = open(fileName, 'w')
-            fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python parameterSearch.py ' + sys.argv[1] + ' ' + repr(ix)) 
+            fid.write('mpiexec -npernode 4 -wdir /shared/users/dstrauss/subsurface/src python parameterSearch.py ' + sys.argv[1] + ' ' + repr(ix)) 
             fid.close()
             cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', fileName]
         print cmd

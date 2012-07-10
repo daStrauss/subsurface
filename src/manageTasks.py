@@ -16,15 +16,18 @@ def waitForExit(jobName):
     while doExit == False:
         pipeOut = subprocess.Popen(['qstat', '-x', jobName], stdout=subprocess.PIPE)
         f = pipeOut.stdout.read()
-        P = xml.fromstring(f)
-        for z in P.getiterator():
-            if z.tag == 'job_state':
-                if z.text == 'R':
-                    pass
-                    # print 'Still Running ' + jobName
-                elif z.text == 'C':
-                    doExit = True
-                    print 'Finished ' + jobName
+        try:
+            P = xml.fromstring(f)
+            for z in P.getiterator():
+                if z.tag == 'job_state':
+                    if z.text == 'R':
+                        pass
+                        # print 'Still Running ' + jobName
+                    elif z.text == 'C':
+                        doExit = True
+                        print 'Finished ' + jobName
+        except:
+            print 'wrong string or something?'
         
         time.sleep(5)
 
@@ -38,21 +41,33 @@ def submitJob(cmd):
     return f
 
 def main():
-    for ix in range(32,200):
+    if len(sys.argv) == 3:
+        startIx = int(sys.argv[2])
+    else:
+        startIx = 0
+        
+    for ix in range(startIx,200):
         jobTitle = 'run' + sys.argv[1] + repr(ix)
         fileName = 'sub' + sys.argv[1] + '.pbs'
         
         if sys.argv[1] == 'sba':
             fid = open(fileName, 'w')
-            fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
+            fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
+
             fid.close()
-            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=8:ppn=8', fileName]
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
+            
+        elif sys.argv[1] == 'biconvex':
+            fid = open(fileName, 'w')
+            fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
+            fid.close()
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
         
         elif sys.argv[1] == 'splitField':           
             fid = open(fileName, 'w')
-            fid.write('mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
+            fid.write('mpiexec -npernode 4 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TM')
             fid.close()
-            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', fileName]
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
         print cmd
         ppid = submitJob(cmd)
         waitForExit(ppid)

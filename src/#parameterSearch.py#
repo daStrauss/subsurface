@@ -42,7 +42,7 @@ def main():
         
         lRho,lXi = getMyVars(int(sys.argv[2]))
         
-        outDir = 'splitField/' + 'TE/' + '/prmTrial' + sys.argv[2] + '/'
+       outDir = 'splitField/' + 'TE/' + '/prmTrial' + sys.argv[2] + '/'
         
         assert os.path.exists(outDir)            
         solveADMM.semiParallel('splitField', 'TE', rho=lRho, xi=lXi, \
