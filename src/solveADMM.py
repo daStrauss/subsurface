@@ -107,7 +107,7 @@ def semiParallel(solverType, flavor, **kwargs):
     # the delegator makes the local set of problems
     S = delegator(solverType, flavors, freqLocal, angLocal)
     
-    S,pTrue = smallProj(S, D)
+    S,pTrue = bigProj(S, D)
     
     N = np.size(S)
 
@@ -117,7 +117,7 @@ def semiParallel(solverType, flavor, **kwargs):
         F.initOpt(uHat,D)
         fout.write('initialize time ' + repr(time.time()-ti) + '\n')
     
-    print 'finished initialization'
+    
     P = np.zeros(S[0].fwd.nRx*S[0].fwd.nRy)
     resid = np.zeros(D['maxIter'])
     tmvc = np.zeros(D['maxIter'])
@@ -161,7 +161,8 @@ def semiParallel(solverType, flavor, **kwargs):
 if __name__ == "__main__":
 #    semiParallel('sba', 'TM', rho=0.005, xi=0.9, uBound=0.05, lmb=0,bkgNo=1)
     # semiParallel('biconvex', 'TM')
-    semiParallel('sba', 'TE', freqs=[1e3], inc=[45*np.pi/180], maxIter=100, rom=75, lmb=0)
+#    semiParallel('sba', 'TE', freqs=[1e3], inc=[45*np.pi/180], maxIter=100, rom=75, lmb=0)
+    semiParallel('sba', 'TE', maxIter=1000, rom=75, lmb=0)
 #    semiParallel('contrastX', 'TM', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1)
 #    semiParallel('splitField','TE', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
 

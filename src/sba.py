@@ -42,7 +42,7 @@ class problem(optimizer):
             self.us = superSolve.wrapCvxopt.linsolve(self.A,self.fwd.rhs)
         else:           
             self.J = spt.smartX(self.A,self.fwd.Phi)
-            print isinstance(self.J, np.ndarray)
+            
             self.A = spt.smartX(self.J.T.conj(), self.J)
             
             cmpRhs = spt.smartX(self.J.T.conj(), self.fwd.rhs)
