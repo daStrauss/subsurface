@@ -161,7 +161,7 @@ def semiParallel(solverType, flavor, **kwargs):
 if __name__ == "__main__":
 #    semiParallel('sba', 'TM', rho=0.005, xi=0.9, uBound=0.05, lmb=0,bkgNo=1)
     # semiParallel('biconvex', 'TM')
-    semiParallel('sba', 'TE', freqs=np.array([1e3]), inc=np.array([75*np.pi/180]), maxIter=200, rom=75, lmb=1e-8)
+    semiParallel('sba', 'TE', maxIter=200, rom=75, lmb=1e-8)
 #    semiParallel('contrastX', 'TM', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1)
 #    semiParallel('splitField','TE', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
 
