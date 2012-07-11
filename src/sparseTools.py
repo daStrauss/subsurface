@@ -22,6 +22,9 @@ def hCat(A):
     dtx = np.empty(1)
     
     for ix in A:
+        if not sparse.isspmatrix(ix):
+            ix = sparse.coo_matrix(ix)
+        
         I = np.append(I,ix.tocoo().row)
         J = np.append(J,ix.tocoo().col + n)
         dtx = np.append(dtx,ix.tocoo().data)
@@ -53,6 +56,14 @@ def vCat(A):
     return P 
         
     
+def smartX(A,B):
+    if sparse.issparse(A) | sparse.issparse(B):
+        return A*B
+    elif isinstance(A,np.ndarray) & isinstance(B,np.ndarray):
+        return np.dot(A,B)
+    else:
+        print 'Take your chances'
+        return A*B
         
     
     

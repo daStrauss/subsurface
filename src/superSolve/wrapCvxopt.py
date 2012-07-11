@@ -8,7 +8,8 @@ import cvxopt
 from cvxopt import umfpack
 import copy
 import numpy as np
-
+from cvxopt import lapack
+from scipy import sparse
 
 def linsolve(A,b):
     aLocal = A.tocoo()
@@ -19,6 +20,7 @@ def linsolve(A,b):
     return bLocal
 
 def staticSolver(A):
+    '''Creates a routine for solving the matrix A --uses UMFPACK underneath'''
     aLocal = A.tocoo()
     AC = cvxopt.spmatrix(aLocal.data.tolist(),aLocal.row.tolist(), aLocal.col.tolist())
     Fs = umfpack.symbolic(AC)
@@ -30,4 +32,14 @@ def staticSolver(A):
         return bLocal
     
     return Q
+
+def denseSolve(A,b):
+    ''' solves an Ax = b matrix system with gesv'''
+    if isinstance(A,np.ndarray):
+        aLocal = cvxopt.matrix(A)
+        bLocal = copy.deepcopy(b)
+        lapack.gesv(aLocal,cvxopt.matrix(bLocal))
+        return np.array(bLocal).flatten()
+    else:
+        return linsolve(A,b)
 

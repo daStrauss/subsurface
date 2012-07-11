@@ -185,6 +185,11 @@ class fwd(object):
         or look for something in the files.'''
         self.rom = nBases
         ti = time.time()
+        if nBases == self.N:
+            self.Phi = sparse.eye(self.N,self.N,dtype='complex128')
+            print 'In which we cheat. time = ' + repr(time.time()-ti)
+            return
+            
         if not force:
             try:
                 

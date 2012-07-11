@@ -41,9 +41,7 @@ def delegator(solverType, flavor, freq, incAng):
         return S
     
 def bigProj(S, D):
-
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
-    
     trm = spio.loadmat('mats/tMat' + repr(D['bkgNo']+1) + '.mat')
     pTrue = trm['scrt'].flatten()
     
@@ -53,20 +51,24 @@ def bigProj(S, D):
         if not D['rom']:
             F.fwd.isRom = False
         else:
-            F.fwd.buildROM(D['rom'],force=False)
+            F.fwd.buildROM(D['rom'],force=True)
             
-        
-    
     return S,pTrue
 
 def smallProj(S,D):
     '''build for a small project, ie 99x99 '''
-    for F in S:
-        F.fwd.initSmall(0)
-        F.outDir = D['outDir']
-    
     pTrue = np.ones((40,10))*0.01
     pTrue = pTrue.flatten()
+    
+    for F in S:
+        F.fwd.initSmall(pTrue)
+        F.outDir = D['outDir']
+        if not D['rom']:
+            F.fwd.isRom = False
+        else:
+            F.fwd.buildROM(D['rom'],force=True)
+    
+    
     return S,pTrue 
 
 def balancingAct(freqs,incAngs,rank,nProc):
@@ -105,7 +107,7 @@ def semiParallel(solverType, flavor, **kwargs):
     # the delegator makes the local set of problems
     S = delegator(solverType, flavors, freqLocal, angLocal)
     
-    S,pTrue = bigProj(S, D)
+    S,pTrue = smallProj(S, D)
     
     N = np.size(S)
 
@@ -114,18 +116,20 @@ def semiParallel(solverType, flavor, **kwargs):
         ti = time.time()
         F.initOpt(uHat,D)
         fout.write('initialize time ' + repr(time.time()-ti) + '\n')
-
+    
+    print 'finished initialization'
     P = np.zeros(S[0].fwd.nRx*S[0].fwd.nRy)
     resid = np.zeros(D['maxIter'])
     tmvc = np.zeros(D['maxIter'])
     
+
     for itNo in range(D['maxIter']):
         ti = time.time()
         for F in S:        
             objF = F.runOpt(P)
             
             F.obj[itNo] = objF
-        
+        print 'finished independent ' + repr(itNo)
         # i don't think i can get around this!
         if solverType == 'sba':
             P += S[0].aggregatorSemiParallel(S,comm)
@@ -157,7 +161,7 @@ def semiParallel(solverType, flavor, **kwargs):
 if __name__ == "__main__":
 #    semiParallel('sba', 'TM', rho=0.005, xi=0.9, uBound=0.05, lmb=0,bkgNo=1)
     # semiParallel('biconvex', 'TM')
-    semiParallel('sba', 'TE', freqs=np.array([1e3]), inc=np.array([75*np.pi/180]), maxIter=10, rom=50)
+    semiParallel('sba', 'TE', freqs=np.array([1e3]), inc=np.array([75*np.pi/180]), maxIter=200, rom=75, lmb=1e-8)
 #    semiParallel('contrastX', 'TM', rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=1)
 #    semiParallel('splitField','TE', rho=1500, xi =2e-3, uBound = 0.05, lmb = 1e-8, bkgNo = 1)
 
