@@ -5,12 +5,12 @@ Created on Jun 12, 2012
 '''
 
 from scipy import sparse
-# from scipy.sparse import linalg as lin
+from scipy.sparse import linalg as lin
 import scipy.special as spec
 import pickle
 import scipy.io as spio
 import numpy as np
-import superSolve.wrapCvxopt
+#import superSolve.wrapCvxopt
 
 
 class pmlList(object):
@@ -150,10 +150,10 @@ class fwd(object):
 
     def fwd_solve(self, ind):
         '''Does the clean solve for the given index. The factorization is not cached'''
-#        self.sol[ind] = lin.spsolve(sparse.csc_matrix(self.nabla2+self.getk(ind)),\
-#                                    self.rhs.flatten())
-        self.sol[ind] = superSolve.wrapCvxopt.linsolve(sparse.csc_matrix(self.nabla2+self.getk(ind)),\
-                                                        self.rhs.flatten())
+        self.sol[ind] = lin.spsolve(sparse.csc_matrix(self.nabla2+self.getk(ind)),\
+                                    self.rhs.flatten())
+#        self.sol[ind] = superSolve.wrapCvxopt.linsolve(sparse.csc_matrix(self.nabla2+self.getk(ind)),\
+#                                                        self.rhs.flatten())
     def parseFields(self,u):
         '''method to reshape and return according to internal dimensions '''
         print 'not yet implemented parseFields'
