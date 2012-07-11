@@ -37,8 +37,8 @@ def denseSolve(A,b):
     ''' solves an Ax = b matrix system with gesv'''
     if isinstance(A,np.ndarray):
         aLocal = cvxopt.matrix(A)
-        bLocal = copy.deepcopy(b)
-        lapack.gesv(aLocal,cvxopt.matrix(bLocal))
+        bLocal = cvxopt.matrix(b)
+        lapack.gesv(aLocal,bLocal)
         return np.array(bLocal).flatten()
     else:
         return linsolve(A,b)

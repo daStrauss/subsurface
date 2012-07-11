@@ -36,9 +36,8 @@ class problem(optimizer):
     def trueSolve(self,P):
         ''' an "internal" method to use for obtaining the current value of us '''
         self.A = self.fwd.nabla2 + self.fwd.getk(0) + \
-            sparse.spdiags(self.s*(self.fwd.Md.T).dot(P),0,self.fwd.N, self.fwd.N)
+            sparse.spdiags(self.s*(self.fwd.Md.T*P),0,self.fwd.N, self.fwd.N)
         
-        print 'starting ture solve' 
         if not self.fwd.rom:
             self.us = superSolve.wrapCvxopt.linsolve(self.A,self.fwd.rhs)
         else:           
@@ -48,6 +47,7 @@ class problem(optimizer):
             
             cmpRhs = spt.smartX(self.J.T.conj(), self.fwd.rhs)
             self.us = superSolve.wrapCvxopt.denseSolve(self.A, cmpRhs)
+
         
         print 'finished true solve'
     
@@ -72,26 +72,19 @@ class problem(optimizer):
             m = self.fwd.nRx*self.fwd.nRy
         else: 
             # produce some local matrices
-            print 'starting mtx creation '
             umtx = sparse.spdiags(spt.smartX(self.fwd.Phi,self.us),0,self.fwd.N, self.fwd.N)
-            print 'made umtx'
-            
-            print 'is sparse umtx? ' + repr(sparse.issparse(umtx))
             B = spt.smartX(umtx,self.fwd.Md.T)
-            print 'has done step 1'
-            print 'is sparse B ? ' + repr(sparse.issparse(B))
-            print 'shape J ' + repr(self.J.shape) + ' ' + repr(isinstance(self.J,np.ndarray))
-            
             B = spt.smartX(self.J.T.conj(),B)
             B = self.s*B
             
-            print B.shape
             c = np.zeros(self.fwd.rom)
             Z = spt.smartX(self.fwd.Ms,self.fwd.Phi)
+
             
             n = self.fwd.rom
             m = self.fwd.nRx*self.fwd.nRy
             localuHat = self.uHat - spt.smartX(Z,self.us)
+
             
             # initialize some empty variables
         v = np.zeros(n, dtype='complex128') # update to fields (du)
@@ -99,13 +92,11 @@ class problem(optimizer):
         q = np.zeros(m, dtype='complex128') # estimate 2 for materials
         r = np.zeros(m, dtype='complex128') # dual variable for materials
         
-        print B.shape
         
         M = spt.vCat([spt.hCat([spt.smartX(Z.conj().T,Z), sparse.coo_matrix((n,m)), self.A.T.conj()]), \
                       spt.hCat([sparse.coo_matrix((m,n)), self.rho*sparse.eye(m,m), B.T.conj()]),\
                       spt.hCat([self.A, B, sparse.coo_matrix((n,n))])]) #.tocsc()
 
-        print M.dtype 
         # print 'M format ' + repr(M.format)
 #        Q = lin.factorized(M)
         Q = superSolve.wrapCvxopt.staticSolver(M)
@@ -124,7 +115,7 @@ class problem(optimizer):
         while okgo:
             iterk += 1
             
-            rhs = np.concatenate((spt.smartX(Z.conj().T,localuHat), self.rho*(q-r), c))
+            rhs = np.concatenate((spt.smartX(Z.T.conj(),localuHat), self.rho*(q-r), c))
             updt = Q(rhs)
             # updt = Q*rhs
             
@@ -143,11 +134,11 @@ class problem(optimizer):
             edual = np.sqrt(m)*self.eabs + self.erel*np.linalg.norm(r)
             
             if (np.linalg.norm(res) <= epri) & (np.linalg.norm(ser) <= edual):
-                # print 'At ADMM internal limit at iter ' + repr(iterk) 
+                print 'At ADMM internal limit at iter ' + repr(iterk) 
                 okgo = False
             elif (iterk >= self.maxit):
                 okgo = False
-                # print 'Hit MAXX iterations'
+                print 'Hit MAXX iterations'
             else:
                 okgo = True
                 

@@ -217,8 +217,10 @@ class fwd(object):
             u,s,v = linalg.svd(X,full_matrices=False)
             
             self.Phi = u[:,:nBases]
+            # print self.Phi.dtype
             # pickle.dump(self.Phi, open('teCache.p','wb')) 
-
+            
+            
         print 'ROM build time = ' + repr(time.time()-ti)
                      
     
