@@ -86,7 +86,7 @@ def balancingAct(freqs,incAngs,rank,nProc):
     
 def semiParallel(solverType, flavor, **kwargs): 
     ''' The main coordination routine'''
-    D = solverDefaults.getDefaults(solverType,flavor, kwargs)
+    D = solverDefaults.getDefaults(solverType, flavor, kwargs)
     
     '''semiParallel solver -- i.e. has MPI calls loops locally over different angles of arrival'''
     comm = MPI.COMM_WORLD

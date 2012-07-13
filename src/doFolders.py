@@ -14,7 +14,7 @@ def ensureFolders(D,ix):
     if not os.path.exists(outDir):
         os.mkdir(outDir)
     
-    outDir += '/' + D['solver']
+    outDir += '/' + D['solverType']
     if not os.path.exists(outDir):
         os.mkdir(outDir)
     

@@ -5,23 +5,23 @@ Created on Jun 30, 2012
 '''
 import numpy as np
 
-def getDefaults(solver,flavor, customDefs):
+def getDefaults(solverType, flavor, customDefs):
     ''' just a stub function that will allow me to produce a dictionary that 
     gives default values, also populates with new preferences.'''
     
-    if (solver == 'splitField') & (flavor == 'TE'):
+    if (solverType == 'splitField') & (flavor == 'TE'):
         D = {'rho':148, 'xi':1e-3,'lmb':1e-8}
    
-    elif (solver =='splitField') & (flavor == 'TM'):
+    elif (solverType =='splitField') & (flavor == 'TM'):
         D = {'rho':0.019307, 'xi':1.3895e-3, 'lmb':1e-8}
     
-    elif (solver=='sba'):
+    elif (solverType =='sba'):
         D = {'rho':0.005, 'xi':0.9, 'lmb':0} 
     
-    elif (solver=='contrastX') & (flavor =='TE'):
+    elif (solverType =='contrastX') & (flavor =='TE'):
         D = {'rho':1e-3, 'xi':2e-3, 'lmb':0}
     
-    elif (solver=='biconvex') & (flavor=='TE'): 
+    elif (solverType =='biconvex') & (flavor=='TE'): 
         D = {'rho':0.001, 'xi':1e-5, 'lmb':0}
     
     else:

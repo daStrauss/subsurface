@@ -7,7 +7,7 @@ Created on Jul 13, 2012
 import numpy as np
 
 
-D = {'solver':'splitField', 'flavor':'TE', 'numRuns':100, 'expt':'modifyBkg'}
+D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':100, 'expt':'modifyBkg'}
 
 
 def getMyVars(parseNumber, D):

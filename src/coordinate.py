@@ -22,7 +22,7 @@ def main():
     
     gogo = prSpec.getMyVars(int(sys.argv[2]), prSpec.D)
     gogo['ix'] = int(sys.argv[2])    
-    solveADMM.semiParallel(gogo['solver'], gogo['flavor'], **gogo)
+    solveADMM.semiParallel(**gogo)
     
 #            
 #        
