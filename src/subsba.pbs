@@ -1,1 +1,0 @@
-mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py sba 199 TE
