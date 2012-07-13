@@ -1,0 +1,1 @@
+mpiexec -wdir/ shared/users/dstrauss/subsurface/src python coordinate.py dumbDefs 0

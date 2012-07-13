@@ -14,7 +14,7 @@ def ensureFolders(D,ix):
     if not os.path.exists(outDir):
         os.mkdir(outDir)
     
-    outDir += D['solver']
+    outDir += '/' + D['solver']
     if not os.path.exists(outDir):
         os.mkdir(outDir)
     
@@ -33,7 +33,7 @@ def ensureFolders(D,ix):
         os.mkdir(outDir)
         
     
-    outDir += 'trial' + repr(ix) + '/'
+    outDir += '/trial' + repr(ix) + '/'
 #    print outDir
     if not os.path.exists(outDir):
         os.mkdir(outDir)
@@ -45,6 +45,7 @@ def ensureFolders(D,ix):
     if not os.path.exists(datDir):
         os.mkdir(datDir)
 
+    print outDir
     return outDir
 #
 #def traceBuild(baseTag):
