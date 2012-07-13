@@ -17,7 +17,7 @@ def main():
     ''' simple main routine '''
     prSpec = __import__(sys.argv[1])
 
-    prSpec.D['outDir'] = doFolders.ensureFolders(prSpec.D, sys.argv[2])
+    prSpec.D['outDir'] = doFolders.ensureFolders(prSpec.D, int(sys.argv[2]))
     
     
     gogo = prSpec.getMyVars(int(sys.argv[2]), prSpec.D)
