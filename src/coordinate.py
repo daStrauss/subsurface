@@ -9,7 +9,6 @@ Putting together a script to just simply loop through all of these materials and
 
 import solveADMM
 import sys
-import os
 import doFolders
 
 # trialNs = 100
@@ -20,8 +19,9 @@ def main():
 
     prSpec.D['outDir'] = doFolders.ensureFolders(prSpec.D, sys.argv[2])
     
-    gogo = prSpec.getMyVars(int(sys.argv[2]), prSpec.D)
     
+    gogo = prSpec.getMyVars(int(sys.argv[2]), prSpec.D)
+    gogo['ix'] = int(sys.argv[2])    
     solveADMM.semiParallel(gogo['solver'], gogo['flavor'], gogo)
     
 #            

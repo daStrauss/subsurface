@@ -94,7 +94,7 @@ def semiParallel(solverType, flavor, **kwargs):
     nProc = comm.Get_size()
     timeFull = time.time()
     
-    fout = open(D['outDir'] + 'notes' + repr(rank) + '_' + repr(D['bkgNo']) + '.nts', 'w')
+    fout = open(D['outDir'] + 'notes' + repr(rank) + '_' + repr(D['ix']) + '.nts', 'w')
     
     fout.write('xi ' + repr(D['xi']) + ' rho = ' + repr(D['rho']) + '\n')
 

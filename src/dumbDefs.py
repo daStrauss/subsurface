@@ -17,7 +17,7 @@ def getMyVars(parseNumber, D):
     profileNo = profileNo.flatten()
     
     
-    D['bkgNo'] = profileNo[parseNumber]
+    D['bkgNo'] = profileNo[parseNumber] + 101
     D['bkgSig'] = sigmaBkg[parseNumber]
     
     return D
