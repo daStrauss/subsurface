@@ -8,6 +8,7 @@ from model import fwd
 import numpy as np
 from scipy import sparse
 
+
 class solver(fwd):
     ''' class to implement the transverse electric mode, rather - the case where we have Ez only ''' 
     def setmats(self, eHSr, sHS, div):
@@ -90,7 +91,11 @@ class solver(fwd):
         
     def parseFields(self,u):
         ''' Method to return the field in its square form'''
-        return [u.reshape(self.nx,self.ny)]
+        if (not self.rom) | (len(u) == self.N):
+            return [u.reshape(self.nx,self.ny)]
+        else:
+            localU = np.dot(self.Phi,u)
+            return [localU.reshape(self.nx,self.ny)]
     
     def pointSource(self, x,y):
         """ A routine to add a point source at the grid loc (x,y) """
@@ -211,3 +216,5 @@ class solver(fwd):
     def getS(self):
         ''' return the coefficient necessary in the Md*P part to make things work '''
         return self.w*self.muo*1j
+    
+        

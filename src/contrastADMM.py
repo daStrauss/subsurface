@@ -16,13 +16,13 @@ from optimize import optimizer
 
 class problem(optimizer):
     ''' class that extents the contrast - Xadmm algorithm '''
-    def initOpt(self, uHat, rho, xi, upperBound, lmb, maxiter):
-        self.rho = rho
-        self.xi = xi
+    def initOpt(self, uHat, D):
+        self.rho = D['rho']
+        self.xi = D['xi']
         self.uHat = uHat
-        self.upperBound = upperBound
-        self.lmb = lmb
-        self.obj = np.zeros(maxiter)
+        self.upperBound = D['uBound']
+        self.lmb = D['lmb']
+        self.obj = np.zeros(D['maxIter'])
         
         # add some local vars for ease
         self.s = self.fwd.getS() #  1j*self.muo*self.w

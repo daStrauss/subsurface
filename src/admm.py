@@ -21,19 +21,19 @@ class problem(optimizer):
 #        self.rho = rho
 #        self.xi = xi
     
-    def initOpt(self,uHat, rho, xi, upperBound, lmb, maxiter):
+    def initOpt(self,uHat, D):
         ''' prepare for upcoming iterations '''
-        self.rho = rho
-        self.xi = xi
+        self.rho = D['rho']
+        self.xi = D['xi']
         self.uHat = uHat
-        self.lmb = lmb
-        self.uBound = upperBound
+        self.lmb = D['lmb']
+        self.uBound = D['uBound']
         self.F = np.zeros(self.fwd.N,dtype='complex128')
         self.E = np.zeros(self.fwd.N,dtype='complex128')
         self.us = np.zeros(self.fwd.N,dtype='complex128')
         self.v = np.zeros(self.fwd.N,dtype='complex128')
         self.ub = self.fwd.sol[0] # -- update sol should be flat
-        self.obj = np.zeros(maxiter)
+        self.obj = np.zeros(D['maxIter'])
         
         # the update for the first step can be precomputed
         self.A = self.fwd.nabla2+self.fwd.getk(0)

@@ -23,51 +23,80 @@ class problem(optimizer):
     rho = 0.0001
     maxit = 2000
     
-    def initOpt(self, uHat, rho=0.005, xi=0.9, uBound=0.05, lmb=0, maxiter=100):
-        self.stepSize = rho
-        self.alpha = xi
+    def initOpt(self, uHat, D):
+        self.stepSize = D['rho']
+        self.alpha = D['xi']
         self.uHat = uHat
         self.s = self.fwd.getS()
-        self.uBound = uBound
-        self.lmb = lmb
-        self.obj = np.zeros(maxiter)
+        self.uBound = D['uBound']
+        self.lmb = D['lmb']
+        self.obj = np.zeros(D['maxIter'])
         
         
     def trueSolve(self,P):
         ''' an "internal" method to use for obtaining the current value of us '''
-        
         self.A = self.fwd.nabla2 + self.fwd.getk(0) + \
-          sparse.spdiags(self.s*self.fwd.Md.T*P,0,self.fwd.N, self.fwd.N)
+            sparse.spdiags(self.s*(self.fwd.Md.T*P),0,self.fwd.N, self.fwd.N)
         
-#        self.us = lin.spsolve(self.A,self.fwd.rhs)
+        if not self.fwd.rom:
+            self.us = superSolve.wrapCvxopt.linsolve(self.A,self.fwd.rhs)
+        else:           
+            self.J = spt.smartX(self.A,self.fwd.Phi)
+            
+            self.A = spt.smartX(self.J.T.conj(), self.J)
+            
+            cmpRhs = spt.smartX(self.J.T.conj(), self.fwd.rhs)
+            self.us = superSolve.wrapCvxopt.denseSolve(self.A, cmpRhs)
 
-        self.us = superSolve.wrapCvxopt.linsolve(self.A, self.fwd.rhs)
+        
+        print 'finished true solve'
     
     def runOpt(self,P):
         ''' runtime module'''
         # get the local background -- requires a new solve!
         self.trueSolve(P)
-        localuHat = self.uHat - self.fwd.Ms*self.us
         
-        # produce some local matrices
-        B = self.s*sparse.spdiags(self.us,0,self.fwd.N,self.fwd.N)*self.fwd.Md.T
-        c = np.zeros(self.fwd.N)
-        Z = self.fwd.Ms
+        if not self.fwd.rom:
+            localuHat = self.uHat - self.fwd.Ms.dot(self.us)
         
-        # grab some internal dimensions -- non ROM for now.
-        n = self.fwd.N
-        m = self.fwd.nRx*self.fwd.nRy
+            # produce some local matrices
+            B = sparse.spdiags(self.us,0,self.fwd.N,self.fwd.N)
+            B = spt.smartX(B,self.fwd.Md.T)
+            B = self.s*B
+            # B = self.s*sparse.spdiags(self.us,0,self.fwd.N,self.fwd.N).dot(self.fwd.Md.T)
+            c = np.zeros(self.fwd.N)
+            Z = self.fwd.Ms
         
-        # initialize some empty variables
+            # grab some internal dimensions -- non ROM for now.
+            n = self.fwd.N
+            m = self.fwd.nRx*self.fwd.nRy
+        else: 
+            # produce some local matrices
+            umtx = sparse.spdiags(spt.smartX(self.fwd.Phi,self.us),0,self.fwd.N, self.fwd.N)
+            B = spt.smartX(umtx,self.fwd.Md.T)
+            B = spt.smartX(self.J.T.conj(),B)
+            B = self.s*B
+            
+            c = np.zeros(self.fwd.rom)
+            Z = spt.smartX(self.fwd.Ms,self.fwd.Phi)
+
+            
+            n = self.fwd.rom
+            m = self.fwd.nRx*self.fwd.nRy
+            localuHat = self.uHat - spt.smartX(Z,self.us)
+
+            
+            # initialize some empty variables
         v = np.zeros(n, dtype='complex128') # update to fields (du)
         p = np.zeros(m, dtype='complex128') # estimate 1 for materials
         q = np.zeros(m, dtype='complex128') # estimate 2 for materials
         r = np.zeros(m, dtype='complex128') # dual variable for materials
         
-        M = spt.vCat([spt.hCat([Z.T*Z, sparse.coo_matrix((n,m)), self.A.T.conj()]), \
-                      spt.hCat([sparse.coo_matrix((m,n)), self.rho*sparse.eye(m,m), B.T.conj()]),\
-                      spt.hCat([self.A, B, sparse.coo_matrix((n,n))])]).tocsc()
         
+        M = spt.vCat([spt.hCat([spt.smartX(Z.conj().T,Z), sparse.coo_matrix((n,m)), self.A.T.conj()]), \
+                      spt.hCat([sparse.coo_matrix((m,n)), self.rho*sparse.eye(m,m), B.T.conj()]),\
+                      spt.hCat([self.A, B, sparse.coo_matrix((n,n))])]) #.tocsc()
+
         # print 'M format ' + repr(M.format)
 #        Q = lin.factorized(M)
         Q = superSolve.wrapCvxopt.staticSolver(M)
@@ -85,7 +114,8 @@ class problem(optimizer):
         
         while okgo:
             iterk += 1
-            rhs = np.concatenate((Z.T*localuHat, self.rho*(q-r), c))
+            
+            rhs = np.concatenate((spt.smartX(Z.T.conj(),localuHat), self.rho*(q-r), c))
             updt = Q(rhs)
             # updt = Q*rhs
             
@@ -104,11 +134,11 @@ class problem(optimizer):
             edual = np.sqrt(m)*self.eabs + self.erel*np.linalg.norm(r)
             
             if (np.linalg.norm(res) <= epri) & (np.linalg.norm(ser) <= edual):
-                # print 'At ADMM internal limit at iter ' + repr(iterk) 
+                print 'At ADMM internal limit at iter ' + repr(iterk) 
                 okgo = False
             elif (iterk >= self.maxit):
                 okgo = False
-                # print 'Hit MAXX iterations'
+                print 'Hit MAXX iterations'
             else:
                 okgo = True
                 
@@ -117,7 +147,7 @@ class problem(optimizer):
         
         self.deltaP = q
         
-        obj = np.linalg.norm(localuHat - self.fwd.Ms*v)
+        obj = np.linalg.norm(localuHat - spt.smartX(Z,v))
         return obj
         
     

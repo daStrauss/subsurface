@@ -8,7 +8,8 @@ import xml.etree.ElementTree as xml
 import subprocess
 import time
 import sys
- 
+import os
+import doFolders
     
 def waitForExit(jobName):
     ''' Routine to check and see if a particular job is still running, if not, return '''
@@ -40,34 +41,28 @@ def submitJob(cmd):
     time.sleep(1)
     return f
 
+
+
 def main():
     if len(sys.argv) == 3:
         startIx = int(sys.argv[2])
     else:
         startIx = 0
-        
-    for ix in range(startIx,200):
+    
+    prSpec = __import__(sys.argv[1])
+    finalIx = prSpec.D['numRuns']
+    
+    
+    for ix in range(startIx,finalIx):
+        doFolders.ensureFolders(prSpec.D, ix)
         jobTitle = 'run' + sys.argv[1] + repr(ix)
-        fileName = 'sub' + sys.argv[1] + '.pbs'
+        fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
         
-        if sys.argv[1] == 'sba':
-            fid = open(fileName, 'w')
-            fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
-
-            fid.close()
-            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
-            
-        elif sys.argv[1] == 'biconvex':
-            fid = open(fileName, 'w')
-            fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TE')
-            fid.close()
-            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
+        fid = open(fileName, 'w')
+        fid.write('mpiexec -wdir/ shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
+        fid.close()
+        cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
         
-        elif sys.argv[1] == 'splitField':           
-            fid = open(fileName, 'w')
-            fid.write('mpiexec -npernode 4 -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' TM')
-            fid.close()
-            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
         print cmd
         ppid = submitJob(cmd)
         waitForExit(ppid)
