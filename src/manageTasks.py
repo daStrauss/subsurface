@@ -31,6 +31,26 @@ def waitForExit(jobName):
             print 'wrong string or something?'
         
         time.sleep(5)
+        
+        
+def checkForExit(jobName):
+    ''' Routine to check and see if a particular job is still running, if not, return '''
+    doExit = False
+    pipeOut = subprocess.Popen(['qstat', '-x', jobName], stdout=subprocess.PIPE)
+    f = pipeOut.stdout.read()
+    try:
+        P = xml.fromstring(f)
+        for z in P.getiterator():
+            if z.tag == 'job_state':
+                if z.text == 'R':
+                    pass
+                        # print 'Still Running ' + jobName
+                elif z.text == 'C':
+                    doExit = True
+                    print 'Finished ' + jobName
+    except:
+        print 'wrong string or something?'
+    return doExit
 
 
 def submitJob(cmd):
@@ -44,28 +64,44 @@ def submitJob(cmd):
 
 
 def main():
-    if len(sys.argv) == 3:
+    if len(sys.argv) >= 3:
         startIx = int(sys.argv[2])
     else:
         startIx = 0
     
+    if len(sys.argv) == 4:
+        numWorkers = int(sys.argv[3])
+    else:
+        numWorkers = 1
+    
     prSpec = __import__(sys.argv[1])
     finalIx = prSpec.D['numRuns']
     
+    # queue of indexes still to run
+    runList = range(startIx,finalIx)
+    # list of open/running jobs
+    # jobList = list(range(numWorkers))
+    jobList = list()
     
-    for ix in range(startIx,finalIx):
-        doFolders.ensureFolders(prSpec.D, ix)
-        jobTitle = 'run' + sys.argv[1] + repr(ix)
-        fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
+    while len(runList) > 0:
+        if len(jobList) < numWorkers:
+            # launch worker
+            ix = runList.pop(0)
+            doFolders.ensureFolders(prSpec.D, ix)
+            jobTitle = 'run' + sys.argv[1] + repr(ix)
+            fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
         
-        fid = open(fileName, 'w')
-        fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
-        fid.close()
-        cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]
-        
-        print cmd
-        ppid = submitJob(cmd)
-        waitForExit(ppid)
+            fid = open(fileName, 'w')
+            fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
+            fid.close()
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=2:ppn=8', '-l', 'nice=0', fileName]        
+            print cmd
+            
+            jobList.append(submitJob(cmd))
+            
+        for jbs in jobList:
+            if checkForExit(jbs):
+                jobList.remove(jbs)
         
 if __name__=='__main__':
     main()
