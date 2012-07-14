@@ -102,6 +102,8 @@ def main():
         for jbs in jobList:
             if checkForExit(jbs):
                 jobList.remove(jbs)
+                
+        time.sleep(5)
         
 if __name__=='__main__':
     main()
