@@ -152,7 +152,7 @@ def semiParallel(solverType, flavor, **kwargs):
         D['nProc'] = nProc
         D['resid'] = resid
         D['timing'] = tmvc
-        spio.savemat(D['outDir'] + 'pout_' + solverType + repr(D['bkgNo']), D)
+        spio.savemat(D['outDir'] + 'pout_' + solverType + repr(D['ix']), D)
 
         
     fout.write('Solve time = ' + repr(time.time()-timeFull) + '\n')
