@@ -20,6 +20,6 @@ def getMyVars(parseNumber, D):
     
     D['rho'] = rhos[parseNumber%100] 
     D['xi'] = xis[parseNumber%100]
-    D['bkgNo'] = int(parseNumber/100)
+    D['bkgNo'] = int(parseNumber/100) + 100
     
     return D
