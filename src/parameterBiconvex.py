@@ -12,7 +12,7 @@ D = {'solverType':'biconvex', 'flavor':'TE', 'numRuns':100, 'expt':'intParameter
 
 def getMyVars(parseNumber, D):
     '''routine to return the parameters to test at the current iteration.'''
-    rhos, bkgLocal = np.meshgrid(np.logspace(-2,3,20), range(5))
+    rhos, bkgLocal = np.meshgrid(np.logspace(1,5,20), range(5))
     rhos = rhos.flatten()
     bkgLocal = bkgLocal.flatten()
     
