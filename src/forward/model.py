@@ -5,13 +5,14 @@ Created on Jun 12, 2012
 '''
 
 from scipy import sparse
-# from scipy.sparse import linalg as lin
+from scipy.sparse import linalg as lin
 import scipy.special as spec
 import pickle
 import scipy.io as spio
 import numpy as np
-import superSolve.wrapCvxopt
-
+# import superSolve.wrapCvxopt
+import time
+from scipy import linalg
 
 class pmlList(object):
     freq = np.ndarray(0)
@@ -29,6 +30,8 @@ class fwd(object):
         self.w = 2*np.pi*freq
         self.l = self.c/self.f
         self.incAng = incAng
+        self.gogo = ['', '']
+        self.rom = False
         
     def initBig(self, p, bkg=0.005):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
@@ -149,11 +152,12 @@ class fwd(object):
         pass    
 
     def fwd_solve(self, ind):
-        '''Does the clean solve for the given index. The factorization is not cached'''
-#        self.sol[ind] = lin.spsolve(sparse.csc_matrix(self.nabla2+self.getk(ind)),\
-#                                    self.rhs.flatten())
-        self.sol[ind] = superSolve.wrapCvxopt.linsolve(sparse.csc_matrix(self.nabla2+self.getk(ind)),\
-                                                        self.rhs.flatten())
+        '''Does the clean solve for the given index. The factorization is not cached'''      
+        self.gogo[ind] = lin.factorized(sparse.csc_matrix(self.nabla2+self.getk(ind)) )
+        # self.gogo[ind] = superSolve.wrapCvxopt.staticSolver(self.nabla2+self.getk(ind))
+        
+        self.sol[ind] = self.gogo[ind](self.rhs.flatten())
+
     def parseFields(self,u):
         '''method to reshape and return according to internal dimensions '''
         print 'not yet implemented parseFields'
@@ -174,6 +178,50 @@ class fwd(object):
         '''write out the juicy parts in matlab format'''
         D = {'f':self.f, 'angle':self.incAng, 'sigMat':self.simap[ind], 'fld':self.sol[ind]}
         spio.savemat('maxPrint' + repr(self.rank), D)
+        
+    def buildROM(self,nBases, force=True):
+        ''' Extending to be able to do the reduced order model:
+        buildRom(nBases, force) : nBases is the number of modes to keep, force means should I really do it
+        or look for something in the files.'''
+        self.rom = nBases
+        ti = time.time()
+        if nBases == self.N:
+            self.Phi = sparse.eye(self.N,self.N,dtype='complex128')
+            print 'In which we cheat. time = ' + repr(time.time()-ti)
+            return
+            
+        if not force:
+            try:
+                
+                P = pickle.load(open('teCache.p','rb'))
+                self.Phi = P
+                print 'loaded ROM from cache'
+            except:
+                print 'cannot find teCache'
+                force = True
+                 
+        
+        if force:
+            # do all of the points in the Md region
+            M = self.nRx*self.nRy
+            X = np.zeros((self.N,M+1),dtype='complex128')
+            X[:,0] = self.sol[0]
+            
+            for ix in range(M):
+                print 'computing derivative solution ' + repr(ix) + ' of ' + repr(M)
+                p = np.zeros(M,dtype='complex128')
+                p[ix] = 1j/self.w
+                X[:,ix+1] = self.gogo[0](self.Md.T*p)
+            
+            print 'Computing SVD'
+            u,s,v = linalg.svd(X,full_matrices=False)
+            
+            self.Phi = u[:,:nBases]
+            # print self.Phi.dtype
+            # pickle.dump(self.Phi, open('teCache.p','wb')) 
+            
+            
+        print 'ROM build time = ' + repr(time.time()-ti)
                      
     
 def findBestAng(freq,dx):

@@ -7,27 +7,27 @@ Created on Jun 6, 2012
 import numpy as np
 from optimize import optimizer
 import scipy.sparse as sparse
-# import scipy.sparse.linalg as lin
+import scipy.sparse.linalg as lin
 import scipy.io as spio
 from mpi4py import MPI
-import superSolve.wrapCvxopt
+# import superSolve.wrapCvxopt
 
 class problem(optimizer):
     '''Implementing vanilla biconvex method for subsurface imaging '''
-    def initOpt(self, uHat, rho, xi, upperBound, lmb, maxiter):
+    def initOpt(self, uHat, D):
         '''initialization routine with common prototype'''
-        self.rho = rho
-        self.xi = xi
+        self.rho = D['rho']
+        self.xi = D['xi']
         self.uHat = uHat
-        self.lmb = lmb
-        self.uBound = upperBound
+        self.lmb = D['lmb']
+        self.uBound = D['uBound']
         self.F = np.zeros(self.fwd.N, dtype='complex128')
         self.us = np.zeros(self.fwd.N, dtype='complex128')
         
         self.A = self.fwd.nabla2 + self.fwd.getk(0)
         self.s = self.fwd.getS()
         self.ub = self.fwd.sol[0]
-        self.obj = np.zeros(maxiter)
+        self.obj = np.zeros(D['maxIter'])
         
         # not much else to do but initialize variables
         
@@ -44,8 +44,8 @@ class problem(optimizer):
             self.rho*(aL.T.conj()*(self.s*self.ub*(self.fwd.Md.T*P) + self.F ))
         
         # solve dat dere set of equations
-#        self.us = lin.spsolve(M,b)
-        self.us = superSolve.wrapCvxopt.linsolve(M, b)
+        self.us = lin.spsolve(M,b)
+#        self.us = superSolve.wrapCvxopt.linsolve(M, b)
         
         obj = np.linalg.norm(self.fwd.Ms*self.us - uHatLocal)
         return obj

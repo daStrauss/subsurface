@@ -1,9 +1,0 @@
-mpiexec -npernode 1 -wdir /shared/users/dstrauss/subsurface/src python mpiUmfTest.py
-mpiexec -npernode 2 -wdir /shared/users/dstrauss/subsurface/src python mpiUmfTest.py
-mpiexec -npernode 3 -wdir /shared/users/dstrauss/subsurface/src python mpiUmfTest.py
-mpiexec -npernode 4 -wdir /shared/users/dstrauss/subsurface/src python mpiUmfTest.py
-mpiexec -npernode 5 -wdir /shared/users/dstrauss/subsurface/src python mpiUmfTest.py
-mpiexec -npernode 6 -wdir /shared/users/dstrauss/subsurface/src python mpiUmfTest.py
-mpiexec -npernode 7 -wdir /shared/users/dstrauss/subsurface/src python mpiUmfTest.py
-mpiexec -npernode 8 -wdir /shared/users/dstrauss/subsurface/src python mpiUmfTest.py
-
