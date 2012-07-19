@@ -22,7 +22,7 @@ def getDefaults(solverType, flavor, customDefs):
         D = {'rho':1e-3, 'xi':2e-3, 'lmb':0}
     
     elif (solverType =='biconvex') & (flavor=='TE'): 
-        D = {'rho':0.001, 'xi':1e-5, 'lmb':0}
+        D = {'rho':2069.1, 'xi':1e-5, 'lmb':0}
     
     else:
         print 'somehow you did not specify a valid combination'
