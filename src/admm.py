@@ -183,6 +183,7 @@ class problem(optimizer):
 #        b = b/comm.Get_size()
         
         # hah, no 1/n's because the all got em
+        Q += self.lmb*sparse.eye(n,n)
         P = lin.spsolve(Q,-b).real
         P = np.maximum(P,0)
         P = np.minimum(P,self.uBound)

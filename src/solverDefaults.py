@@ -10,7 +10,7 @@ def getDefaults(solverType, flavor, customDefs):
     gives default values, also populates with new preferences.'''
     
     if (solverType == 'splitField') & (flavor == 'TE'):
-        D = {'rho':2320.27, 'xi':9.811e-4,'lmb':0.0}
+        D = {'rho':2320.27, 'xi':9.811e-4,'lmb':1e-8}
    
     elif (solverType =='splitField') & (flavor == 'TM'):
         D = {'rho':0.019307, 'xi':1.3895e-3, 'lmb':0.0}
