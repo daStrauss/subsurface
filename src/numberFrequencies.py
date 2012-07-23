@@ -13,7 +13,8 @@ D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':3600, 'expt':'incConds'
 
 def getMyVars(parseNumber, D):
     '''routine to return the parameters to test at the current iteration.'''
-    noFreqs,noPhis,bkg = np.meshgrid(range(1,7), range(1,7), range(100))
+    # noFreqs,noPhis,bkg = np.meshgrid(range(1,7), range(1,7), range(100))
+    noFreqs,noPhis,bkg = np.mgrid[1:7,1:7,0:100]
     noFreqs = noFreqs.flatten()
     noPhis = noPhis.flatten() 
     bkg = bkg.flatten()
