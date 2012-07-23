@@ -8,7 +8,7 @@ Created on Jul 23, 2012
 import numpy as np
 
 
-D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':3600, 'expt':'standard', 'numProcs':16}
+D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':3600, 'expt':'incConds', 'numProcs':16}
 
 
 def getMyVars(parseNumber, D):
