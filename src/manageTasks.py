@@ -96,7 +96,7 @@ def main():
             fid = open(fileName, 'w')
             fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
             fid.close()
-            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=' + repr(lclD['numProcs']), '-l', 'nice=0', fileName]        
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','procs=' + repr(lclD['numProcs']), '-l', 'nice=0', fileName]        
             print cmd
             
             jobList.append(submitJob(cmd))
