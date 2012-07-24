@@ -90,6 +90,11 @@ def main():
             doFolders.ensureFolders(prSpec.D, ix)
             
             lclD = prSpec.getMyVars(ix, prSpec.D)
+            nProcs = lclD['numProcs']
+            if nProcs == 1:
+                # i discovered that this has to be done this way? if procs=1, then it actually launches 2 processes.?
+                nProcs = 0
+                
             jobTitle = 'run' + sys.argv[1] + repr(ix)
             fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
         
