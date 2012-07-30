@@ -20,5 +20,5 @@ def getMyVars(parseNumber, D):
     
     D['rho'] = rhos[parseNumber] 
     D['bkgNo'] =  bkgLocal[parseNumber] + 100
-    
+    D['numProcs'] = 16
     return D
