@@ -10,6 +10,7 @@ import time
 import sys
 import os
 import doFolders
+import math
     
 def waitForExit(jobName):
     ''' Routine to check and see if a particular job is still running, if not, return '''
@@ -91,6 +92,8 @@ def main():
             
             lclD = prSpec.getMyVars(ix, prSpec.D)
             nProcs = lclD['numProcs']
+            nNodes = int(math.ceil(nProcs/8.0))
+            
             if nProcs == 1:
                 # i discovered that this has to be done this way? if procs=1, then it actually launches 2 processes.?
                 nProcs = 0
@@ -99,9 +102,9 @@ def main():
             fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
         
             fid = open(fileName, 'w')
-            fid.write('mpiexec -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
+            fid.write('mpiexec -n ' + repr(nProcs) + '-wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
             fid.close()
-            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','procs=' + repr(nProcs), '-l', 'nice=0', fileName]        
+            cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=10:00:00', '-l','nodes=' + repr(nNodes) + ':ppn=8', '-l', 'nice=0', fileName]        
             print cmd
             
             jobList.append(submitJob(cmd))
