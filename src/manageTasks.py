@@ -107,12 +107,14 @@ def main():
                 jobList.append(submitJob(cmd))
             else:
                 print 'skipping ' + repr(ix)
+                
+        else:
+            time.sleep(5)   
             
         for jbs in jobList:
             if checkForExit(jbs):
                 jobList.remove(jbs)
                 
-        time.sleep(5)
         
 if __name__=='__main__':
     main()
