@@ -11,7 +11,7 @@ import scipy.io as spio
 F = spio.loadmat('incCondGo.mat')
 numRuns = F['goTo'].shape[0]
 
-D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':numRuns, 'expt':'incConds', 'numProcs':16}
+D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':3600, 'expt':'incConds', 'numProcs':16}
 
 
 def getMyVars(parseNumber, D):
@@ -22,12 +22,18 @@ def getMyVars(parseNumber, D):
     noPhis = noPhis.flatten() 
     bkg = bkg.flatten()
     
-    parseNumber = F['goTo'][parseNumber,0]
+
+        
     
     D['freqs'] = np.round(np.logspace(np.log10(1000), np.log10(50000), noFreqs[parseNumber]))
     D['inc'] = np.round(np.linspace(-75,75,noPhis[parseNumber]))
     D['bkgNo'] = bkg[parseNumber]
     D['numProcs'] = len(D['freqs'])*len(D['inc'])
     
+    if parseNumber in F['goTo']:
+        print 'here we go'
+    else:
+        D['numProcs'] = 0
+        
         
     return D
