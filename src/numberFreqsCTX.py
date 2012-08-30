@@ -1,5 +1,5 @@
 '''
-Created on Jul 23, 2012
+Created on Aug 30, 2012
 
 @author: dstrauss
 '''
@@ -11,7 +11,7 @@ import scipy.io as spio
 F = spio.loadmat('incCondGo.mat')
 numRuns = F['goTo'].shape[0]
 
-D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':1800, 'expt':'incConds', 'numProcs':16}
+D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':1800, 'expt':'incConds', 'numProcs':16}
 
 
 def getMyVars(parseNumber, D):
