@@ -8,8 +8,10 @@ Created on Aug 30, 2012
 import numpy as np
 import scipy.io as spio
 
-F = spio.loadmat('incCondGo.mat')
-numRuns = F['goTo'].shape[0]
+# F = spio.loadmat('incCondGo.mat')
+# numRuns = F['goTo'].shape[0]
+
+F = {'goTo':np.arange(1800)}
 
 D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':1800, 'expt':'incConds', 'numProcs':16}
 
