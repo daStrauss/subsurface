@@ -7,7 +7,7 @@ Created on Sep 4, 2012
 import numpy as np
 
 
-D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':2, 'expt':'spfTest'}
+D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':3, 'expt':'spfTest'}
 
 
 def getMyVars(parseNumber, D):
@@ -29,7 +29,7 @@ def getMyVars(parseNumber, D):
         D['bkgSig'] == 0.05
         D['bkgNo'] = 100
     elif parseNumber == 2:
-        D['bkgSig'] = 0.5
+        # D['bkgSig'] = .5
         D['bkgNo'] = 100
                 
     
