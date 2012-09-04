@@ -26,7 +26,7 @@ def getMyVars(parseNumber, D):
         D['bkgSig'] = 0.005
         D['bkgNo'] = 100
     elif parseNumber == 1:
-        D['bkgSig'] = 0.05
+        D['bkgSig'] = 0.0048
         D['bkgNo'] = 100
     elif parseNumber == 2:
         # D['bkgSig'] = .5
