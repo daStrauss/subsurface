@@ -28,7 +28,7 @@ def getMyVars(parseNumber, D):
         
     
     D['freqs'] = np.round(np.logspace(np.log10(1000), np.log10(50000), noFreqs[parseNumber]))
-    D['inc'] = np.round(np.linspace(-75,75,noPhis[parseNumber])*np.pi/180.0)
+    D['inc'] = (np.linspace(-75,75,noPhis[parseNumber])*np.pi/180.0)
     D['bkgNo'] = bkg[parseNumber]+100;
     D['numProcs'] = len(D['freqs'])*len(D['inc'])
     
