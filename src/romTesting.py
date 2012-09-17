@@ -6,7 +6,7 @@ Created on Sep 17, 2012
 import numpy as np
 
 
-D = {'solverType':'sba', 'flavor':'TE', 'numRuns':500, 'expt':'standard'}
+D = {'solverType':'sba', 'flavor':'TE', 'numRuns':500, 'expt':'standard', 'numProcs':16}
 
 
 def getMyVars(parseNumber, D):
