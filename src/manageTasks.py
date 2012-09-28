@@ -101,7 +101,7 @@ def main():
                 fid = open(fileName, 'w')
                 fid.write('mpiexec -n ' + repr(nProcs) + ' -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
                 fid.close()
-                cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=20:00:00', '-l','nodes=' + repr(nProcs), '-l','mem=16gb', '-l', 'nice=0', '-q','batch', fileName]        
+                cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=20:00:00', '-l','nodes=' + repr(nProcs), '-l','mem=256gb', '-l', 'nice=0', '-q','batch', fileName]        
                 print cmd
             
                 jobList.append(submitJob(cmd))
