@@ -94,8 +94,8 @@ def balancingAct(D,rank,nProc):
     
     
     lRng = rank*nPer + np.arange(nPer)
-    
-    return [allFreqs[lRng]],[allAngs[lRng]],[allFlav[lRng]]
+    print(allFlav[lRng] + ' ' + repr(lRng))
+    return allFreqs[lRng],allAngs[lRng],[allFlav[lRng]]
     
     
 def semiParallel(solverType, flavor, **kwargs): 
