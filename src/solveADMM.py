@@ -77,6 +77,7 @@ def balancingAct(D,rank,nProc):
     allFreqs, allAngs = np.meshgrid(D['freqs'], D['inc'])
     allFreqs = allFreqs.flatten()
     allAngs = allAngs.flatten()
+    print(D['flavor'])
     if D['flavor'] == 'both':
         allFlav = ['TE']*len(allFreqs) + ['TM']*len(allFreqs)
         allFreqs = np.tile(allFreqs,2)
@@ -84,7 +85,7 @@ def balancingAct(D,rank,nProc):
     else:
         allFlav = D['flavor']*len(allFreqs)
     
-    print(repr(len(allFreqs)))
+    print(repr(allFreqs.shape))
     print(repr(nProc))
     
     nPer = len(allFreqs)/nProc
