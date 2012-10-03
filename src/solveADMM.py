@@ -84,7 +84,7 @@ def balancingAct(D,rank,nProc):
         allFreqs = np.tile(allFreqs,2)
         allAngs = np.tile(allAngs,2)
     else:
-        allFlav = D['flavor']*len(allFreqs)
+        allFlav = [D['flavor']]*len(allFreqs)
     
     print(repr(allFreqs.shape))
     print(repr(nProc))
