@@ -27,7 +27,8 @@ def getDefaults(solverType, flavor, customDefs):
     elif (solverType =='contrastX') & (flavor =='TM'):
         D = {'rho':1e-3, 'xi':2e-3, 'lmb':0}
         
-    elif (solverType =='splitField') & (flavor =='both')
+    elif (solverType =='splitField') & (flavor =='both'):
+        D = {'rho':1e-3, 'xi':1e-3,'lmb':0}
     
     else:
         print 'somehow you did not specify a valid combination'
