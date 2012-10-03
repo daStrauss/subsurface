@@ -25,5 +25,6 @@ def getMyVars(parseNumber, D):
     D['freqs'] = np.round(np.logspace(np.log10(1000), np.log10(50000), noFreqs))
     D['inc'] = np.array([45*np.pi/180.0])
     D['bkgNo'] = bkg+100;
+    D['maxIter'] = 10
             
     return D

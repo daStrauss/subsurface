@@ -116,7 +116,7 @@ def semiParallel(solverType, flavor, **kwargs):
     # allocate according to the number of processors available
     freqLocal,angLocal,flavLocal = balancingAct(D, rank, nProc)
     
-    print('rank ' + repr(rank) + ' ' + repr(flavLocal) + ' frq ' + repr(freqLocal))
+    fout.write('rank ' + repr(rank) + ' ' + repr(flavLocal) + ' frq ' + repr(freqLocal))
     # switch for local testing
     # freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
     
@@ -147,7 +147,7 @@ def semiParallel(solverType, flavor, **kwargs):
             objF = F.runOpt(P)
             
             F.obj[itNo] = objF
-        print 'finished independent ' + repr(itNo)
+        print 'rank ' repr(rank) + ' ' + repr(flavLocal) +'finished independent ' + repr(itNo)
         # i don't think i can get around this!
         if solverType == 'sba':
             P += S[0].aggregatorSemiParallel(S,comm)
