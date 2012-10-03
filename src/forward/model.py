@@ -24,7 +24,7 @@ class fwd(object):
     muo = 4*np.pi*1e-7
     c = np.sqrt(1/(muo*epso))
     
-    def __init__(self, freq, incAng=0.0, rank=0):   
+    def __init__(self, freq, incAng=0.0, rank=0,flavor):   
         '''initialize object ''' 
         self.f = freq
         self.w = 2*np.pi*freq
@@ -32,6 +32,7 @@ class fwd(object):
         self.incAng = incAng
         self.gogo = ['', '']
         self.rom = False
+        self.flavor = flavor
         
     def initBig(self, p, bkg=0.005):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
