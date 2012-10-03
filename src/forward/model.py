@@ -274,7 +274,7 @@ def findBestAng(freq,dx):
         for i in range(50):    
             # Create a single new object on frequency
             # use the te routine for this
-            bce = te.solver(freq)
+            bce = te.solver(freq,0.0,'TE')
             bce.setspace(nx,ny,dx,dy)
             bce.setmats(eHS, sHS, nx/2)
             
