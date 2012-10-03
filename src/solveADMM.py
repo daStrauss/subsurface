@@ -92,7 +92,9 @@ def balancingAct(D,rank,nProc):
     nPer = len(allFreqs)/nProc
     assert nPer*nProc == allFreqs.size
     
+    
     lRng = rank*nPer + np.arange(nPer)
+    print('rank ' + repr(rank) + allFlav[lRng])
     return allFreqs[lRng],allAngs[lRng],allFlav[lRng]
     
     
