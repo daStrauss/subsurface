@@ -24,7 +24,7 @@ class fwd(object):
     muo = 4*np.pi*1e-7
     c = np.sqrt(1/(muo*epso))
     
-    def __init__(self, freq, incAng=0.0, flavor, rank=0):   
+    def __init__(self, freq, incAng, flavor, rank=0):   
         '''initialize object ''' 
         self.f = freq
         self.w = 2*np.pi*freq
