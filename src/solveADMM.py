@@ -74,7 +74,7 @@ def smallProj(S,D):
 def balancingAct(D,rank,nProc):
     ''' splits the full set of freqs, and incAngs into equal sections according to rank, nProc'''
     
-    allFreqs, allAngs = np.meshgrid(D['freqs'], D['incAngs'])
+    allFreqs, allAngs = np.meshgrid(D['freqs'], D['inc'])
     allFreqs = allFreqs.flatten()
     allAngs = allAngs.flatten()
     if D['flavor'] == 'both':
@@ -110,9 +110,9 @@ def semiParallel(solverType, flavor, **kwargs):
     
     # switch for local testing
     # freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
-    flavors = [flavor]*len(freqLocal)
+    
     # the delegator makes the local set of problems
-    S = delegator(solverType, flavors, freqLocal, angLocal)
+    S = delegator(solverType, flavLocal, freqLocal, angLocal)
     
     S,pTrue = bigProj(S, D)
     
