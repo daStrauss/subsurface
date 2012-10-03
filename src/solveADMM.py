@@ -147,7 +147,7 @@ def semiParallel(solverType, flavor, **kwargs):
             objF = F.runOpt(P)
             
             F.obj[itNo] = objF
-        print 'rank ' repr(rank) + ' ' + repr(flavLocal) +'finished independent ' + repr(itNo)
+        print 'rank ' + repr(rank) + ' ' + repr(flavLocal) +'finished independent ' + repr(itNo)
         # i don't think i can get around this!
         if solverType == 'sba':
             P += S[0].aggregatorSemiParallel(S,comm)
