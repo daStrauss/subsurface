@@ -116,7 +116,7 @@ def semiParallel(solverType, flavor, **kwargs):
     # allocate according to the number of processors available
     freqLocal,angLocal,flavLocal = balancingAct(D, rank, nProc)
     
-    print('rank ' + repr(rank) + ' ' + flavLocal + ' frq ' + repr(freqLocal))
+    print('rank ' + repr(rank) + ' ' + repr(flavLocal) + ' frq ' + repr(freqLocal))
     # switch for local testing
     # freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
     
