@@ -83,7 +83,10 @@ def balancingAct(D,rank,nProc):
         allAngs = np.tile(allAngs,2)
     else:
         allFlav = D['flavor']*len(allFreqs)
-        
+    
+    print(repr(len(allFreqs)))
+    print(repr(nProc))
+    
     nPer = len(allFreqs)/nProc
     assert nPer*nProc == allFreqs.size
     
