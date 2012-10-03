@@ -43,7 +43,7 @@ def getDefaults(solverType, flavor, customDefs):
     D['inc'] = np.array([75, -75, 45, -45])*np.pi/180
     D['maxIter'] = 1000
     D['bkgSig'] = 0.005;
-    D['flavor'] = 'TE' # do this by default, although it should be set explicitly
+    # D['flavor'] = 'TE' # do this by default, although it should be set explicitly
     
     for key,value in customDefs.iteritems():
         D[key] = value
