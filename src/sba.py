@@ -292,7 +292,8 @@ class problem(optimizer):
         
         
         D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgm[0], 'ub':ub[0], \
-             'us':us[0], 'uTrue':uTrue[0], 'obj':self.obj}
+             'us':us[0], 'uTrue':uTrue[0], 'obj':self.obj, \
+             'flavor':self.flavor}
         
         spio.savemat(self.outDir + 'Data/sba' + repr(rank) + '_' + repr(ix), D)
     

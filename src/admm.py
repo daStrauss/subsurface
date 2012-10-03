@@ -91,7 +91,8 @@ class problem(optimizer):
         
         D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgm[0], 'ub':ub[0], \
              'us':us[0], 'uTrue':ut[0], \
-             'v':v[0], 'rho':self.rho, 'xi':self.xi, 'obj':self.obj}
+             'v':v[0], 'rho':self.rho, 'xi':self.xi, 'obj':self.obj,\
+             'flavor':self.flavor}
     
         spio.savemat(self.outDir + 'Data/splitField' + repr(rank) + '_' + repr(ix), D)
         

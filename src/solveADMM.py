@@ -71,17 +71,24 @@ def smallProj(S,D):
     
     return S,pTrue 
 
-def balancingAct(freqs,incAngs,rank,nProc):
+def balancingAct(D,rank,nProc):
     ''' splits the full set of freqs, and incAngs into equal sections according to rank, nProc'''
-    allFreqs, allAngs = np.meshgrid(freqs,incAngs)
+    
+    allFreqs, allAngs = np.meshgrid(D['freqs'], D['incAngs'])
     allFreqs = allFreqs.flatten()
     allAngs = allAngs.flatten()
-    
+    if D['flavor'] == 'both':
+        allFlav = ['TE']*len(allFreqs) + ['TM']*len(allFreqs)
+        allFreqs = np.tile(allFreqs,2)
+        allAngs = np.tile(allAngs,2)
+    else:
+        allFlav = D['flavor']*len(allFreqs)
+        
     nPer = len(allFreqs)/nProc
     assert nPer*nProc == allFreqs.size
     
     lRng = rank*nPer + np.arange(nPer)
-    return allFreqs[lRng],allAngs[lRng]
+    return allFreqs[lRng],allAngs[lRng],allFlav[lRng]
     
     
 def semiParallel(solverType, flavor, **kwargs): 
@@ -99,7 +106,7 @@ def semiParallel(solverType, flavor, **kwargs):
     fout.write('xi ' + repr(D['xi']) + ' rho = ' + repr(D['rho']) + '\n')
 
     # allocate according to the number of processors available
-    freqLocal,angLocal = balancingAct(D['freqs'],D['inc'], rank, nProc)
+    freqLocal,angLocal,flavLocal = balancingAct(D, rank, nProc)
     
     # switch for local testing
     # freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]

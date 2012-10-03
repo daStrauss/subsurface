@@ -12,7 +12,7 @@ from scipy.sparse import linalg as lin
 import scipy.io as spio
 
 class solver(fwd):
-
+    flavor = 'TM'
     def makeGradOper(self):
         hz2ex = sparse.kron(sparse.eye(self.nx+1,self.nx+1), self.po*self.d2);
         hz2ey = sparse.kron(-self.po*self.d2, sparse.eye(self.nx+1,self.nx+1));

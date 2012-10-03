@@ -11,6 +11,7 @@ from scipy import sparse
 
 class solver(fwd):
     ''' class to implement the transverse electric mode, rather - the case where we have Ez only ''' 
+    flavor = 'TE'
     def setmats(self, eHSr, sHS, div):
         """This quick routine starts the process to
         setup the location of the background halfspace 

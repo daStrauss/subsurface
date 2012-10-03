@@ -58,7 +58,8 @@ class problem(optimizer):
         us = self.fwd.parseFields(self.us)
         
         D = {'f':self.fwd.f, 'angle': self.fwd.incAng, 'ub':ub[0], \
-             'us':us[0], 'uTrue':ut[0], 'rho':self.rho, 'xi':self.xi, 'obj':self.obj}
+             'us':us[0], 'uTrue':ut[0], 'rho':self.rho, 'xi':self.xi, 'obj':self.obj,\
+             'flavor':self.flavor}
         spio.savemat(self.outDir + 'Data/biconvex' + repr(rank) + '_' + repr(ix), D)
         
     def aggregatorSemiParallel(self,S,comm):
