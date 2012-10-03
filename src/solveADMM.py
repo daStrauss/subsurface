@@ -94,7 +94,7 @@ def balancingAct(D,rank,nProc):
     
     
     lRng = rank*nPer + np.arange(nPer)
-    print('rank ' + repr(rank) + allFlav[lRng])
+    
     return allFreqs[lRng],allAngs[lRng],allFlav[lRng]
     
     
@@ -116,11 +116,14 @@ def semiParallel(solverType, flavor, **kwargs):
     # allocate according to the number of processors available
     freqLocal,angLocal,flavLocal = balancingAct(D, rank, nProc)
     
+    print('rank ' + repr(rank) + ' ' + flavLocal + ' frq ' + repr(freqLocal))
     # switch for local testing
     # freqLocal = [freqLocal[2]]; angLocal = [angLocal[2]]
     
     # the delegator makes the local set of problems
     S = delegator(solverType, flavLocal, freqLocal, angLocal)
+    
+    
     
     S,pTrue = bigProj(S, D)
     
