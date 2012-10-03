@@ -18,12 +18,12 @@ def getMyVars(parseNumber, D):
     '''routine to return the parameters to test at the current iteration.'''
     # noFreqs,noPhis,bkg = np.meshgrid(range(1,7), range(1,7), range(100))
     
-    noFreqs = 8
+    noFreqs = np.array(8) 
     bkg = 0
 
     
     D['freqs'] = np.round(np.logspace(np.log10(1000), np.log10(50000), noFreqs))
-    D['inc'] = 45*np.pi/180.0
+    D['inc'] = np.array([45*np.pi/180.0])
     D['bkgNo'] = bkg+100;
             
     return D
