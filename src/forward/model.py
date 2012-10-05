@@ -34,13 +34,13 @@ class fwd(object):
         self.rom = False
         self.flavor = flavor
         
-    def initBig(self, p, bkg=0.005):
+    def initBig(self, p, bkgSig=0.005, numSensors=10):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
         self.setspace(199,199,5.0,5.0)
-        self.setmats(1,bkg,199/2)
+        self.setmats(1,bkgSig,199/2)
         self.setOperators()
         self.makeGradOper()
-        self.setMs()
+        self.setMs(numSensors)
         self.setMd([60,140], [70,95])
         self.sigmap[1] += self.Md.T*p
         

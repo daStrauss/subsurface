@@ -46,7 +46,7 @@ def bigProj(S, D):
     pTrue = trm['scrt'].flatten()
     
     for F in S:
-        F.fwd.initBig(pTrue, D['bkgSig'])
+        F.fwd.initBig(pTrue, **D)
         F.outDir = D['outDir']
         if not D['rom']:
             F.fwd.isRom = False
