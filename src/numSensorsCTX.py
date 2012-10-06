@@ -10,7 +10,7 @@ import scipy.io as spio
 # numRuns = F['goTo'].shape[0]
 
 
-D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':4800, 'expt':'noSense', 'numProcs':16}
+D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':4800, 'expt':'noSense', 'numProcs':16}
 
 
 def getMyVars(parseNumber, D):
