@@ -1,4 +1,10 @@
 '''
+Created on Oct 10, 2012
+
+@author: dstrauss
+'''
+
+'''
 Created on Jun 12, 2012
 
 @author: dstrauss
@@ -7,10 +13,70 @@ Created on Jun 12, 2012
 from model import fwd
 import numpy as np
 from scipy import sparse
-
+import sparseTools as spt
 
 class solver(fwd):
     ''' class to implement the transverse electric mode, rather - the case where we have Ez only ''' 
+    def setspace(self, nx,ny,nz,dx, dy, dz):
+        self.nx = nx # number x points
+        self.ny = ny # number y points
+        self.nz = nz # number z points
+        self.N = nx*ny*nz # super size of space
+        self.dx = dx # delta x
+        self.dy = dy # delta y
+        self.dz = dz # delta z
+
+        self.npml = min(10,round((nx+2.0)/10))
+    
+    def makeGradOper(self):
+        AA = sparse.kron(sparse.eye(self.nz,self.nz),kron(pd2,speye(nx+1)))*\
+        kron(speye(nz),kron(pd1,speye(nx+1))) + \
+        kron(pd2,speye((nx+1)*ny))*kron(pd1,speye((nx+1)*ny));
+
+AB = kron(speye(nz),kron(pd2,speye(nx+1)))*...
+     kron(speye(nz),kron(speye(ny+1), pd1));
+
+AC = kron(pd2,speye(ny*(nx+1)))*...
+     kron(speye(nz+1),kron(speye(ny), pd1));
+
+BA = kron(speye(nz),kron(speye(nx+1),pd2))*...
+     kron(speye(nz),kron(pd1,speye(nx+1)));
+
+BB = kron(speye(nz),kron(speye(nx+1),pd2))*...
+     kron(speye(nz),kron(speye(nx+1),pd1)) + ...
+     kron(pd2,speye((ny+1)*nx))*kron(pd1,speye((ny+1)*ny));
+
+BC = kron(pd2,speye((ny+1)*nx))*...
+     kron(speye(nz+1),kron(pd1,speye(nx)));
+
+CA = kron(speye(nz+1),kron(speye(ny),pd2))*...
+     kron(pd1,speye((nx+1)*ny));
+
+CB = kron(speye(nz+1),kron(pd2,speye(nx)))*...
+     kron(pd1,speye((ny+1)*nx));
+
+CC = kron(speye(nz+1),kron(pd2,speye(nx)))*...
+     kron(speye(nz+1),kron(pd1,speye(nx))) + ...
+     kron(speye(nz+1),kron(speye(ny),pd2))*...
+     kron(speye(nz+1),kron(speye(ny),pd1));
+
+     
+jcm = [AA -AB -AC; -BA BB -BC; -CA -CB CC];
+
+        
+        hz2ex = sparse.kron(sparse.eye(self.nx+1,self.nx+1), self.po*self.d2);
+        hz2ey = sparse.kron(-self.po*self.d2, sparse.eye(self.nx+1,self.nx+1));
+
+        ex2hz = sparse.kron(sparse.eye(self.nx+1,self.nx+1),-self.ph*self.d1);
+        ey2hz = sparse.kron(self.ph*self.d1, sparse.eye(self.nx+1,self.nx+1));
+
+        n = self.nx*(self.nx+1);
+        N = (self.nx+1)**2;
+        
+        self.nabla2 = spt.vCat([spt.hCat([sparse.coo_matrix((n,n)), sparse.coo_matrix((n,n)), hz2ex]), \
+                                spt.hCat([sparse.coo_matrix((n,n)), sparse.coo_matrix((n,n)), hz2ey]), \
+                                spt.hCat([ex2hz, ey2hz, sparse.coo_matrix((N,N))]) ])
+                              
     
     def setmats(self, eHSr, sHS, div):
         """This quick routine starts the process to
@@ -64,8 +130,6 @@ class solver(fwd):
         self.Ms = self.Ms.T
         
     def setCTRX(self):
-        ''' it appears that this is a generalized routine that allows one to map from
-        p to x and x to p and x to u so that the approrpiate variables can be put together'''
         self.p2x = sparse.eye(self.nRx*self.nRy,self.nRx*self.nRy)
         # print self.p2x.shape
         self.x2u = self.Md.T
