@@ -38,69 +38,69 @@ class solver(fwd):
         pd1 = self.ph*self.d1
         pd2 = self.po*self.d2
         
-        AA = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
-        sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1)) + \
-        sparse.kron(pd2,speye((self.nx+1)*self.ny))*sparse.kron(pd1,speye((self.nx+1)*self.ny))
-
-        AB = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
-            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.ny+1)))
-            
-        AC = sparse.kron(pd2,speye(self.ny*(self.nx+1)))*\
-            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
-
-        BA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
-            sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1))
-# chng
-        BB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
-            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
-            sparse.kron(pd2,speye((self.ny+1)*self.nx))*sparse.kron(pd1,speye((self.ny+1)*self.nx))
-# chng
-        BC = sparse.kron(pd2,speye((self.ny+1)*self.nx))*\
-            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd1))
-# chng
-        CA = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.ny)))*\
-            sparse.kron(pd1,speye((self.nx+1)*self.ny))
-# chng
-        CB = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd2))*\
-            sparse.kron(pd1,speye((self.ny+1)*self.nx))
-# chng
-        CC = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd2))*\
-            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd1)) + \
-            sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.ny)))*\
-            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
-            # chng
-            
-           # legacy - matlab ordering 
-#    AA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
-#        sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
+#        AA = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+#        sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1)) + \
 #        sparse.kron(pd2,speye((self.nx+1)*self.ny))*sparse.kron(pd1,speye((self.nx+1)*self.ny))
 #
-#        AB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
-#            sparse.kron(speye(self.nz),sparse.kron(speye(self.ny+1), pd1))
+#        AB = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+#            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.ny+1)))
 #            
 #        AC = sparse.kron(pd2,speye(self.ny*(self.nx+1)))*\
-#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny), pd1))
+#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
 #
-#        BA = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
-#            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1)))
-#
-#        BB = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
-#            sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1)) + \
-#            sparse.kron(pd2,speye((self.ny+1)*self.nx))*sparse.kron(pd1,speye((self.ny+1)*self.ny))
-#
+#        BA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+#            sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1))
+## chng
+#        BB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+#            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
+#            sparse.kron(pd2,speye((self.ny+1)*self.nx))*sparse.kron(pd1,speye((self.ny+1)*self.nx))
+## chng
 #        BC = sparse.kron(pd2,speye((self.ny+1)*self.nx))*\
-#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx)))
-#
-#        CA = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd1))
+## chng
+#        CA = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.ny)))*\
 #            sparse.kron(pd1,speye((self.nx+1)*self.ny))
-#
-#        CB = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
+## chng
+#        CB = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd2))*\
 #            sparse.kron(pd1,speye((self.ny+1)*self.nx))
-#
-#        CC = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
-#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx))) + \
-#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
-#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd1))
+## chng
+#        CC = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd2))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd1)) + \
+#            sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.ny)))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
+            # chng
+            
+            # legacy - matlab ordering 
+        AA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
+            sparse.kron(pd2,speye((self.nx+1)*self.ny))*sparse.kron(pd1,speye((self.nx+1)*self.ny))
+
+        AB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+            sparse.kron(speye(self.nz),sparse.kron(speye(self.ny+1), pd1))
+            
+        AC = sparse.kron(pd2,speye(self.ny*(self.nx+1)))*\
+            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny), pd1))
+
+        BA = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1)))
+
+        BB = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+            sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1)) + \
+            sparse.kron(pd2,speye((self.ny+1)*self.nx))*sparse.kron(pd1,speye((self.ny+1)*self.ny))
+
+        BC = sparse.kron(pd2,speye((self.ny+1)*self.nx))*\
+            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx)))
+
+        CA = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
+            sparse.kron(pd1,speye((self.nx+1)*self.ny))
+
+        CB = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
+            sparse.kron(pd1,speye((self.ny+1)*self.nx))
+
+        CC = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
+            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx))) + \
+            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
+            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd1))
 
      
         self.nabla2  = spt.vCat([spt.hCat([AA, -AB, -AC]),\
