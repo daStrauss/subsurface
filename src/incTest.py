@@ -32,7 +32,7 @@ def test(ica):
     # self.fwd_solve(1)
     [ex,ey,ez] = fwd.parseFields(fwd.sol[0])
     
-    D = {'ex':ex, 'ey':ey, 'ez':ez}
+    D = {'ox':fwd.nabla2+fwd.getk(0),'rhs':fwd.rhs,'nbl':fwd.nabla2,'ex':ex, 'ey':ey, 'ez':ez}
     
     spio.savemat('threeDTest', D)
     

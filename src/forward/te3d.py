@@ -35,72 +35,74 @@ class solver(fwd):
         ''' routine to make a big matrix for TE problems ex,ey,ez all incorporated,
         based on the petsc_cpx routine.''' 
         # a quick hint: pd2 == pdo
-        pd1 = self.ph*self.d1
-        pd2 = self.po*self.d2
+        pd1 = self.ph*self.d1 # maps full to half grid
+        pd2 = self.po*self.d2 # maps half to full
         
-#        AA = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
-#        sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1)) + \
-#        sparse.kron(pd2,speye((self.nx+1)*self.ny))*sparse.kron(pd1,speye((self.nx+1)*self.ny))
-#
-#        AB = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
-#            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.ny+1)))
-#            
-#        AC = sparse.kron(pd2,speye(self.ny*(self.nx+1)))*\
-#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
-#
-#        BA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
-#            sparse.kron(speye(self.nz),sparse.kron(speye(self.ny+1),pd1))
-## chng
-#        BB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
-#            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
-#            sparse.kron(pd2,speye((self.ny+1)*self.nx))*sparse.kron(pd1,speye((self.ny+1)*self.nx))
-## chng
-#        BC = sparse.kron(pd2,speye((self.ny+1)*self.nx))*\
-#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd1))
-## chng
-#        CA = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.ny)))*\
-#            sparse.kron(pd1,speye((self.nx+1)*self.ny))
-## chng
-#        CB = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd2))*\
-#            sparse.kron(pd1,speye((self.ny+1)*self.nx))
-## chng
-#        CC = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd2))*\
-#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd1)) + \
-#            sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.ny)))*\
-#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
-#            # chng
+        AA = sparse.kron(speye(self.nx+1), sparse.kron(pd2,speye(self.nz)))*\
+        sparse.kron(speye(self.nx+1), sparse.kron(pd1,speye(self.nz))) + \
+        sparse.kron(speye(self.nx+1), sparse.kron(speye(self.ny),pd2)) * \
+        sparse.kron(speye(self.nx+1), sparse.kron(speye(self.ny),pd1)) 
+# chngd
+        AB = sparse.kron(speye(self.nx+1), sparse.kron(pd2,speye(self.nz)))*\
+            sparse.kron(pd1, sparse.kron(speye(self.ny+1),speye(self.nz)))
+            
+        AC = sparse.kron(speye(self.nx+1),sparse.kron(speye(self.ny),pd2))*\
+            sparse.kron(pd1,sparse.kron(speye(self.ny),speye(self.nz+1)))
+# chngd
+        BA = sparse.kron(speye(self.nx+1),sparse.kron(pd2,speye(self.nz)))*\
+            sparse.kron(pd1,sparse.kron(speye(self.ny+1),speye(self.nz)))
+# chngd
+        BB = sparse.kron(pd2,sparse.kron(speye(self.ny+1),speye(self.nz)))*\
+            sparse.kron(pd1,sparse.kron(speye(self.ny+1),speye(self.nz))) + \
+            sparse.kron(speye(self.nx),sparse.kron(speye(self.ny+1),pd2))*\
+            sparse.kron(speye(self.nx),sparse.kron(speye(self.ny+1),pd1))
+# chngd
+        BC = sparse.kron(speye(self.nx),sparse.kron(speye(self.ny+1),pd2))*\
+            sparse.kron(speye(self.nx),sparse.kron(pd1,speye(self.nz+1)))
+# chngd
+        CA = sparse.kron(pd2,sparse.kron(speye(self.ny),speye(self.nz+1)))*\
+             sparse.kron(speye(self.nx+1),sparse.kron(speye(self.ny),pd1))
+# chngd
+        CB = sparse.kron(speye(self.nx),sparse.kron(pd2,speye(self.nz+1)))*\
+            sparse.kron(speye(self.nx),sparse.kron(speye(self.ny+1),pd1))
+# chngd
+        CC = sparse.kron(speye(self.nx),sparse.kron(pd2, speye(self.nz+1)))*\
+             sparse.kron(speye(self.nx),sparse.kron(pd1, speye(self.nz+1))) + \
+             sparse.kron(pd2,sparse.kron(speye(self.ny),speye(self.nz+1)))*\
+             sparse.kron(pd1,sparse.kron(speye(self.ny),speye(self.nz+1)))
+# chngd
             
             # legacy - matlab ordering 
-        AA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
-            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
-            sparse.kron(pd2,speye((self.nx+1)*self.ny))*sparse.kron(pd1,speye((self.nx+1)*self.ny))
-
-        AB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
-            sparse.kron(speye(self.nz),sparse.kron(speye(self.ny+1), pd1))
-            
-        AC = sparse.kron(pd2,speye(self.ny*(self.nx+1)))*\
-            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny), pd1))
-
-        BA = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
-            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1)))
-
-        BB = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
-            sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1)) + \
-            sparse.kron(pd2,speye((self.ny+1)*self.nx))*sparse.kron(pd1,speye((self.ny+1)*self.ny))
-
-        BC = sparse.kron(pd2,speye((self.ny+1)*self.nx))*\
-            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx)))
-
-        CA = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
-            sparse.kron(pd1,speye((self.nx+1)*self.ny))
-
-        CB = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
-            sparse.kron(pd1,speye((self.ny+1)*self.nx))
-
-        CC = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
-            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx))) + \
-            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
-            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd1))
+#        AA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+#            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
+#            sparse.kron(pd2,speye((self.nx+1)*self.ny))*sparse.kron(pd1,speye((self.nx+1)*self.ny))
+#
+#        AB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+#            sparse.kron(speye(self.nz),sparse.kron(speye(self.ny+1), pd1))
+#            
+#        AC = sparse.kron(pd2,speye(self.ny*(self.nx+1)))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny), pd1))
+#
+#        BA = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+#            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1)))
+#
+#        BB = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+#            sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1)) + \
+#            sparse.kron(pd2,speye((self.ny+1)*self.nx))*sparse.kron(pd1,speye((self.ny+1)*self.ny))
+#
+#        BC = sparse.kron(pd2,speye((self.ny+1)*self.nx))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx)))
+#
+#        CA = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
+#            sparse.kron(pd1,speye((self.nx+1)*self.ny))
+#
+#        CB = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
+#            sparse.kron(pd1,speye((self.ny+1)*self.nx))
+#
+#        CC = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx))) + \
+#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd1))
 
      
         self.nabla2  = spt.vCat([spt.hCat([AA, -AB, -AC]),\
@@ -223,15 +225,15 @@ class solver(fwd):
     
     def pointSource(self, x,y,z):
         """ A routine to add a point source at the grid loc (x,y) """
-        # rhsz = np.zeros((self.nx,self.ny,self.nz+1),dtype='complex128') 
-        # rhsz[x,y,z] = 1.0
+        rhsz = np.zeros((self.nx,self.ny,self.nz+1),dtype='complex128') 
+        rhsz[x,y,z] = 1.0
         # rhsz = rhsz.flatten()
-        # rhsx = np.zeros((self.nx+1,self.ny,self.nz))
-        # rhsy = np.zeros((self.nx,self.ny+1,self.nz))
+        rhsx = np.zeros((self.nx+1,self.ny,self.nz))
+        rhsy = np.zeros((self.nx,self.ny+1,self.nz))
         
-        self.rhs = np.zeros(self.N,dtype='complex128')
-        self.rhs[23614-1] = 1.0
-        #self.rhs = np.concatenate((rhsx.flatten(), rhsy.flatten(), rhsz.flatten()))
+        #self.rhs = np.zeros(self.N,dtype='complex128')
+        #self.rhs[23614-1] = 1.0
+        self.rhs = np.concatenate((rhsx.flatten(), rhsy.flatten(), rhsz.flatten()))
     
     def planeWave(self):
         """ A routine to add a te planewave at angle as spec'd """
