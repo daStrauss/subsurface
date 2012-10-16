@@ -144,7 +144,7 @@ class solver(fwd):
 #        assert self.nRx*self.nRy == 
         self.x2u = spt.vCat([spt.hCat([Mdx, sparse.coo_matrix((Nx,NR))]),\
                              spt.hCat([sparse.coo_matrix((Ny,NR)), Mdy]),\
-                             sparse.coo_matrix((N, 2*NR)) ])  #oh bugger, problems. 
+                             sparse.coo_matrix((N, 2*NR)) ])  #oh bugger, problems.  ? what were they?
 #        print 'assembled'
         self.x2u = self.x2u.tocsc()
 #        print 'converted'
@@ -152,7 +152,7 @@ class solver(fwd):
 #        print self.x2u.shape
         
     def getXSize(self):
-        ''' return the proper size of X so that the optimizatoin routine can work its magic '''
+        ''' return the proper size of X so that the optimization routine can work its magic '''
         return 2*self.nRx*self.nRy
         
     def setMd(self, xrng, yrng):

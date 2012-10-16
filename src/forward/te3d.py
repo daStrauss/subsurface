@@ -15,6 +15,9 @@ import numpy as np
 from scipy import sparse
 import sparseTools as spt
 
+def speye(n):
+    return sparse.eye(n,n)
+
 class solver(fwd):
     ''' class to implement the transverse electric mode, rather - the case where we have Ez only ''' 
     def setspace(self, nx,ny,nz,dx, dy, dz):
@@ -29,59 +32,87 @@ class solver(fwd):
         self.npml = min(10,round((nx+2.0)/10))
     
     def makeGradOper(self):
-        AA = sparse.kron(sparse.eye(self.nz,self.nz),kron(pd2,speye(nx+1)))*\
-        kron(speye(nz),kron(pd1,speye(nx+1))) + \
-        kron(pd2,speye((nx+1)*ny))*kron(pd1,speye((nx+1)*ny));
+        ''' routine to make a big matrix for TE problems ex,ey,ez all incorporated,
+        based on the petsc_cpx routine.''' 
+        # a quick hint: pd2 == pdo
+        pd1 = self.ph*self.d1
+        pd2 = self.po*self.d2
+        
+        AA = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+        sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1)) + \
+        sparse.kron(pd2,speye((self.nx+1)*self.ny))*sparse.kron(pd1,speye((self.nx+1)*self.ny))
 
-AB = kron(speye(nz),kron(pd2,speye(nx+1)))*...
-     kron(speye(nz),kron(speye(ny+1), pd1));
+        AB = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.ny+1)))
+            
+        AC = sparse.kron(pd2,speye(self.ny*(self.nx+1)))*\
+            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
 
-AC = kron(pd2,speye(ny*(nx+1)))*...
-     kron(speye(nz+1),kron(speye(ny), pd1));
-
-BA = kron(speye(nz),kron(speye(nx+1),pd2))*...
-     kron(speye(nz),kron(pd1,speye(nx+1)));
-
-BB = kron(speye(nz),kron(speye(nx+1),pd2))*...
-     kron(speye(nz),kron(speye(nx+1),pd1)) + ...
-     kron(pd2,speye((ny+1)*nx))*kron(pd1,speye((ny+1)*ny));
-
-BC = kron(pd2,speye((ny+1)*nx))*...
-     kron(speye(nz+1),kron(pd1,speye(nx)));
-
-CA = kron(speye(nz+1),kron(speye(ny),pd2))*...
-     kron(pd1,speye((nx+1)*ny));
-
-CB = kron(speye(nz+1),kron(pd2,speye(nx)))*...
-     kron(pd1,speye((ny+1)*nx));
-
-CC = kron(speye(nz+1),kron(pd2,speye(nx)))*...
-     kron(speye(nz+1),kron(pd1,speye(nx))) + ...
-     kron(speye(nz+1),kron(speye(ny),pd2))*...
-     kron(speye(nz+1),kron(speye(ny),pd1));
+        BA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+            sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1))
+# chng
+        BB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
+            sparse.kron(pd2,speye((self.ny+1)*self.nx))*sparse.kron(pd1,speye((self.ny+1)*self.nx))
+# chng
+        BC = sparse.kron(pd2,speye((self.ny+1)*self.nx))*\
+            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd1))
+# chng
+        CA = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.ny)))*\
+            sparse.kron(pd1,speye((self.nx+1)*self.ny))
+# chng
+        CB = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd2))*\
+            sparse.kron(pd1,speye((self.ny+1)*self.nx))
+# chng
+        CC = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd2))*\
+            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd1)) + \
+            sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.ny)))*\
+            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
+            # chng
+            
+           # legacy - matlab ordering 
+#    AA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+#        sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
+#        sparse.kron(pd2,speye((self.nx+1)*self.ny))*sparse.kron(pd1,speye((self.nx+1)*self.ny))
+#
+#        AB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
+#            sparse.kron(speye(self.nz),sparse.kron(speye(self.ny+1), pd1))
+#            
+#        AC = sparse.kron(pd2,speye(self.ny*(self.nx+1)))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny), pd1))
+#
+#        BA = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+#            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1)))
+#
+#        BB = sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd2))*\
+#            sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1)) + \
+#            sparse.kron(pd2,speye((self.ny+1)*self.nx))*sparse.kron(pd1,speye((self.ny+1)*self.ny))
+#
+#        BC = sparse.kron(pd2,speye((self.ny+1)*self.nx))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx)))
+#
+#        CA = sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
+#            sparse.kron(pd1,speye((self.nx+1)*self.ny))
+#
+#        CB = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
+#            sparse.kron(pd1,speye((self.ny+1)*self.nx))
+#
+#        CC = sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.nx)))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.nx))) + \
+#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd2))*\
+#            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.ny),pd1))
 
      
-jcm = [AA -AB -AC; -BA BB -BC; -CA -CB CC];
+        self.nabla2  = spt.vCat([spt.hCat([AA, -AB, -AC]),\
+                            spt.hCat([-BA, BB, -BC]), \
+                            spt.hCat([-CA, -CB, CC])])
 
         
-        hz2ex = sparse.kron(sparse.eye(self.nx+1,self.nx+1), self.po*self.d2);
-        hz2ey = sparse.kron(-self.po*self.d2, sparse.eye(self.nx+1,self.nx+1));
-
-        ex2hz = sparse.kron(sparse.eye(self.nx+1,self.nx+1),-self.ph*self.d1);
-        ey2hz = sparse.kron(self.ph*self.d1, sparse.eye(self.nx+1,self.nx+1));
-
-        n = self.nx*(self.nx+1);
-        N = (self.nx+1)**2;
-        
-        self.nabla2 = spt.vCat([spt.hCat([sparse.coo_matrix((n,n)), sparse.coo_matrix((n,n)), hz2ex]), \
-                                spt.hCat([sparse.coo_matrix((n,n)), sparse.coo_matrix((n,n)), hz2ey]), \
-                                spt.hCat([ex2hz, ey2hz, sparse.coo_matrix((N,N))]) ])
-                              
     
     def setmats(self, eHSr, sHS, div):
-        """This quick routine starts the process to
-        setup the location of the background halfspace 
-        It is also true that this set the space for the ON GRID locations
+        """This routine does setup for the diagonal entries of the nabla matrix.
+        Also included are interpolation operators to mapf rom half spaces to non-half spaces, maybe
+            
         """
         self.eHS = eHSr*self.epso # half space permitivity
         self.sHS = sHS # half space conductivity
@@ -89,18 +120,35 @@ jcm = [AA -AB -AC; -BA BB -BC; -CA -CB CC];
         self.kfree = 2*np.pi/self.l; # define k in free space
         self.kHS = np.sqrt(self.muo*self.eHS*(self.w**2) \
                          + 1j*self.w*self.muo*self.sHS); # k in subsurface
-
-        self.epsmap = [self.epso*np.ones((self.nx,self.ny)), self.epso*np.ones((self.nx,self.ny))]
-        self.sigmap = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
-        self.sol = [np.zeros((self.nx,self.ny)), np.zeros((self.nx,self.ny))]
+                         
+        self.N = (self.nx+1)*self.ny*self.nz + \
+                    self.nx*(self.ny+1)*self.nz + \
+                    self.nx*self.ny*(self.nz+1)
         
-        self.N = self.nx*self.ny
         
-        for x in range(2):
-            self.epsmap[x][:,:(div+1)] = self.eHS
-            self.sigmap[x][:,:(div+1)] = self.sHS
-            self.epsmap[x] = self.epsmap[x].flatten()
-            self.sigmap[x] = self.sigmap[x].flatten()
+        # epsilon is easy it is always going to be uniform
+        self.epsmap = [self.epso*np.ones(self.N),\
+                       self.epso*np.ones(self.N)]
+        
+        # sigma is not so straight forward
+        
+        sigX = np.zeros((self.nx+1,self.ny,self.nz))
+        sigX[:,:(div+1),:] = self.sHS
+        
+        sigY = np.zeros((self.nx,self.ny+1,self.nz))
+        sigY[:,:(div+2),:] = self.sHS
+        
+        sigZ = np.zeros((self.nx,self.ny,self.nz+1))
+        sigZ[:,:(div+1),:] = self.sHS
+        
+        
+        self.sigmap = np.concatenate((sigX.flatten(), sigY.flatten(), sigZ.flatten()))
+        # and duplicate
+        self.sigmap = [self.sigmap, self.sigmap.copy()]
+        
+        # this is the total number of unknown field values in the entire simulation space
+        self.sol = [np.zeros((self.N,1)), np.zeros((self.N,1))]
+        
             
     def getk(self, ind):
         """ This routine assembles a diagonal matrix with the materials indexed by ind
@@ -130,45 +178,58 @@ jcm = [AA -AB -AC; -BA BB -BC; -CA -CB CC];
         self.Ms = self.Ms.T
         
     def setCTRX(self):
-        self.p2x = sparse.eye(self.nRx*self.nRy,self.nRx*self.nRy)
-        # print self.p2x.shape
-        self.x2u = self.Md.T
-        # print self.x2u.shape
+        ''' create some operators to map back and forth between the x space and the u '''
+#        self.p2x = sparse.eye(self.nRx*self.nRy,self.nRx*self.nRy)
+#        # print self.p2x.shape
+#        self.x2u = self.Md.T
+#        # print self.x2u.shape
     
     def getXSize(self):
-        ''' return the proper size of X so that the optimizatoin routine can work its magic '''
-        return self.nRx*self.nRy
+        ''' return the proper size of X so that the optimization routine can work its magic '''
+        return self.nRx*self.nRy*self.nRz
         
-    def setMd(self, xrng, yrng):
+    def setMd(self, xrng, yrng, zrng):
         '''Tell me the xrange and the yrange and I'll make selector'''
-        oprx = np.zeros((self.nx,self.ny),dtype='bool')
-        oprx[xrng[0]:xrng[1],yrng[0]:yrng[1]] = 1
-        self.nRx = xrng[1]-xrng[0]
-        self.nRy = yrng[1]-yrng[0]
-        
-        idx = np.arange(self.N)
-        oprx = oprx.flatten()
-        idx = idx[oprx]
-        self.Md = sparse.dok_matrix((self.N,idx.size))
-        
-        for i in range(idx.size):
-            self.Md[idx[i],i]=1.0
-        self.Md = self.Md.tocsc()
-        self.Md = self.Md.T
+#        oprx = np.zeros((self.nx,self.ny),dtype='bool')
+#        oprx[xrng[0]:xrng[1],yrng[0]:yrng[1]] = 1
+#        self.nRx = xrng[1]-xrng[0]
+#        self.nRy = yrng[1]-yrng[0]
+#        
+#        idx = np.arange(self.N)
+#        oprx = oprx.flatten()
+#        idx = idx[oprx]
+#        self.Md = sparse.dok_matrix((self.N,idx.size))
+#        
+#        for i in range(idx.size):
+#            self.Md[idx[i],i]=1.0
+#        self.Md = self.Md.tocsc()
+#        self.Md = self.Md.T
         
     def parseFields(self,u):
         ''' Method to return the field in its square form'''
-        if (not self.rom) | (len(u) == self.N):
-            return [u.reshape(self.nx,self.ny)]
-        else:
-            localU = np.dot(self.Phi,u)
-            return [localU.reshape(self.nx,self.ny)]
+        hi = (self.nx+1)*(self.ny)*self.nz
+
+        ex = u[:hi]
+        ex = ex.reshape(self.nx+1,self.ny,self.nz)
+        
+        hj = hi + (self.nx)*(self.ny+1)*self.nz
+        ey = u[hi:hj]
+        ey = ey.reshape(self.nx,self.ny+1,self.nz)
+        
+        ez = u[hj:]
+        ez = ez.reshape(self.nx,self.ny,self.nz+1)
+        
+        return [ex,ey,ez]
     
-    def pointSource(self, x,y):
+    def pointSource(self, x,y,z):
         """ A routine to add a point source at the grid loc (x,y) """
-        self.rhs = np.zeros((self.nx,self.ny),dtype='complex128') 
-        self.rhs[x,y] = -1.0
-        self.rhs = self.rhs.flatten()
+        rhsz = np.zeros((self.nx,self.ny,self.nz+1),dtype='complex128') 
+        rhsz[x,y,z] = 1.0
+        rhsz = rhsz.flatten()
+        rhsx = np.zeros((self.nx+1,self.ny,self.nz))
+        rhsy = np.zeros((self.nx,self.ny+1,self.nz))
+
+        self.rhs = np.concatenate((rhsx.flatten(), rhsy.flatten(), rhsz.flatten()))
     
     def planeWave(self):
         """ A routine to add a te planewave at angle as spec'd """
