@@ -19,14 +19,14 @@ def test(ica):
     bkgSig=0.0
     numSensors=10
     
-    fwd.setspace(25,25,25,5.0,5.0,5.0)
+    fwd.setspace(21,21,21,5.0,5.0,5.0)
     fwd.setmats(1,bkgSig,21/2)
     fwd.setOperators()
     fwd.makeGradOper()
     # fwd.setMs(numSensors)
     # fwd.setMd([60,140], [70,95])
     # fwd.sigmap[1] += self.Md.T*p
-    fwd.pointSource(10,12,10)
+    fwd.pointSource(10,10,10)
 #        self.planeWave()
     fwd.fwd_solve(0)
     # self.fwd_solve(1)

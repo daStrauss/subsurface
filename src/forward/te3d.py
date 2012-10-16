@@ -49,7 +49,7 @@ class solver(fwd):
 #            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
 #
 #        BA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
-#            sparse.kron(speye(self.nz),sparse.kron(speye(self.nx+1),pd1))
+#            sparse.kron(speye(self.nz),sparse.kron(speye(self.ny+1),pd1))
 ## chng
 #        BB = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
 #            sparse.kron(speye(self.nz),sparse.kron(pd1,speye(self.nx+1))) + \
@@ -68,7 +68,7 @@ class solver(fwd):
 #            sparse.kron(speye(self.nz+1),sparse.kron(speye(self.nx),pd1)) + \
 #            sparse.kron(speye(self.nz+1),sparse.kron(pd2,speye(self.ny)))*\
 #            sparse.kron(speye(self.nz+1),sparse.kron(pd1,speye(self.ny)))
-            # chng
+#            # chng
             
             # legacy - matlab ordering 
         AA = sparse.kron(speye(self.nz),sparse.kron(pd2,speye(self.nx+1)))*\
@@ -223,13 +223,15 @@ class solver(fwd):
     
     def pointSource(self, x,y,z):
         """ A routine to add a point source at the grid loc (x,y) """
-        rhsz = np.zeros((self.nx,self.ny,self.nz+1),dtype='complex128') 
-        rhsz[x,y,z] = 1.0
-        rhsz = rhsz.flatten()
-        rhsx = np.zeros((self.nx+1,self.ny,self.nz))
-        rhsy = np.zeros((self.nx,self.ny+1,self.nz))
-
-        self.rhs = np.concatenate((rhsx.flatten(), rhsy.flatten(), rhsz.flatten()))
+        # rhsz = np.zeros((self.nx,self.ny,self.nz+1),dtype='complex128') 
+        # rhsz[x,y,z] = 1.0
+        # rhsz = rhsz.flatten()
+        # rhsx = np.zeros((self.nx+1,self.ny,self.nz))
+        # rhsy = np.zeros((self.nx,self.ny+1,self.nz))
+        
+        self.rhs = np.zeros(self.N,dtype='complex128')
+        self.rhs[23614-1] = 1.0
+        #self.rhs = np.concatenate((rhsx.flatten(), rhsy.flatten(), rhsz.flatten()))
     
     def planeWave(self):
         """ A routine to add a te planewave at angle as spec'd """
