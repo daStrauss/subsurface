@@ -4,12 +4,6 @@ Created on Oct 10, 2012
 @author: dstrauss
 '''
 
-'''
-Created on Jun 12, 2012
-
-@author: dstrauss
-'''
-
 from model import fwd
 import numpy as np
 from scipy import sparse
@@ -39,26 +33,26 @@ class solver(fwd):
         pd2 = self.po*self.d2 # maps half to full
         
         AA = sparse.kron(speye(self.nx+1), sparse.kron(pd2,speye(self.nz)))*\
-        sparse.kron(speye(self.nx+1), sparse.kron(pd1,speye(self.nz))) + \
-        sparse.kron(speye(self.nx+1), sparse.kron(speye(self.ny),pd2)) * \
-        sparse.kron(speye(self.nx+1), sparse.kron(speye(self.ny),pd1)) 
+             sparse.kron(speye(self.nx+1), sparse.kron(pd1,speye(self.nz))) + \
+             sparse.kron(speye(self.nx+1), sparse.kron(speye(self.ny),pd2)) * \
+             sparse.kron(speye(self.nx+1), sparse.kron(speye(self.ny),pd1)) 
 # chngd
         AB = sparse.kron(speye(self.nx+1), sparse.kron(pd2,speye(self.nz)))*\
-            sparse.kron(pd1, sparse.kron(speye(self.ny+1),speye(self.nz)))
+             sparse.kron(pd1, sparse.kron(speye(self.ny+1),speye(self.nz)))
             
         AC = sparse.kron(speye(self.nx+1),sparse.kron(speye(self.ny),pd2))*\
             sparse.kron(pd1,sparse.kron(speye(self.ny),speye(self.nz+1)))
 # chngd
-        BA = sparse.kron(speye(self.nx+1),sparse.kron(pd2,speye(self.nz)))*\
-            sparse.kron(pd1,sparse.kron(speye(self.ny+1),speye(self.nz)))
+        BA = sparse.kron(pd2,sparse.kron(speye(self.ny+1),speye(self.nz)))*\
+             sparse.kron(speye(self.nx+1),sparse.kron(pd1,speye(self.nz)))
 # chngd
         BB = sparse.kron(pd2,sparse.kron(speye(self.ny+1),speye(self.nz)))*\
-            sparse.kron(pd1,sparse.kron(speye(self.ny+1),speye(self.nz))) + \
-            sparse.kron(speye(self.nx),sparse.kron(speye(self.ny+1),pd2))*\
-            sparse.kron(speye(self.nx),sparse.kron(speye(self.ny+1),pd1))
+             sparse.kron(pd1,sparse.kron(speye(self.ny+1),speye(self.nz))) + \
+             sparse.kron(speye(self.nx),sparse.kron(speye(self.ny+1),pd2))*\
+             sparse.kron(speye(self.nx),sparse.kron(speye(self.ny+1),pd1))
 # chngd
         BC = sparse.kron(speye(self.nx),sparse.kron(speye(self.ny+1),pd2))*\
-            sparse.kron(speye(self.nx),sparse.kron(pd1,speye(self.nz+1)))
+             sparse.kron(speye(self.nx),sparse.kron(pd1,speye(self.nz+1)))
 # chngd
         CA = sparse.kron(pd2,sparse.kron(speye(self.ny),speye(self.nz+1)))*\
              sparse.kron(speye(self.nx+1),sparse.kron(speye(self.ny),pd1))
