@@ -39,6 +39,10 @@ def delegator(solverType, flavor, freq, incAng):
         import biconvex
         S = map(biconvex.problem, freq, incAng, flavor)
         return S
+    elif solverType == 'contrastSoftX':
+        import contrastSoftX
+        S = map(contrastSoftX.problem, freq, incAng, flavor)
+        return S
     
 def bigProj(S, D):
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
