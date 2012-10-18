@@ -205,7 +205,7 @@ class problem(optimizer):
             u = updt[:n]
             x = updt[n:(n+m)]
             
-            rhs = np.concatenate((self.xi*(u+ud) + self.rho*TT.T.conj()*(self.Z+TT*self.ub),\
+            rhs = np.concatenate((self.xi*(u+ud) + self.rho*TT.T.conj()*(self.Z-TT*self.ub),\
                                   self.xi*(x+xd)-self.rho*self.Z))
             
             zold = z;
@@ -216,7 +216,8 @@ class problem(optimizer):
             ud = ud + u-ut;
             xd = xd + x-xt;
             gap[iter-2] = np.linalg.norm(np.concatenate((u,x))-np.concatenate((ut,xt)))
-    
+            print 'Gap at iter ' + repr(iter) + ' ' + repr(gap[iter-2])
+            
             sErr = -self.rho*(z-zold);
             rErr = np.concatenate((u,x)) - z;
     
