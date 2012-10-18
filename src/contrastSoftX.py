@@ -194,7 +194,7 @@ class problem(optimizer):
         eDua = 0.0
         rErr = np.ones(n+m)
         sErr = np.ones(n+m)
-        gap = np.zeros(100)
+        # gap = np.zeros(100)
         
         iter = 1
         while (iter<500): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
@@ -217,8 +217,8 @@ class problem(optimizer):
     
             ud = ud + u-ut;
             xd = xd + x-xt;
-            gap[iter-2] = np.linalg.norm(np.concatenate((u,x))-np.concatenate((ut,xt)))
-            print 'Gap at iter ' + repr(iter) + ' ' + repr(gap[iter-2])
+            gap = np.linalg.norm(np.concatenate((u,x))-np.concatenate((ut,xt)))
+            print 'Gap at iter ' + repr(iter) + ' ' + repr(gap)
             
             print 'uErr ' + repr(np.linalg.norm(u-uTrue)/np.linalg.norm(uTrue))
             print 'xErr ' + repr(np.linalg.norm(x-xTrue)/np.linalg.norm(xTrue))
