@@ -125,10 +125,10 @@ class problem(optimizer):
         us = self.fwd.parseFields(self.us)
         ub = self.fwd.parseFields(self.fwd.sol[0])
         sgmm = self.fwd.parseFields(self.fwd.sigmap[0])
-        uTrue = self.fwd.parseFields(self.fwd.sol[1])
+        uTrue = self.fwd.parseFields(self.fwd.sol[1]-self.fwd.sol[0])
         
         uSmp = self.fwd.Ms*self.us
-        uSolSmp = self.fwd.Ms*self.fwd.sol[1]
+        uSolSmp = self.fwd.Ms*(self.fwd.sol[1]-self.fwd.sol[0])
             
         D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
              'us':us[0], 'uTrue':uTrue[0], \
@@ -180,7 +180,7 @@ class problem(optimizer):
 
         z = np.zeros(n+m);
 
-        TT = self.s*sparse.spdiags(self.fwd.p2x*P,0,m,m)*self.fwd.x2u.T
+        TT = sparse.spdiags(self.s*self.fwd.p2x*P,0,m,m)*self.fwd.x2u.T
         
         uu = self.rho*TT.T.conj()*TT + self.xi*sparse.eye(n,n);
         ux = -self.rho*TT.T.conj()
