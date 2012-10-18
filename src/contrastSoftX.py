@@ -93,7 +93,7 @@ class problem(optimizer):
         ul = self.A.T.conj()
         
         xu = sparse.coo_matrix((m,n))
-        xx = self.xi*sparse.eye((m,m))
+        xx = self.xi*sparse.eye(m,m)
         xl = self.fwd.x2u.T.conj()
         
         lu = self.A
