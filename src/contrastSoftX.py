@@ -23,7 +23,7 @@ class problem(optimizer):
     def initOpt(self, uHat, D):
         self.rho = D['rho']
         self.xi = D['xi']
-        self.uHat = uHat
+        
         self.upperBound = D['uBound']
         self.lmb = D['lmb']
         self.obj = np.zeros(D['maxIter'])
@@ -42,7 +42,8 @@ class problem(optimizer):
         self.us = np.zeros(self.fwd.N,dtype='complex128')
         # just to make life easier:
         self.ub = self.fwd.sol[0] # shouldn't need --> .flatten()
-        
+        '''remove background field once and for all'''
+        self.uHat = uHat - self.fwd.Ms*self.ub
         # create some new operators for doing what is necessary for the 
         # contrast X work
         self.X = np.zeros(self.fwd.getXSize(),dtype='complex128')
@@ -59,9 +60,9 @@ class problem(optimizer):
         ''' to run at each layer at each iteration '''
         
         # update dual variable
-        self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*self.us)*(self.fwd.p2x*P))
+        self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.us+self.ub))*(self.fwd.p2x*P))
         
-        uHatLocal =  self.uHat  #remove background field
+        
         
         # uHatLocal =  self.uHat - self.fwd.Ms*self.ub  #remove background field
         
@@ -112,7 +113,7 @@ class problem(optimizer):
 #        print 'xdiff ' + repr(np.linalg.norm(xCP-self.X)/np.linalg.norm(self.X))
 
         
-        obj = np.linalg.norm(uHatLocal-self.fwd.Ms*self.us)
+        obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         return obj
         
     def writeOut(self, rank, ix=0):
@@ -204,7 +205,7 @@ class problem(optimizer):
             u = updt[:n]
             x = updt[n:(n+m)]
             
-            rhs = np.concatenate((self.xi*(u+ud) + self.rho*TT.T.conj()*self.Z,\
+            rhs = np.concatenate((self.xi*(u+ud) + self.rho*TT.T.conj()*(self.Z+TT*self.ub),\
                                   self.xi*(x+xd)-self.rho*self.Z))
             
             zold = z;
@@ -252,7 +253,7 @@ class problem(optimizer):
 #            Q[:,ix] = S[ix].X + S[ix].Z
             # print L.fwd.x2u.shape
             
-            M = L.s*(sparse.spdiags(L.fwd.x2u.T*(L.us),0,nX,nX))*self.fwd.p2x
+            M = L.s*(sparse.spdiags(L.fwd.x2u.T*(L.us+L.ub),0,nX,nX))*self.fwd.p2x
             uL += M.T.conj()*M
             bL += M.T.conj()*(L.X + L.Z)
             
