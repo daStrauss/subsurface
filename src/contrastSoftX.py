@@ -142,7 +142,7 @@ class problem(optimizer):
         sErr = np.ones(n+m)
         
         iter = 1
-        while (iter<200) & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
+        while (iter<20): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
             ''' inner loop to solve the projection '''
             iter += 1
             rhs = np.concatenate((self.fwd.Ms.T*self.uHat + self.xi*(ut-ud),\
