@@ -106,8 +106,8 @@ class problem(optimizer):
         
         usCP,xCP = self.contrastProjector(P)
         
-        print 'udiff ' + repr(np.linalg.norm(usCP-self.us))
-        print 'xdiff ' + repr(np.linalg.norm(xCP-self.X))
+        print 'udiff ' + repr(np.linalg.norm(usCP-self.us)/np.linalg.norm(self.us))
+        print 'xdiff ' + repr(np.linalg.norm(xCP-self.X)/np.linalg.norm(self.X))
         
         obj = np.linalg.norm(uHatLocal-self.fwd.Ms*self.us)
         return obj
