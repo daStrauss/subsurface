@@ -145,7 +145,7 @@ class problem(optimizer):
         while (iter<200) & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
             ''' inner loop to solve the projection '''
             iter += 1
-            rhs = np.concatenate((self.fwd.Ms.T*self.uhat + self.xi*(ut-ud),\
+            rhs = np.concatenate((self.fwd.Ms.T*self.uHat + self.xi*(ut-ud),\
                                   self.xi*(xt-xd),\
                                   self.fwd.rhs))
             updt = self.projector(rhs)
@@ -231,7 +231,7 @@ class problem(optimizer):
         # vv = S.Ms*S.v
         uu = self.fwd.Ms*self.us
         ub = self.fwd.Ms*self.ub
-        skt = self.uHat-ub
+        skt = self.uHat
         
         plt.figure(100 + rank + 10*ix)
         plt.plot(np.arange(self.fwd.nSen), skt.real, np.arange(self.fwd.nSen), uu.real)
