@@ -86,7 +86,7 @@ class problem(optimizer):
     def prepProjector(self):
         ''' create a projection function, stored inside, that does the u,x projection step'''
         n = self.fwd.N
-        m = self.fwd.getXsize()
+        m = self.fwd.getXSize()
         
         uu = self.fwd.Ms.T*self.fwd.Ms+self.xi*sparse.eye(n,n)
         ux = sparse.coo_matrix((n,m))
