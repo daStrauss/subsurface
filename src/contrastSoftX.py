@@ -14,7 +14,7 @@ from mpi4py import MPI
 import sparseTools as spt
 import scipy.io as spio
 from optimize import optimizer
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 class problem(optimizer):
@@ -228,9 +228,9 @@ class problem(optimizer):
             #    break
     
         print 'inner iters = ' + repr(iter)
-        plt.figure(1)
-        plt.plot(range(100),gap)
-        plt.show()
+#        plt.figure(1)
+#        plt.plot(range(100),gap)
+#        plt.show()
         return u,x
         
 
