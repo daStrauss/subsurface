@@ -197,7 +197,7 @@ class problem(optimizer):
         gap = np.zeros(100)
         
         iter = 1
-        while (iter<50): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
+        while (iter<500): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
             ''' inner loop to solve the projection '''
             iter += 1
             rhs = np.concatenate((self.fwd.Ms.T*self.uHat + self.xi*(ut-ud),\
