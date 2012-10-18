@@ -109,8 +109,8 @@ class problem(optimizer):
 #        
         fooUs,fooX = self.contrastProjector(P,dirUS,dirX)
         
-        self.us = dirUS;
-        self.X = dirX;
+        self.us = fooUs;
+        self.X = fooX;
 #        print 'udiff ' + repr(np.linalg.norm(usCP-self.us)/np.linalg.norm(self.us))
 #        print 'xdiff ' + repr(np.linalg.norm(xCP-self.X)/np.linalg.norm(self.X))
 
