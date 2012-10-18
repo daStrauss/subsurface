@@ -109,7 +109,7 @@ class problem(optimizer):
 #        
         fooUs,fooX = self.contrastProjector(P,dirUS,dirX)
         
-        D = {'dirUs':dirUS, 'dirX':dirX, 'fooUs':fooUs, 'fooX':fooX}
+        D = {'dirUs':dirUS.reshape(self.N,self.N), 'dirX':dirX.reshape(self.fwd.nRx,self.fwd.nRy), 'fooUs':fooUs.reshape(self.N,self.N), 'fooX':fooX.reshape(self.fwd.nRx,self.nRy)}
         spio.savemat('dircomp',D)
         
         self.us = fooUs;
