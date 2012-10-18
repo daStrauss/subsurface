@@ -66,49 +66,51 @@ class problem(optimizer):
         
         # uHatLocal =  self.uHat - self.fwd.Ms*self.ub  #remove background field
         
-#        nX = self.fwd.getXSize()
-#        pm = sparse.spdiags(self.s*self.fwd.p2x*P, 0, nX, nX)
-#        # print pm.shape
-#        # print self.fwd.x2u.shape
-#        ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
-#  
-#        # Construct the KKT Matrix
-#        bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
-#        bmux = -self.rho*ds.T.conj()
-#        bmul = self.A.T.conj()
-#        
-#        rhsu = self.fwd.Ms.T.conj()*uHatLocal  + self.rho*ds.T.conj()*self.Z
-#        # - self.rho*(ds.T.conj()*ds)*self.ub
-#  
-#        bmxu = -self.rho*ds
-#        bmxx = self.rho*sparse.eye(nX, nX)
-#        bmxl = self.fwd.x2u.T
-#        rhsx = - self.rho*self.Z
-#        # self.rho*ds*self.ub 
-#        
-#        bmlu = self.A
-#        bmlx = self.fwd.x2u
-#
-#        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N)) 
-#        # rhsl = np.zeros(self.fwd.N)
-#        rhsl = self.fwd.rhs
-#  
-#        bm = spt.vCat([spt.hCat([bmuu, bmux, bmul]), \
-#                       spt.hCat([bmxu, bmxx, bmxl]), \
-#                       spt.hCat([bmlu, bmlx, bmll])])
-#        
-#        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
-#        
-#        updt = lin.spsolve(bm.tocsr(), rhsbm)
-#        
-#        # N = self.nx*self.ny
-#        self.us = updt[:self.fwd.N]
-#        self.X = updt[self.fwd.N:(self.fwd.N+nX)]
-#        
-#        
-#        
-        self.us,self.X = self.contrastProjector(P)
+        nX = self.fwd.getXSize()
+        pm = sparse.spdiags(self.s*self.fwd.p2x*P, 0, nX, nX)
+        # print pm.shape
+        # print self.fwd.x2u.shape
+        ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
+  
+        # Construct the KKT Matrix
+        bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
+        bmux = -self.rho*ds.T.conj()
+        bmul = self.A.T.conj()
         
+        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
+        # 
+  
+        bmxu = -self.rho*ds
+        bmxx = self.rho*sparse.eye(nX, nX)
+        bmxl = self.fwd.x2u.T
+        rhsx = - self.rho*self.Z + self.rho*ds*self.ub 
+        # 
+        
+        bmlu = self.A
+        bmlx = self.fwd.x2u
+
+        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N)) 
+        rhsl = np.zeros(self.fwd.N)
+        # rhsl = self.fwd.rhs
+  
+        bm = spt.vCat([spt.hCat([bmuu, bmux, bmul]), \
+                       spt.hCat([bmxu, bmxx, bmxl]), \
+                       spt.hCat([bmlu, bmlx, bmll])])
+        
+        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
+        
+        updt = lin.spsolve(bm.tocsr(), rhsbm)
+        
+        # N = self.nx*self.ny
+        dirUS = updt[:self.fwd.N]
+        dirX = updt[self.fwd.N:(self.fwd.N+nX)]
+        
+        
+#        
+        fooUs,fooX = self.contrastProjector(P,dirUS,dirX)
+        
+        self.us = dirUS;
+        self.X = dirX;
 #        print 'udiff ' + repr(np.linalg.norm(usCP-self.us)/np.linalg.norm(self.us))
 #        print 'xdiff ' + repr(np.linalg.norm(xCP-self.X)/np.linalg.norm(self.X))
 
@@ -158,7 +160,7 @@ class problem(optimizer):
         
         self.projector = lin.factorized(M.tocsc())
         
-    def contrastProjector(self,P):
+    def contrastProjector(self,P,uTrue,xTrue):
         '''subroutine to actually do the projection '''
         n = self.fwd.N
         m = self.fwd.getXSize()
@@ -217,6 +219,9 @@ class problem(optimizer):
             xd = xd + x-xt;
             gap[iter-2] = np.linalg.norm(np.concatenate((u,x))-np.concatenate((ut,xt)))
             print 'Gap at iter ' + repr(iter) + ' ' + repr(gap[iter-2])
+            
+            print 'uErr ' + repr(np.linalg.norm(u-uTrue))
+            print 'xErr ' + repr(np.linalg.norm(x-xTrue))
             
             sErr = -self.rho*(z-zold);
             rErr = np.concatenate((u,x)) - z;
