@@ -227,8 +227,8 @@ class problem(optimizer):
             
             print 'uErr ' + repr(np.linalg.norm(u-uTrue)/np.linalg.norm(uTrue))
             print 'xErr ' + repr(np.linalg.norm(x-xTrue)/np.linalg.norm(xTrue))
-            print 'cnstr ' + repr(np.linalg.norm(self.A*u + x))
-            print 'cnstr twiddle ' + repr(np.linalg.norm(self.A*ut + xt))
+            print 'cnstr ' + repr(np.linalg.norm(self.A*u + self.fwd.x2u*x))
+            print 'cnstr twiddle ' + repr(np.linalg.norm(self.A*ut + self.fwd.x2u*xt))
             
             sErr = -self.rho*(z-zold);
             rErr = np.concatenate((u,x)) - z;
