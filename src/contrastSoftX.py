@@ -61,9 +61,54 @@ class problem(optimizer):
         
         uHatLocal =  self.uHat  #remove background field
         
+        # uHatLocal =  self.uHat - self.fwd.Ms*self.ub  #remove background field
         
-        self.us,self.X = self.contrastProjector(P)
+        nX = self.fwd.getXSize()
+        pm = sparse.spdiags(self.s*self.fwd.p2x*P, 0, nX, nX)
+        # print pm.shape
+        # print self.fwd.x2u.shape
+        ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
+  
+        # Construct the KKT Matrix
+        bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
+        bmux = -self.rho*ds.T.conj()
+        bmul = self.A.T.conj()
+        
+        rhsu = self.fwd.Ms.T.conj()*uHatLocal  + self.rho*ds.T.conj()*self.Z
+        # - self.rho*(ds.T.conj()*ds)*self.ub
+  
+        bmxu = -self.rho*ds
+        bmxx = self.rho*sparse.eye(nX, nX)
+        bmxl = self.fwd.x2u.T
+        rhsx = - self.rho*self.Z
+        # self.rho*ds*self.ub 
+        
+        bmlu = self.A
+        bmlx = self.fwd.x2u
 
+        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N)) 
+        rhsl = np.zeros(self.fwd.N)
+  
+  
+        bm = spt.vCat([spt.hCat([bmuu, bmux, bmul]), \
+                       spt.hCat([bmxu, bmxx, bmxl]), \
+                       spt.hCat([bmlu, bmlx, bmll])])
+        
+        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
+        
+        updt = lin.spsolve(bm.tocsr(), rhsbm)
+        
+        # N = self.nx*self.ny
+        self.us = updt[:self.fwd.N]
+        self.X = updt[self.fwd.N:(self.fwd.N+nX)]
+        
+        
+        
+        usCP,xCP = self.contrastProjector(P)
+        
+        print 'udiff ' + repr(np.linalg.norm(usCP-self.us))
+        print 'xdiff ' + repr(np.linalg.norm(xCP-self.X))
+        
         obj = np.linalg.norm(uHatLocal-self.fwd.Ms*self.us)
         return obj
         
@@ -75,12 +120,14 @@ class problem(optimizer):
         ub = self.fwd.parseFields(self.fwd.sol[0])
         sgmm = self.fwd.parseFields(self.fwd.sigmap[0])
         uTrue = self.fwd.parseFields(self.fwd.sol[1])
+        uSmp = self.fwd.Ms*self.fwd.parseFields(self.fwd.sol[1])
+        uSolSmp = self.fwd.Ms*self.fwd.parseFields(self.us)
             
         D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
              'us':us[0], 'uTrue':uTrue[0], \
-             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor}
+             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'uSmp':uSmp, 'uSolSmp':uSolSmp}
         
-        spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
+        spio.savemat(self.outDir + 'Data/contrastSoftX' + repr(rank) + '_' + repr(ix), D)
 
 
     def prepProjector(self):
@@ -111,8 +158,8 @@ class problem(optimizer):
         n = self.fwd.N
         m = self.fwd.getXSize()
 
-        Aa = sparse.eye(n+m,n+m);
-        Bb = -sparse.eye(n+m,n+m);
+        # Aa = sparse.eye(n+m,n+m);
+        # Bb = -sparse.eye(n+m,n+m);
         eAbs = 1e-5;
         eRel = 1e-5;
 
@@ -166,8 +213,8 @@ class problem(optimizer):
             sErr = -self.rho*(z-zold);
             rErr = np.concatenate((u,x)) - z;
     
-            ePri = np.sqrt(2*n)*eAbs + eRel*max(np.linalg.norm(Aa*np.concatenate((ut,xt))),\
-                                                np.linalg.norm(Bb*z))
+            ePri = np.sqrt(2*n)*eAbs + eRel*max(np.linalg.norm(np.concatenate((ut,xt))),\
+                                                np.linalg.norm(-1.0*z))
                                                 
             eDua = np.sqrt(2*n)*eAbs + eRel*np.linalg.norm(np.concatenate((ud,xd))*self.rho);
     
