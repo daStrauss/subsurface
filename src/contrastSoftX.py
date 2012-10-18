@@ -206,7 +206,7 @@ class problem(optimizer):
             x = updt[n:(n+m)]
             
             rhs = np.concatenate((self.xi*(u+ud) + self.rho*TT.T.conj()*(self.Z-TT*self.ub),\
-                                  self.xi*(x+xd)-self.rho*self.Z))
+                                  self.xi*(x+xd)-self.rho*(self.Z+TT*self.ub)))
             
             zold = z;
             z = g(rhs);
