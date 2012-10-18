@@ -200,7 +200,7 @@ class problem(optimizer):
             iter += 1
             rhs = np.concatenate((self.fwd.Ms.T*self.uHat + self.xi*(ut-ud),\
                                   self.xi*(xt-xd),\
-                                  self.fwd.rhs))
+                                  np.zeros(n)))
             updt = self.projector(rhs)
             u = updt[:n]
             x = updt[n:(n+m)]
