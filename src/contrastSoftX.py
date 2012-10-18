@@ -164,7 +164,7 @@ class problem(optimizer):
             xd = xd + x-xt;
     
             sErr = -self.rho*(z-zold);
-            rErr = updt[:(n+n+m)] - z;
+            rErr = np.concatenate((u,x)) - z;
     
             ePri = np.sqrt(2*n)*eAbs + eRel*max(np.linalg.norm(Aa*np.concatenate((ut,xt))),\
                                                 np.linalg.norm(Bb*z))
