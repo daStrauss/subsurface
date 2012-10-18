@@ -12,8 +12,8 @@ def getMyVars(parseNumber, D):
     '''routine to return the parameters to test at the current iteration.'''
     
     
-    D['rho'] = 0.001
-    D['xi'] = 0.0001
+    D['rho'] = 1.0
+    D['xi'] = 1.0
     D['freqs'] = np.array([1e3])
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  100
