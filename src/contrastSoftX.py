@@ -16,7 +16,7 @@ import scipy.io as spio
 from optimize import optimizer
 # import matplotlib.pyplot as plt
 
-xi2 = 1e-8
+xi2 = 1e-13
 
 class problem(optimizer):
     ''' an instance of an optimizer that will solve using the soft contrast X algorithm 
