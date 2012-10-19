@@ -147,7 +147,7 @@ class problem(optimizer):
         n = self.fwd.N
         m = self.fwd.getXSize()
         
-        uu = self.fwd.Ms.T*self.fwd.Ms+self.xi*sparse.eye(n,n)
+        uu = self.fwd.Ms.T*self.fwd.Ms # +self.xi*sparse.eye(n,n)
         ux = sparse.coo_matrix((n,m))
         ul = self.A.T.conj()
         
@@ -206,8 +206,8 @@ class problem(optimizer):
         sErr = np.ones(n+m)
         # gap = np.zeros(100)
         
-        iter = 1
-        while (iter<50): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
+        iter = 0
+        while (iter<1): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
             ''' inner loop to solve the projection '''
             iter += 1
             rhs = np.concatenate((self.fwd.Ms.T*self.uHat + self.xi*(ut-ud),\
@@ -225,8 +225,8 @@ class problem(optimizer):
             ut = z[:n]
             xt = z[n:]        
     
-            ud = ud + u-ut;
-            xd = xd + x-xt;
+            ud += u-ut;
+            xd += x-xt;
             gap = np.linalg.norm(np.concatenate((u,x))-np.concatenate((ut,xt)))
             print 'Gap at iter ' + repr(iter) + ' ' + repr(gap)
             
