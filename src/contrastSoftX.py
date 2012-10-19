@@ -148,16 +148,16 @@ class problem(optimizer):
         m = self.fwd.getXSize()
         
         uu = self.fwd.Ms.T*self.fwd.Ms # +self.xi*sparse.eye(n,n)
-        ux = sparse.coo_matrix((n,m))
+        ux = sparse.coo_matrix((n,m),dtype='complex128')
         ul = self.A.T.conj()
         
-        xu = sparse.coo_matrix((m,n))
-        xx = self.xi*sparse.eye(m,m)
+        xu = sparse.coo_matrix((m,n),dtype='complex128')
+        xx = self.xi*sparse.eye(m,m,dtype='complex128')
         xl = self.fwd.x2u.T.conj()
         
         lu = self.A
         lx = self.fwd.x2u
-        ll = sparse.coo_matrix((n,n))
+        ll = sparse.coo_matrix((n,n),dtype='complex128')
         
         M = spt.vCat([spt.hCat([uu,ux,ul]),\
                       spt.hCat([xu,xx,xl]),\
@@ -175,15 +175,15 @@ class problem(optimizer):
         eAbs = 1e-5;
         eRel = 1e-5;
 
-        u = np.zeros(n);
+        u = np.zeros(n,dtype='complex128');
         ut = self.us;
-        ud = np.zeros(n);
+        ud = np.zeros(n,dtype='complex128');
 
-        x = np.zeros(m);
+        x = np.zeros(m,dtype='complex128');
         xt = self.X;
-        xd = np.zeros(m);
+        xd = np.zeros(m,dtype='complex128');
 
-        z = np.zeros(n+m);
+        z = np.zeros(n+m,dtype='complex128');
         print self.rho
         print self.xi
         
@@ -191,10 +191,10 @@ class problem(optimizer):
         print 'tt norm ' + repr(np.linalg.norm(TT.todense()))
         
         
-        uu = self.rho*TT.T.conj()*TT + self.xi*sparse.eye(n,n);
+        uu = self.rho*TT.T.conj()*TT + self.xi*sparse.eye(n,n,dtype='complex128');
         ux = -self.rho*TT.T.conj()
         xu = -self.rho*TT
-        xx = self.rho*sparse.eye(m,m) + self.xi*sparse.eye(m,m)
+        xx = self.rho*sparse.eye(m,m,dtype='complex128') + self.xi*sparse.eye(m,m,dtype='complex128')
         
         R = spt.vCat([spt.hCat([uu, ux]), spt.hCat([xu, xx])])
         spio.savemat('ttout', {'R':R})
