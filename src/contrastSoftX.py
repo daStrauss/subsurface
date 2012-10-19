@@ -16,6 +16,7 @@ import scipy.io as spio
 from optimize import optimizer
 # import matplotlib.pyplot as plt
 
+xi2 = 1e-8
 
 class problem(optimizer):
     ''' an instance of an optimizer that will solve using the soft contrast X algorithm 
@@ -147,7 +148,7 @@ class problem(optimizer):
         n = self.fwd.N
         m = self.fwd.getXSize()
         
-        uu = self.fwd.Ms.T*self.fwd.Ms +self.xi*sparse.eye(n,n)
+        uu = self.fwd.Ms.T*self.fwd.Ms + xi2*sparse.eye(n,n)
         ux = sparse.coo_matrix((n,m),dtype='complex128')
         ul = self.A.T.conj()
         
@@ -191,7 +192,7 @@ class problem(optimizer):
         print 'tt norm ' + repr(np.linalg.norm(TT.todense()))
         
         
-        uu = self.rho*TT.T.conj()*TT + self.xi*sparse.eye(n,n,dtype='complex128');
+        uu = self.rho*TT.T.conj()*TT + xi2*sparse.eye(n,n,dtype='complex128');
         ux = -self.rho*TT.T.conj()
         xu = -self.rho*TT
         xx = self.rho*sparse.eye(m,m,dtype='complex128') + self.xi*sparse.eye(m,m,dtype='complex128')
@@ -210,14 +211,14 @@ class problem(optimizer):
         while (iter<1): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
             ''' inner loop to solve the projection '''
             iter += 1
-            rhs = np.concatenate((self.fwd.Ms.T*self.uHat + self.xi*(ut-ud),\
+            rhs = np.concatenate((self.fwd.Ms.T*self.uHat + xi2*(ut-ud),\
                                   self.xi*(xt-xd),\
                                   np.zeros(n)))
             updt = self.projector(rhs)
             u = updt[:n]
             x = updt[n:(n+m)]
             
-            rhs = np.concatenate((self.xi*(u+ud) + self.rho*TT.T.conj()*(self.Z-TT*self.ub),\
+            rhs = np.concatenate((xi2*(u+ud) + self.rho*TT.T.conj()*(self.Z-TT*self.ub),\
                                   self.xi*(x+xd) - self.rho*(self.Z-TT*self.ub)))
             
             zold = z;
