@@ -113,7 +113,7 @@ class problem(optimizer):
 #        
 #        
 #        
-        fooUs,fooX = self.contrastProjector(P,200,1,1)
+        fooUs,fooX = self.contrastProjector(P,100,1,1)
         
 #        D = {'dirUs':dirUS.reshape(self.fwd.nx,self.fwd.ny), 'dirX':dirX.reshape(self.fwd.nRx,self.fwd.nRy),\
 #              'fooUs':fooUs.reshape(self.fwd.nx,self.fwd.ny), 'fooX':fooX.reshape(self.fwd.nRx,self.fwd.nRy),\
@@ -223,6 +223,7 @@ class problem(optimizer):
             
             
             updt = self.projector(rhs)
+            uold = u
             u = updt[:n]
             x = updt[n:(n+m)]
             
@@ -237,6 +238,8 @@ class problem(optimizer):
             gap = np.linalg.norm(u-ut)
             print 'Gap at iter ' + repr(iter) + ' ' + repr(gap)
             
+            if np.linalg.norm(u-uold) < 1e-10:
+                break
             # print 'uErr ' + repr(np.linalg.norm(u-uTrue)/np.linalg.norm(uTrue))
             # print 'xErr ' + repr(np.linalg.norm(x-xTrue)/np.linalg.norm(xTrue))
             # print 'cnstr ' + repr(np.linalg.norm(self.A*u + self.fwd.x2u*x))

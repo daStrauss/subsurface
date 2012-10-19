@@ -22,8 +22,8 @@ def getMyVars(parseNumber, D):
     D['xi'] = xis[parseNumber%100]
     D['bkgNo'] = int(parseNumber/100) + 100
     
-    D['freqs'] = np.array([1e3, 3e3, 5e3, 8e3,10e3, 13e3, 25e3, 50e3])  
+    D['freqs'] = np.array([1e3, 3e3, 13e3, 25e3])  
     D['inc'] = np.array([75])*np.pi/180
-    D['numProcs'] = 8
+    D['numProcs'] = 4
     
     return D
