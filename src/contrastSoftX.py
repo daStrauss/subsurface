@@ -147,7 +147,7 @@ class problem(optimizer):
         n = self.fwd.N
         m = self.fwd.getXSize()
         
-        uu = self.fwd.Ms.T*self.fwd.Ms # +self.xi*sparse.eye(n,n)
+        uu = self.fwd.Ms.T*self.fwd.Ms +self.xi*sparse.eye(n,n)
         ux = sparse.coo_matrix((n,m),dtype='complex128')
         ul = self.A.T.conj()
         
