@@ -188,8 +188,8 @@ class problem(optimizer):
         print self.xi
         
         TT = sparse.spdiags(self.s*self.fwd.p2x*P,0,m,m)*self.fwd.x2u.T
-        print TT.todense()
-        spio.savemat('ttout', {'tt':TT})
+        print 'tt norm ' + repr(np.linalg.norm(TT.todense()))
+        
         
         uu = self.rho*TT.T.conj()*TT + self.xi*sparse.eye(n,n);
         ux = -self.rho*TT.T.conj()
@@ -197,6 +197,7 @@ class problem(optimizer):
         xx = self.rho*sparse.eye(m,m) + self.xi*sparse.eye(m,m)
         
         R = spt.vCat([spt.hCat([uu, ux]), spt.hCat([xu, xx])])
+        spio.savemat('ttout', {'R':R})
         g = lin.factorized(R.tocsc())
         
         ePri = 0.0
