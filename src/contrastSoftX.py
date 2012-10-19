@@ -53,8 +53,13 @@ class problem(optimizer):
         # this operator creates a matrix that maps to the X variables which are field specific
         self.fwd.setCTRX()
         # create an operator that makes a projector used for updating u,x jointly
-        self.prepProjector()
         
+        # seed it?
+        self.xi = 1e-13
+        self.prepProjector()
+        self.us,self.X = self.contrastProjector(np.zeros(self.fwd.nRx*self.fwd.nRy),1,1,1)
+        self.xi = D['xi']
+        self.prepProjector()
         
     
     def runOpt(self,P):
@@ -66,54 +71,54 @@ class problem(optimizer):
         
         
         # uHatLocal =  self.uHat - self.fwd.Ms*self.ub  #remove background field
-        
-        nX = self.fwd.getXSize()
-        pm = sparse.spdiags(self.s*self.fwd.p2x*P, 0, nX, nX)
-        # print pm.shape
-        # print self.fwd.x2u.shape
-        ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
-  
-        # Construct the KKT Matrix
-        bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
-        bmux = -self.rho*ds.T.conj()
-        bmul = self.A.T.conj()
-        
-        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
-        # 
-  
-        bmxu = -self.rho*ds
-        bmxx = self.rho*sparse.eye(nX, nX)
-        bmxl = self.fwd.x2u.T
-        rhsx = - self.rho*self.Z + self.rho*ds*self.ub 
-        # 
-        
-        bmlu = self.A
-        bmlx = self.fwd.x2u
-
-        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N)) 
-        rhsl = np.zeros(self.fwd.N)
-        # rhsl = self.fwd.rhs
-  
-        bm = spt.vCat([spt.hCat([bmuu, bmux, bmul]), \
-                       spt.hCat([bmxu, bmxx, bmxl]), \
-                       spt.hCat([bmlu, bmlx, bmll])])
-        
-        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
-        
-        updt = lin.spsolve(bm.tocsr(), rhsbm)
-        
-        # N = self.nx*self.ny
-        dirUS = updt[:self.fwd.N]
-        dirX = updt[self.fwd.N:(self.fwd.N+nX)]
-        
-        
 #        
-        fooUs,fooX = self.contrastProjector(P,dirUS,dirX)
+#        nX = self.fwd.getXSize()
+#        pm = sparse.spdiags(self.s*self.fwd.p2x*P, 0, nX, nX)
+#        # print pm.shape
+#        # print self.fwd.x2u.shape
+#        ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
+#  
+#        # Construct the KKT Matrix
+#        bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
+#        bmux = -self.rho*ds.T.conj()
+#        bmul = self.A.T.conj()
+#        
+#        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
+#        # 
+#  
+#        bmxu = -self.rho*ds
+#        bmxx = self.rho*sparse.eye(nX, nX)
+#        bmxl = self.fwd.x2u.T
+#        rhsx = - self.rho*self.Z + self.rho*ds*self.ub 
+#        # 
+#        
+#        bmlu = self.A
+#        bmlx = self.fwd.x2u
+#
+#        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N)) 
+#        rhsl = np.zeros(self.fwd.N)
+#        # rhsl = self.fwd.rhs
+#  
+#        bm = spt.vCat([spt.hCat([bmuu, bmux, bmul]), \
+#                       spt.hCat([bmxu, bmxx, bmxl]), \
+#                       spt.hCat([bmlu, bmlx, bmll])])
+#        
+#        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
+#        
+#        updt = lin.spsolve(bm.tocsr(), rhsbm)
+#        
+#        # N = self.nx*self.ny
+#        dirUS = updt[:self.fwd.N]
+#        dirX = updt[self.fwd.N:(self.fwd.N+nX)]
+#        
+#        
+#        
+        fooUs,fooX = self.contrastProjector(P,200,1,1)
         
-        D = {'dirUs':dirUS.reshape(self.fwd.nx,self.fwd.ny), 'dirX':dirX.reshape(self.fwd.nRx,self.fwd.nRy),\
-              'fooUs':fooUs.reshape(self.fwd.nx,self.fwd.ny), 'fooX':fooX.reshape(self.fwd.nRx,self.fwd.nRy),\
-              'P':P.reshape(self.fwd.nRx,self.fwd.nRy), 'AA':self.A}
-        spio.savemat('dircomp',D)
+#        D = {'dirUs':dirUS.reshape(self.fwd.nx,self.fwd.ny), 'dirX':dirX.reshape(self.fwd.nRx,self.fwd.nRy),\
+#              'fooUs':fooUs.reshape(self.fwd.nx,self.fwd.ny), 'fooX':fooX.reshape(self.fwd.nRx,self.fwd.nRy),\
+#              'P':P.reshape(self.fwd.nRx,self.fwd.nRy), 'AA':self.A}
+#        spio.savemat('dircomp',D)
         
         self.us = fooUs;
         self.X = fooX;
@@ -148,14 +153,13 @@ class problem(optimizer):
         n = self.fwd.N
         m = self.fwd.getXSize()
         
-        uu = self.fwd.Ms.T*self.fwd.Ms + xi2*sparse.eye(n,n)
+        uu = self.fwd.Ms.T*self.fwd.Ms + self.xi*sparse.eye(n,n)
         ux = sparse.coo_matrix((n,m),dtype='complex128')
         ul = self.A.T.conj()
         
 
         xu = sparse.coo_matrix((m,n),dtype='complex128')
-        xx = self.xi*sparse.eye(m,m,dtype='complex128')
-
+        xx = self.rho*sparse.eye(m,m,dtype='complex128')
         xl = self.fwd.x2u.T.conj()
         
         lu = self.A
@@ -168,7 +172,7 @@ class problem(optimizer):
         
         self.projector = lin.factorized(M.tocsc())
         
-    def contrastProjector(self,P,uTrue,xTrue):
+    def contrastProjector(self,P,intIters,uTrue,xTrue):
         '''subroutine to actually do the projection '''
         n = self.fwd.N
         m = self.fwd.getXSize()
@@ -183,25 +187,25 @@ class problem(optimizer):
         ud = np.zeros(n,dtype='complex128');
 
         x = np.zeros(m,dtype='complex128');
-        xt = self.X;
-        xd = np.zeros(m,dtype='complex128');
+        # xt = self.X;
+        # xd = np.zeros(m,dtype='complex128');
 
-        z = np.zeros(n+m,dtype='complex128');
+        #      z = np.zeros(n+m,dtype='complex128');
         print self.rho
         print self.xi
         
         TT = sparse.spdiags(self.s*self.fwd.p2x*P,0,m,m)*self.fwd.x2u.T
-        print 'tt norm ' + repr(np.linalg.norm(TT.todense()))
+        # print 'tt norm ' + repr(np.linalg.norm(TT.todense()))
         
         
-        uu = self.rho*TT.T.conj()*TT + xi2*sparse.eye(n,n,dtype='complex128');
-        ux = -self.rho*TT.T.conj()
-        xu = -self.rho*TT
-        xx = self.rho*sparse.eye(m,m,dtype='complex128') + self.xi*sparse.eye(m,m,dtype='complex128')
+        uu = self.rho*TT.T.conj()*TT + self.xi*sparse.eye(n,n,dtype='complex128');
+        # ux = -self.rho*TT.T.conj()
+        # xu = -self.rho*TT
+        # xx = self.rho*sparse.eye(m,m,dtype='complex128') + self.xi*sparse.eye(m,m,dtype='complex128')
         
-        R = spt.vCat([spt.hCat([uu, ux]), spt.hCat([xu, xx])])
-        spio.savemat('ttout', {'R':R})
-        g = lin.factorized(R.tocsc())
+        # R = spt.vCat([spt.hCat([uu, ux]), spt.hCat([xu, xx])])
+        # spio.savemat('ttout', {'R':R})
+        g = lin.factorized(uu.tocsc())
         
         ePri = 0.0
         eDua = 0.0
@@ -210,41 +214,41 @@ class problem(optimizer):
         # gap = np.zeros(100)
         
         iter = 0
-        while (iter<20): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
+        while (iter<intIters): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
             ''' inner loop to solve the projection '''
             iter += 1
-            rhs = np.concatenate((self.fwd.Ms.T*self.uHat + xi2*(ut-ud),\
-                                  self.xi*(xt-xd),\
+            rhs = np.concatenate((self.fwd.Ms.T*self.uHat + self.xi*(ut-ud),\
+                                  self.rho*(TT*ut+TT*self.ub-self.Z),\
                                   np.zeros(n)))
+            
+            
             updt = self.projector(rhs)
             u = updt[:n]
             x = updt[n:(n+m)]
             
-            rhs = np.concatenate((xi2*(u+ud) + self.rho*TT.T.conj()*(self.Z-TT*self.ub),\
-                                  self.xi*(x+xd) - self.rho*(self.Z-TT*self.ub)))
+            rhs = self.xi*(u+ud) + self.rho*TT.T.conj()*(self.Z-TT*self.ub)
             
-            zold = z;
-            z = g(rhs);
-            ut = z[:n]
-            xt = z[n:]        
+            ut = g(rhs);
+            # ut = z[:n]
+            # xt = z[n:]        
     
             ud += u-ut;
-            xd += x-xt;
-            gap = np.linalg.norm(np.concatenate((u,x))-np.concatenate((ut,xt)))
+            # xd += x-xt;
+            gap = np.linalg.norm(u-ut)
             print 'Gap at iter ' + repr(iter) + ' ' + repr(gap)
             
-            print 'uErr ' + repr(np.linalg.norm(u-uTrue)/np.linalg.norm(uTrue))
-            print 'xErr ' + repr(np.linalg.norm(x-xTrue)/np.linalg.norm(xTrue))
-            print 'cnstr ' + repr(np.linalg.norm(self.A*u + self.fwd.x2u*x))
-            print 'cnstr twiddle ' + repr(np.linalg.norm(self.A*ut + self.fwd.x2u*xt))
+            # print 'uErr ' + repr(np.linalg.norm(u-uTrue)/np.linalg.norm(uTrue))
+            # print 'xErr ' + repr(np.linalg.norm(x-xTrue)/np.linalg.norm(xTrue))
+            # print 'cnstr ' + repr(np.linalg.norm(self.A*u + self.fwd.x2u*x))
+            # print 'cnstr twiddle ' + repr(np.linalg.norm(self.A*ut + self.fwd.x2u*xt))
             
-            sErr = -self.rho*(z-zold);
-            rErr = np.concatenate((u,x)) - z;
+            # sErr = -self.rho*(z-zold);
+            # rErr = np.concatenate((u,x)) - z;
     
-            ePri = np.sqrt(2*n)*eAbs + eRel*max(np.linalg.norm(np.concatenate((ut,xt))),\
-                                                np.linalg.norm(-1.0*z))
+            #ePri = np.sqrt(2*n)*eAbs + eRel*max(np.linalg.norm(np.concatenate((ut,xt))),\
+            #                                    np.linalg.norm(-1.0*z))
                                                 
-            eDua = np.sqrt(2*n)*eAbs + eRel*np.linalg.norm(np.concatenate((ud,xd))*self.rho);
+            # eDua = np.sqrt(2*n)*eAbs + eRel*np.linalg.norm(np.concatenate((ud,xd))*self.rho);
             # if (np.linalg.norm(rErr)<ePri) & (np.linalg.norm(sErr)<eDua):
             #    break
     

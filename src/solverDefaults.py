@@ -44,6 +44,7 @@ def getDefaults(solverType, flavor, customDefs):
     D['rom'] = False
     D['freqs'] = np.array([1e3, 3e3, 13e3, 50e3])  
     D['inc'] = np.array([75, -75, 45, -45])*np.pi/180
+    D['numProcs'] = 16
     D['maxIter'] = 1000
     D['bkgSig'] = 0.005;
     D['flavor'] = flavor
