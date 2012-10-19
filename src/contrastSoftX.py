@@ -188,7 +188,7 @@ class problem(optimizer):
         print self.xi
         
         TT = sparse.spdiags(self.s*self.fwd.p2x*P,0,m,m)*self.fwd.x2u.T
-        
+        print TT
         spio.savemat('ttout', {'tt':TT})
         
         uu = self.rho*TT.T.conj()*TT + self.xi*sparse.eye(n,n);
