@@ -184,10 +184,12 @@ class problem(optimizer):
         xd = np.zeros(m);
 
         z = np.zeros(n+m);
-
+        print self.rho
+        print self.xi
+        
         TT = sparse.spdiags(self.s*self.fwd.p2x*P,0,m,m)*self.fwd.x2u.T
         print TT.shape
-        print 'norm of TT ' + repr(np.linalg.norm(TT))
+        print 'norm of TT ' + repr(np.linalg.norm(TT.flatten()))
         uu = self.rho*TT.T.conj()*TT + self.xi*sparse.eye(n,n);
         ux = -self.rho*TT.T.conj()
         xu = -self.rho*TT
