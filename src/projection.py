@@ -175,6 +175,15 @@ class problem(optimizer):
         
         ll = sparse.coo_matrix(self.fwd.N, self.fwd.N)
         
+        print uu.shape
+        print ux.shape
+        print ul.shape
+        
+        print xx.shape
+        print xl.shape
+        
+        print ll.shape
+        
         M = spt.vCat([spt.hCat([uu, ux, ul]), \
                       spt.hCat([ux.T, xx, xl]),\
                       spt.hCat([ul.T.conj(), xl.T.conj, ll])])
