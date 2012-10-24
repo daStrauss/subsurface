@@ -170,7 +170,7 @@ class problem(optimizer):
         ux = sparse.coo_matrix((self.fwd.N,self.fwd.getXSize()))
         ul = self.A.T.conj()
         
-        xx = sparse.eye((self.fwd.getXSize(),self.fwd.getXSize()))*self.rho
+        xx = sparse.eye(self.fwd.getXSize(),self.fwd.getXSize())*self.rho
         xl = self.fwd.x2u.T
         
         ll = sparse.coo_matrix(self.fwd.N, self.fwd.N)
