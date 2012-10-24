@@ -173,7 +173,7 @@ class problem(optimizer):
         xx = sparse.eye(self.fwd.getXSize(),self.fwd.getXSize())*self.rho
         xl = self.fwd.x2u.T
         
-        ll = sparse.coo_matrix(self.fwd.N, self.fwd.N)
+        ll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
         
         print uu.shape
         print ux.shape
