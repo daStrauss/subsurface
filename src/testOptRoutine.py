@@ -5,7 +5,7 @@ Created on Oct 17, 2012
 '''
 
 import numpy as np
-D = {'solverType':'contrastSoftX', 'flavor':'TE', 'numRuns':1, 'expt':'testSolver'}
+D = {'solverType':'projection', 'flavor':'TE', 'numRuns':1, 'expt':'testSolver'}
 
 
 def getMyVars(parseNumber, D):

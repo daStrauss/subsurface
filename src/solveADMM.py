@@ -43,6 +43,11 @@ def delegator(solverType, flavor, freq, incAng):
         import contrastSoftX
         S = map(contrastSoftX.problem, freq, incAng, flavor)
         return S
+    elif solverType == 'projection':
+        import projection
+        S = map(projection.problem, freq, incAng, flavor)
+        return S
+    
     
 def bigProj(S, D):
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
