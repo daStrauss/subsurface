@@ -188,6 +188,7 @@ class problem(optimizer):
                       spt.hCat([ux.T, xx, xl]),\
                       spt.hCat([ul.T.conj(), xl.T.conj, ll])])
         
+        print M.shape
         self.aux = lin.factorized(M)
         
         
