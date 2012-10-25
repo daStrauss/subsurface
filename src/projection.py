@@ -25,9 +25,9 @@ def procParallel(xT,yT,zT,xB, nProcs=12):
         q.wait()
         print 'Parallel runtime, ' + repr(nProcs) + ' ' + repr(time.time()-tic)
         
-        x = np.zeros(xT.size)
-        y = np.zeros(yT.size)
-        z = np.zeros(zT.size)
+        x = np.zeros(xT.size,dtype='complex128')
+        y = np.zeros(yT.size,dtype='complex128')
+        z = np.zeros(zT.size,dtype='complex128')
         
         for ixr,res in enumerate(q.get()):
             x[ixr] = res[0]
