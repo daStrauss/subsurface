@@ -184,9 +184,17 @@ class problem(optimizer):
         
         print ll.shape
         
+        spt.hCat([uu,ux,ul])
+        print 'top fine'
+        
+        spt.hCat([ux.T, xx, xl])
+        print 'mid fine'
+        spt.hCat([ul.T.conj(), xl.T.conj(), ll])
+        print 'bottom fine'
+        
         M = spt.vCat([spt.hCat([uu, ux, ul]), \
                       spt.hCat([ux.T, xx, xl]),\
-                      spt.hCat([ul.T.conj(), xl.T.conj, ll])])
+                      spt.hCat([ul.T.conj(), xl.T.conj(), ll])])
         
         print M.shape
         self.aux = lin.factorized(M)
