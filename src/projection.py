@@ -205,7 +205,7 @@ class problem(optimizer):
         ''' local set of iterations '''
         ''' P updated ahead of here, except in first iteration '''
         ''' update u,x '''
-        rhs = np.vstack((self.fwd.Ms.T*self.uHat + self.rho*self.fwd.x2u*(self.uT - self.uD),\
+        rhs = np.concatenate((self.fwd.Ms.T*self.uHat + self.rho*self.fwd.x2u*(self.uT - self.uD),\
                          self.rho*(self.xT - self.xD),\
                          np.zeros(self.fwd.N)))
         
