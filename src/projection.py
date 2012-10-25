@@ -252,7 +252,7 @@ class problem(optimizer):
         T = T.real
         T = np.maximum(T,0)
         # print self.upperBound
-        T = np.minimum(T.self.upperBound)
+        T = np.minimum(T,self.upperBound)
         # print P[1]
                
         return T
