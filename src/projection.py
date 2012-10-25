@@ -13,11 +13,18 @@ from mpi4py import MPI
 import sparseTools as spt
 import scipy.io as spio
 from optimize import optimizer
+from multiprocessing import Pool
+
+class pp(object):
+    '''class for passing inputs to the projectors '''
+    def __init__(self,x=0.0+1j*0.0,y=0.0,z=0.0+1j*0.0,xB=0.0+0.0j):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.xB = xB
 
 class projector(object):
     ''' class for implementing the R5 projection over (x+xb)y=z ''' 
-   
-    
     def __init__(self):
         '''ok make some internal vars that will get reused as time goes along '''
         self.A0 = np.eye(5)
@@ -27,6 +34,20 @@ class projector(object):
         self.Ar[4,0] = 0.5
         self.Ai[1,4] = 0.5
         self.Ai[4,1] = 0.5
+        
+    def procParallel(self, xT,yT,zT,xB, nProcs=12):
+        ''' parallel processing routine using the multiprocess library'''
+        g = [pp(xT[itr],yT[itr],zT[itr],xB[itr]) for itr in np.arange(xT.size)]
+        pool = Pool(processes=nProcs)
+        
+        
+        
+        
+        
+    
+    def wrapR5p(self,inpt):
+        x,y,z = self.r5p(inpt.x,inpt.y,inpt.z,inpt.xB)
+        return pp(x,y,z)
     
     def r5p(self,xT,yT,zT,xB):
         '''routine to actually compute the projection '''
