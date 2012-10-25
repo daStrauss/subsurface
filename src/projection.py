@@ -174,24 +174,7 @@ class problem(optimizer):
         xl = self.fwd.x2u.T
         
         ll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
-        
-        print uu.shape
-        print ux.shape
-        print ul.shape
-        
-        print xx.shape
-        print xl.shape
-        
-        print ll.shape
-        
-        spt.hCat([uu,ux,ul])
-        print 'top fine'
-        
-        spt.hCat([ux.T, xx, xl])
-        print 'mid fine'
-        spt.hCat([ul.T.conj(), xl.T.conj(), ll])
-        print 'bottom fine'
-        
+                
         M = spt.vCat([spt.hCat([uu, ux, ul]), \
                       spt.hCat([ux.T, xx, xl]),\
                       spt.hCat([ul.T.conj(), xl.T.conj(), ll])])
@@ -222,7 +205,7 @@ class problem(optimizer):
         for ix in range(nn):
             self.uT[ix],self.tT[ix],self.xT[ix] = self.indefinite.r5p(uL[ix]+self.uD[ix],\
                                                                       P[ix]+ self.tD[ix],\
-                                                                      self.x[ix]+self.xD[ix],\
+                                                                      (self.x[ix]+self.xD[ix])/self.s,\
                                                                       uLb[ix])
         
         
@@ -249,68 +232,13 @@ class problem(optimizer):
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
-        
-#   Just break it -- I don't plan to use it anyway     
-#    def aggregatorSerial(self, S):
-#        ''' routine to do the aggregation step and return an update for P '''
-#        N = np.size(S)
-#        n = S[0].nRx*S[0].nRy
-#        # print N
-#        # print n
-#        
-#        U = np.zeros((n,N),dtype='complex128')
-#        Q = np.zeros((n,N),dtype='complex128')
-#        
-#        for ix in range(N):
-#            s = S[ix].s
-#            U[:,ix] = s*S[ix].Md*(S[ix].ub + S[ix].us)
-#            Q[:,ix] = S[ix].X + S[ix].Z
-#            
-#        num = np.sum(U.real*Q.real + U.imag*Q.imag,1)
-#        
-#        den = np.sum(U.conj()*U,1) + self.lmb/S[0].rho
-#        
-#        P = (num/den).real
-#        P = np.maximum(P,0)
-#        P = np.minimum(P,self.upperBound)
-#        
-#        gap = np.zeros(N)
-#        for ix in range(N):
-#            gap[ix] = np.linalg.norm(U[:,ix]*P - S[ix].X)
-#            
-#        return P
-#    
-#    def aggregatorParallel(self, comm):
-#        ''' Do the aggregation step in parallel whoop! '''
-#        N = np.size(self)
-#        print repr(N) + ' == better be 1!'
-#        
-#        U = self.s*self.Md*(self.ub+self.us)
-#        Q = self.X + self.Z
-#        
-#        q = U.real*Q.real + U.imag*Q.imag
-#        num = np.zeros(q.shape)
-#        
-#        num = comm.allreduce(q,num,op=MPI.SUM)
-#        
-#        q = U.conj()*U + self.lmb/self.rho
-#        den = np.zeros(q.shape)
-#        den = comm.allreduce(q,den,op=MPI.SUM)
-#        
-#        P = (num/den).real
-#        P = np.maximum(P,0)
-#        P = np.minimum(P,self.upperBound)
-#        
-#        # gap = np.linalg.norm(U*P - self.X)
-#        # print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
-#        
-#        return P
+
 #    
     def aggregatorSemiParallel(self,S, comm):
         ''' Do the aggregation step in parallel whoop! '''
         N = np.size(S)
         nX = self.fwd.getXSize()
-        tL = np.zeros(nX)
+        tL = np.zeros(nX,dtype='complex128')
         
         # we just have to do basic averaging
         for L in S:
