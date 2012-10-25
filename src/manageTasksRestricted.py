@@ -113,7 +113,7 @@ def main():
                 fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
         
                 fid = open(fileName, 'w')
-                fid.write('mpiexec -npernode 2' + ' -wdir /shared/users/dstrauss/dev/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
+                fid.write('mpiexec -npernode 1' + ' -wdir /shared/users/dstrauss/dev/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
                 fid.close()
                 cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=20:00:00', '-l','nodes=' + repr(nProcs) + ':ppn=4', '-l', 'nice=0', fileName]        
                 print cmd
