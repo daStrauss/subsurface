@@ -7,6 +7,8 @@ Created on Oct 24, 2012
 from multiprocessing import Pool
 import numpy as np
 import time
+from mpi4py import MPI
+import scipy.io as spio
 
 class pp(object):
     def __init__(self,x=0.0+1j*0.0,y=0.0,z=0.0+1j*0.0,xB=0.0+0.0j):
@@ -29,15 +31,20 @@ def foo(m):
     
     
 def main():
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    nProc = comm.Get_size()
+    
+    print 'rank ' + repr(rank) + ' nProc ' + repr(nProc)
+    
     pool = Pool(processes=12)
     # output = np.zeros(10)
     
-    a = np.arange(20)
-    b = np.arange(20) + 100
-    c = np.random.randn(20)
-    
+    a = np.arange(200)
+    b = np.arange(200) + 100
+
     tic = time.time()
-    g = [pp(a[itr],b[itr],c[itr]) for itr in range(20)]
+#    g = [pp(a[itr],b[itr],c[itr]) for itr in range(20)]
     print 'assemble = ' + repr(time.time()-tic)
     
     
@@ -48,8 +55,8 @@ def main():
     print repr(q.ready()) + ' ' + repr(time.time()-tic)
     t = q.get()
     
-    ao = np.zeros(20)
-    bo = np.zeros(20)
+    ao = np.zeros(200)
+    bo = np.zeros(200)
     
     for ixr,res in enumerate(t):
         ao[ixr] = res[0]
@@ -57,7 +64,7 @@ def main():
         
     # ff = q.get()
     pool.terminate()
-    return ao,bo
+    spio.savemat('foo' +repr(rank) + '_' + repr(nProc),{'ao':ao,'bo':bo})
 
-if '__name__' == '__main__':
-    a = main()
+if __name__ == "__main__":
+    main()
