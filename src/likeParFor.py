@@ -15,15 +15,16 @@ class pp(object):
         self.z = z
         self.xB = xB
         
+    def foo(self):
+        ''' should do something simple '''
+        return self.x*self.y
+        
 
-def foo(n):
-    print 'running ' + repr(n)
+def foo(m):
+    print 'running ' + repr(m[0])
     time.sleep(1)
     print 'finishing '
-    m = pp()
-    m.x = n.x
-    m.y = 1.0
-    return m
+    return m[0]*m[1],m[0]+m[1]
     
     
     
@@ -31,8 +32,8 @@ def main():
     pool = Pool(processes=12)
     # output = np.zeros(10)
     
-    a = np.random.randn(20)
-    b = np.random.randn(20)
+    a = np.arange(20)
+    b = np.arange(20) + 100
     c = np.random.randn(20)
     
     tic = time.time()
@@ -41,14 +42,22 @@ def main():
     
     
     tic = time.time()
-    q = pool.map_async(foo, g)
+    q = pool.map_async(foo, zip(a,b))
     q.wait()
     
     print repr(q.ready()) + ' ' + repr(time.time()-tic)
+    t = q.get()
     
+    ao = np.zeros(20)
+    bo = np.zeros(20)
+    
+    for ixr,res in enumerate(t):
+        ao[ixr] = res[0]
+        bo[ixr] = res[1]
+        
     # ff = q.get()
     pool.terminate()
-    return q,a
+    return ao,bo
 
 if '__name__' == '__main__':
     a = main()

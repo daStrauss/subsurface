@@ -14,43 +14,43 @@ import sparseTools as spt
 import scipy.io as spio
 from optimize import optimizer
 from multiprocessing import Pool
+import time
 
-class pp(object):
-    '''class for passing inputs to the projectors '''
-    def __init__(self,x=0.0+1j*0.0,y=0.0,z=0.0+1j*0.0,xB=0.0+0.0j):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.xB = xB
-
-class projector(object):
-    ''' class for implementing the R5 projection over (x+xb)y=z ''' 
-    def __init__(self):
-        '''ok make some internal vars that will get reused as time goes along '''
-        self.A0 = np.eye(5)
-        self.Ar = np.zeros((5,5))
-        self.Ai = np.zeros((5,5))
-        self.Ar[0,4] = 0.5
-        self.Ar[4,0] = 0.5
-        self.Ai[1,4] = 0.5
-        self.Ai[4,1] = 0.5
         
-    def procParallel(self, xT,yT,zT,xB, nProcs=12):
+def procParallel(xT,yT,zT,xB, nProcs=12):
         ''' parallel processing routine using the multiprocess library'''
-        g = [pp(xT[itr],yT[itr],zT[itr],xB[itr]) for itr in np.arange(xT.size)]
         pool = Pool(processes=nProcs)
+        tic = time.time()
+        q = pool.map_async(wrapR5p,zip(xT,yT,zT,xB))
+        q.wait()
+        print 'Parallel runtime, ' + repr(nProcs) + ' ' + repr(time.time()-tic)
+        
+        x = np.zeros(xT.size)
+        y = np.zeros(yT.size)
+        z = np.zeros(zT.size)
+        
+        for ixr,res in enumerate(q.get()):
+            x[ixr] = res[0]
+            y[ixr] = res[1]
+            z[ixr] = res[2]
+            
+        q.terminate()
+        return x,y,z
         
         
-        
-        
-        
+def wrapR5p(T):
+    return r5p(T[0],T[1],T[2],T[3])
+
     
-    def wrapR5p(self,inpt):
-        x,y,z = self.r5p(inpt.x,inpt.y,inpt.z,inpt.xB)
-        return pp(x,y,z)
-    
-    def r5p(self,xT,yT,zT,xB):
+def r5p(xT,yT,zT,xB):
         '''routine to actually compute the projection '''
+        A0 = np.eye(5)
+        Ar = np.zeros((5,5))
+        Ai = np.zeros((5,5))
+        Ar[0,4] = 0.5
+        Ar[4,0] = 0.5
+        Ai[1,4] = 0.5
+        Ai[4,1] = 0.5
         b0 = -np.array([xT.real, xT.imag, zT.real, zT.imag,yT.real])
         br = np.zeros(5) 
         br[2] = -0.5 
@@ -59,16 +59,11 @@ class projector(object):
         bi[3] = -0.5
         bi[4] = 0.5*xB.imag
         
-        F0 = -np.vstack((np.hstack((self.A0,b0.reshape(5,1))),np.hstack((b0,0.0))))
-        F1 = -np.vstack((np.hstack((self.Ar,br.reshape(5,1))),np.hstack((br,0.0))))
-        F2 = -np.vstack((np.hstack((self.Ai,bi.reshape(5,1))),np.hstack((bi,0.0))))
+        F0 = -np.vstack((np.hstack((A0,b0.reshape(5,1))),np.hstack((b0,0.0))))
+        F1 = -np.vstack((np.hstack((Ar,br.reshape(5,1))),np.hstack((br,0.0))))
+        F2 = -np.vstack((np.hstack((Ai,bi.reshape(5,1))),np.hstack((bi,0.0))))
         F3 = np.zeros((6,6))
         F3[5,5] = -1.0
-        
-#        print F0
-#        print F1
-#        print F2
-#        print F3
         
         FM = np.hstack((F1.reshape(36,1), F2.reshape(36,1),F3.reshape(36,1)))
         
@@ -137,7 +132,7 @@ class projector(object):
             S = -F0 - F1*L[0] - F2*L[1] - F3*L[2]
             ''' end of interior point loop'''
         
-        M = self.A0 + L[0]*self.Ar + L[1]*self.Ai
+        M = A0 + L[0]*Ar + L[1]*Ai
         b = b0 + L[0]*br + L[1]*bi
         M = np.linalg.pinv(M)
         
@@ -186,7 +181,7 @@ class problem(optimizer):
         # contrast X work
         self.fwd.setCTRX()
         
-        self.indefinite = projector()
+        # self.indefinite = projector()
         uu = self.fwd.Ms.T*self.fwd.Ms + self.fwd.Md.T*self.fwd.Md*self.rho
         ux = sparse.coo_matrix((self.fwd.N,self.fwd.getXSize()))
         ul = self.A.T.conj()
@@ -221,14 +216,17 @@ class problem(optimizer):
         ''' update uT,xT,tT '''
         uL = self.fwd.x2u.T*self.us
         uLb = self.fwd.x2u.T*self.ub
-        nn = self.fwd.getXSize()
+#        nn = self.fwd.getXSize()
         
-        for ix in range(nn):
-            self.uT[ix],self.tT[ix],self.xT[ix] = self.indefinite.r5p(uL[ix]+self.uD[ix],\
-                                                                      P[ix]+ self.tD[ix],\
-                                                                      (self.x[ix]+self.xD[ix])/self.s,\
-                                                                      uLb[ix])
         
+        self.uT,self.tT,self.xT = procParallel(uL+self.uD, P+self.tD, (self.x+self.xD)/self.s, uLb)
+#        
+#        for ix in range(nn):
+#            self.uT[ix],self.tT[ix],self.xT[ix] = r5p(uL[ix]+self.uD[ix],\
+#                                                                      P[ix]+ self.tD[ix],\
+#                                                                      (self.x[ix]+self.xD[ix])/self.s,\
+#                                                                      uLb[ix])
+#        
         
         ''' update the dual vars '''
         self.uD += uL - self.uT
