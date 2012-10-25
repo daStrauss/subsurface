@@ -34,7 +34,7 @@ def procParallel(xT,yT,zT,xB, nProcs=12):
             y[ixr] = res[1]
             z[ixr] = res[2]
             
-        q.terminate()
+        pool.terminate()
         return x,y,z
         
         
