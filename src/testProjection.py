@@ -5,7 +5,7 @@ Created on Oct 24, 2012
 '''
 
 
-import projection
+from projection import r5p
 import time as tm
 
 def main():
@@ -18,7 +18,7 @@ def main():
     xB = 0
     
     strm = tm.time()
-    x,y,z = projection.r5p(xT, yT, zT, xB)
+    x,y,z = r5p(xT, yT, zT, xB)
     print 'Runtime ' + repr(tm.time()-strm)
     
     print 'x ' + repr(x)
