@@ -43,107 +43,108 @@ def wrapR5p(T):
 
     
 def r5p(xT,yT,zT,xB):
-        '''routine to actually compute the projection '''
-        A0 = np.eye(5)
-        Ar = np.zeros((5,5))
-        Ai = np.zeros((5,5))
-        Ar[0,4] = 0.5
-        Ar[4,0] = 0.5
-        Ai[1,4] = 0.5
-        Ai[4,1] = 0.5
-        b0 = -np.array([xT.real, xT.imag, zT.real, zT.imag,yT.real])
-        br = np.zeros(5) 
-        br[2] = -0.5 
-        br[4] = 0.5*xB.real
-        bi = np.zeros(5)
-        bi[3] = -0.5
-        bi[4] = 0.5*xB.imag
-        
-        F0 = -np.vstack((np.hstack((A0,b0.reshape(5,1))),np.hstack((b0,0.0))))
-        F1 = -np.vstack((np.hstack((Ar,br.reshape(5,1))),np.hstack((br,0.0))))
-        F2 = -np.vstack((np.hstack((Ai,bi.reshape(5,1))),np.hstack((bi,0.0))))
-        F3 = np.zeros((6,6))
-        F3[5,5] = -1.0
-        
-        FM = np.hstack((F1.reshape(36,1), F2.reshape(36,1),F3.reshape(36,1)))
-        
-        ''' initialize some variables '''
-        t = 1.0
-        L = np.zeros(3)
-        L[2] = 1.0
-        c = np.array([0.0, 0.0, 1.0])
-        
-        ''' find a feasible L -- you can always find one (usually)'''
-        stp = 0
+    '''routine to actually compute the projection '''
+    sttm = time.time()
+    A0 = np.eye(5)
+    Ar = np.zeros((5,5))
+    Ai = np.zeros((5,5))
+    Ar[0,4] = 0.5
+    Ar[4,0] = 0.5
+    Ai[1,4] = 0.5
+    Ai[4,1] = 0.5
+    b0 = -np.array([xT.real, xT.imag, zT.real, zT.imag,yT.real])
+    br = np.zeros(5) 
+    br[2] = -0.5 
+    br[4] = 0.5*xB.real
+    bi = np.zeros(5)
+    bi[3] = -0.5
+    bi[4] = 0.5*xB.imag
+    
+    F0 = -np.vstack((np.hstack((A0,b0.reshape(5,1))),np.hstack((b0,0.0))))
+    F1 = -np.vstack((np.hstack((Ar,br.reshape(5,1))),np.hstack((br,0.0))))
+    F2 = -np.vstack((np.hstack((Ai,bi.reshape(5,1))),np.hstack((bi,0.0))))
+    F3 = np.zeros((6,6))
+    F3[5,5] = -1.0
+    
+    FM = np.hstack((F1.reshape(36,1), F2.reshape(36,1),F3.reshape(36,1)))
+    
+    ''' initialize some variables '''
+    t = 1.0
+    L = np.zeros(3)
+    L[2] = 1.0
+    c = np.array([0.0, 0.0, 1.0])
+    
+    ''' find a feasible L -- you can always find one (usually)'''
+    stp = 0
+    S = -F0 - F1*L[0] - F2*L[1] -F3*L[2]
+    while np.any(np.linalg.eig(S)[0] < 0 ) & (stp<10):
+        L *= 2
         S = -F0 - F1*L[0] - F2*L[1] -F3*L[2]
-        while np.any(np.linalg.eig(S)[0] < 0 ) & (stp<10):
-            L *= 2
-            S = -F0 - F1*L[0] - F2*L[1] -F3*L[2]
-            stp += 1
-        
+        stp += 1
+    
 #        print 'S ' + repr(S)
-        g = np.zeros(3)
-        P = []
-        H = np.zeros((3,3))
-        for itr in range(20):
-            SI = np.linalg.pinv(S)
+    g = np.zeros(3)
+    P = []
+    H = np.zeros((3,3))
+    for itr in range(20):
+        SI = np.linalg.pinv(S)
 #            print 'SI ' + repr(SI)
-            P = ['','','']
-            for ixi in range(3):
+        P = ['','','']
+        for ixi in range(3):
 #                print repr(ixi) + ' at ' + repr(FM[:,ixi].reshape(6,6))
-                
-                P[ixi] = np.dot(SI,FM[:,ixi].reshape(6,6))
-                g[ixi] = c[ixi]*t + np.trace(P[ixi])
-                H[ixi,ixi] = np.trace(np.dot(P[ixi],P[ixi]))
+            
+            P[ixi] = np.dot(SI,FM[:,ixi].reshape(6,6))
+            g[ixi] = c[ixi]*t + np.trace(P[ixi])
+            H[ixi,ixi] = np.trace(np.dot(P[ixi],P[ixi]))
 #                print H[ixi,ixi]
 #                print repr(ixi) + ' P ' + repr(P[ixi])
-                
-            for ixi in range(3):
-                for ixj in range(ixi+1,3):
-#                    print repr(ixi) + ' ' + repr(ixj)
-                    H[ixi,ixj] = np.trace(np.dot(P[ixi],P[ixj]))
-                    H[ixj,ixi] = np.trace(np.dot(P[ixj],P[ixi]))
-#                    print H
             
+        for ixi in range(3):
+            for ixj in range(ixi+1,3):
+#                    print repr(ixi) + ' ' + repr(ixj)
+                H[ixi,ixj] = np.trace(np.dot(P[ixi],P[ixj]))
+                H[ixj,ixi] = np.trace(np.dot(P[ixj],P[ixi]))
+#                    print H
+        
 #            print P
-            HI = np.linalg.pinv(H)
-            dy = np.dot(HI,-g)
+        HI = np.linalg.pinv(H)
+        dy = np.dot(HI,-g)
 
-            aa = 1.0
-            btk = 0
-            go = True
-            while go & (btk<15):
-                Ln = L + aa*dy
+        aa = 1.0
+        btk = 0
+        go = True
+        while go & (btk<15):
+            Ln = L + aa*dy
 #                print Ln.shape
-                Sn = -F0 - F1*Ln[0] - F2*Ln[1] - F3*Ln[2]
-                cng = np.linalg.norm(Ln-L)/np.linalg.norm(L)
-                if np.any(np.linalg.eig(Sn)[0]<0):
-                    aa = aa/2
-                else:
-                    L = Ln
-                    break
-                
-                btk += 1
-#            print btk
-            if cng < 1e-6:
+            Sn = -F0 - F1*Ln[0] - F2*Ln[1] - F3*Ln[2]
+            cng = np.linalg.norm(Ln-L)/np.linalg.norm(L)
+            if np.any(np.linalg.eig(Sn)[0]<0):
+                aa = aa/2
+            else:
+                L = Ln
                 break
             
-            t = t*2.5
-            S = -F0 - F1*L[0] - F2*L[1] - F3*L[2]
-            ''' end of interior point loop'''
+            btk += 1
+#            print btk
+        if cng < 1e-6:
+            break
         
-        M = A0 + L[0]*Ar + L[1]*Ai
-        b = b0 + L[0]*br + L[1]*bi
-        M = np.linalg.pinv(M)
-        
-        xh = -np.dot(M,b)
-        x = xh[0] + 1j*xh[1]
-        y = xh[4]
-        z = xh[2] + 1j*xh[3]
-        gap = np.linalg.norm((x+xB)*y-z)
-        print 'Gap ' + repr(gap)
-        return x,y,z
-        
+        t = t*2.5
+        S = -F0 - F1*L[0] - F2*L[1] - F3*L[2]
+        ''' end of interior point loop'''
+    
+    M = A0 + L[0]*Ar + L[1]*Ai
+    b = b0 + L[0]*br + L[1]*bi
+    M = np.linalg.pinv(M)
+    
+    xh = -np.dot(M,b)
+    x = xh[0] + 1j*xh[1]
+    y = xh[4]
+    z = xh[2] + 1j*xh[3]
+    gap = np.linalg.norm((x+xB)*y-z)
+    print 'RT = ' + repr(time.time()-sttm) + ' Gap ' + repr(gap)
+    return x,y,z
+    
         
 class problem(optimizer):
     ''' class that extents the contrast - Xadmm algorithm '''
