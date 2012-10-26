@@ -10,16 +10,16 @@ import time as tm
 
 def main():
     
-    A = projection.projector()
+    #A = projection.projector()
 
     xT = 0.5+ 1j*0.7
     yT = 0.2
     zT = -0.3 - 1j*0.2
     xB = 0
     
-    str = tm.time()
-    x,y,z = A.r5p(xT, yT, zT, xB)
-    print 'Runtime ' + repr(tm.time()-str)
+    strm = tm.time()
+    x,y,z = projection.r5p(xT, yT, zT, xB)
+    print 'Runtime ' + repr(tm.time()-strm)
     
     print 'x ' + repr(x)
     print 'y ' + repr(y)
