@@ -17,7 +17,7 @@ from multiprocessing import Pool
 import time
 
         
-def procParallel(xT,yT,zT,xB, nProcs=12):
+def procParallel(xT,yT,zT,xB, nProcs=8):
         ''' parallel processing routine using the multiprocess library'''
         pool = Pool(processes=nProcs)
         tic = time.time()
@@ -220,6 +220,7 @@ class problem(optimizer):
         
         
         self.uT,self.tT,self.xT = procParallel(uL+self.uD, P+self.tD, (self.x+self.xD)/self.s, uLb)
+        self.tT = self.tT*self.s
 #        
 #        for ix in range(nn):
 #            self.uT[ix],self.tT[ix],self.xT[ix] = r5p(uL[ix]+self.uD[ix],\

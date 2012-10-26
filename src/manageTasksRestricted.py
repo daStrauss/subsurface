@@ -106,7 +106,7 @@ def main():
             
             lclD = prSpec.getMyVars(ix, prSpec.D)
             nProcs = lclD['numProcs']
-            nNodes = int(math.ceil(nProcs/2.0))
+            # nNodes = int(math.ceil(nProcs/2.0))
             
             if nProcs > 0:
                 jobTitle = 'run' + sys.argv[1] + repr(ix)
@@ -115,7 +115,7 @@ def main():
                 fid = open(fileName, 'w')
                 fid.write('mpiexec -npernode 1 ' + ' -wdir /shared/users/dstrauss/dev/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
                 fid.close()
-                cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=20:00:00', '-l','nodes=' + repr(nProcs) + ':ppn=4', '-q', 'batch', fileName]        
+                cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=20:00:00', '-l','nodes=' + repr(nProcs) + ':ppn=8', '-q', 'batch', fileName]        
                 print cmd
             
                 jobList.append(submitJob(cmd))
