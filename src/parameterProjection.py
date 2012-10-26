@@ -7,7 +7,7 @@ Created on Oct 25, 2012
 import numpy as np
 
 
-D = {'solverType':'projection', 'flavor':'TE', 'numRuns':20, 'expt':'intParameters'}
+D = {'solverType':'projection', 'flavor':'TE', 'numRuns':10, 'expt':'intParameters'}
 
 
 def getMyVars(parseNumber, D):
