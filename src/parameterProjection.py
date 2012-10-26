@@ -27,7 +27,7 @@ def getMyVars(parseNumber, D):
     D['freqs'] = np.array([1e3, 3e3, 13e3, 25e3])  
     D['inc'] = np.array([75])*np.pi/180
     D['numProcs'] = 4
-    D['maxIter'] = 2
+    D['maxIter'] = 100
 
     
     return D
