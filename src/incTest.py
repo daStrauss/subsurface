@@ -17,14 +17,17 @@ def test(ica):
     fwd = forward.flat.makeMeA(flavor, freq, incAng)
     
     bkgSig=0.0
-    numSensors=10
+    numSensors=4
     
     fwd.setspace(21,21,21,5.0,5.0,5.0)
     fwd.setmats(1,bkgSig,21/2)
     fwd.setOperators()
     fwd.makeGradOper()
-    # fwd.setMs(numSensors)
-    # fwd.setMd([60,140], [70,95])
+    
+    fwd.setMs(numSensors)
+    fwd.setMd([7,13], [7,9], [7,13])
+    
+    
     # fwd.sigmap[1] += self.Md.T*p
     fwd.pointSource(10,10,10)
 #        self.planeWave()

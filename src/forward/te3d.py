@@ -154,52 +154,105 @@ class solver(fwd):
         return sparse.spdiags(kl.flatten(), 0, self.N, self.N)
     
     def setMs(self, nSensors=10):
-        '''Tell me the number of sensors, and I will distribute them equally across the surface
-        '''
-        self.nSen = nSensors
-        indx = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
-        oprx = np.zeros((self.nx,self.ny),dtype='bool')
+        '''Creates an n-grid mesh across the surface for the 3D case '''
         
-        oprx[indx,self.div] = 1;
+        self.nSen = nSensors*nSensors
+        '''First find the appropriate 10 indexes within the PML & illumination region '''
+        indx = np.round(np.linspace(self.npml+5,self.nx-self.npml-5, nSensors)-1).astype(int);
+        print indx
+        print (indx + 1)
+        ''' make the exact X operator using strides '''
+        xl,zl = np.meshgrid(indx+1,indx)
+        Mx = sparse.dok_matrix((self.nSen,(self.nx+1)*self.ny*self.nz))
         
-        idx = np.arange(self.N)
-        oprx = oprx.flatten()
-        idx = idx[oprx]
+        for ix,loc in enumerate(zip(xl.flatten(),zl.flatten())):
+            pts = loc[0]*self.ny*self.nz + self.div*self.nz + loc[1]
+            Mx[ix,pts] = 1.0
         
-        self.Ms = sparse.lil_matrix((self.N,idx.size))
+        xl,zl = np.meshgrid(indx,indx)
+        My = sparse.dok_matrix((self.nSen,self.nx*(self.ny+1)*self.nz))
         
-        for i in range(sum(oprx)):
-            self.Ms[idx[i],i] = 1.0
-        self.Ms = self.Ms.tocsc()
-        self.Ms = self.Ms.T
+        for ix,loc in enumerate(zip(xl.flatten(),zl.flatten())):
+            pts = loc[0]*(self.ny+1)*self.nz + (self.div+1)*self.nz + loc[1]
+            My[ix,pts] = 1.0
+            
+            
+        '''make the exact Z operator using strides '''
+        xl,zl = np.meshgrid(indx,indx+1)
+        Mz = sparse.dok_matrix((self.nSen,self.nx*self.ny*(self.nz+1)))
+        
+        for ix,loc in enumerate(zip(xl.flatten(),zl.flatten())): 
+            pts = loc[0]*self.ny*(self.nz+1) + self.div*(self.nz+1) + loc[1]
+            Mz[ix,pts] = 1.0        
+        
+        ''' smush together in block diagonal format '''
+        self.Ms = sparse.block_diag((Mx,My,Mz),'csr')
         
     def setCTRX(self):
         ''' create some operators to map back and forth between the x space and the u '''
-#        self.p2x = sparse.eye(self.nRx*self.nRy,self.nRx*self.nRy)
+        self.p2x = sparse.eye(self.nRx*self.nRy*self.nRz,self.nRx*self.nRy*self.nRz)
+        self.p2x = sparse.vstack((self.p2x,self.p2x,self.p2x))
 #        # print self.p2x.shape
-#        self.x2u = self.Md.T
+        self.x2u = self.Md.T
 #        # print self.x2u.shape
     
     def getXSize(self):
         ''' return the proper size of X so that the optimization routine can work its magic '''
-        return self.nRx*self.nRy*self.nRz
+        return 3*self.nRx*self.nRy*self.nRz
         
     def setMd(self, xrng, yrng, zrng):
-        '''Tell me the xrange and the yrange and I'll make selector'''
-#        oprx = np.zeros((self.nx,self.ny),dtype='bool')
-#        oprx[xrng[0]:xrng[1],yrng[0]:yrng[1]] = 1
-#        self.nRx = xrng[1]-xrng[0]
-#        self.nRy = yrng[1]-yrng[0]
-#        
-#        idx = np.arange(self.N)
-#        oprx = oprx.flatten()
-#        idx = idx[oprx]
-#        self.Md = sparse.dok_matrix((self.N,idx.size))
-#        
-#        for i in range(idx.size):
-#            self.Md[idx[i],i]=1.0
-#        self.Md = self.Md.tocsc()
-#        self.Md = self.Md.T
+        '''Tell me the xrange,yrange, and zrange and Ill
+        1) specify nRx,nRy, and nRz
+        2) produce a matrix that achieves a 1:1 sampling, self.Md '''
+        
+        '''set the right dimensions'''
+        self.nRx = xrng[1]-xrng[0]
+        self.nRy = yrng[1]-yrng[0]
+        self.nRz = zrng[1]-zrng[0]
+        
+        nR = self.nRx*self.nRy*self.nRz
+        ''' ok have to use spans:
+        loc = i*J*K + j*K + k for row-major ordering '''
+        ''' populate the locations in the X grid'''
+        #sX = sparse.dok_matrix((self.nx+1,self.ny,self.nz),dtype='bool')
+        #sX[xrng[0]+1:xrng[1]+1,yrng[0]:yrng[1],zrng[0]:zrng[1]] = True
+        ''' make it an operator '''
+        ''' nested for should give reshape-able vectors '''
+        cnt = 0
+        Mx = sparse.dok_matrix((nR,(self.nx+1)*self.ny*self.nz))
+        for x in xrange(xrng[0]+1,xrng[1]+1):
+            for y in xrange(yrng[0],yrng[1]):
+                for z in xrange(zrng[0],zrng[1]):
+                    pts = x*self.ny*self.nz + y*self.nz + z
+                    Mx[cnt,pts] = 1.0
+                    cnt += 1
+        
+        '''populate the locations in the Y grid'''
+        My = sparse.dok_matrix((nR,self.nx*(self.ny+1)*self.nz))
+        cnt = 0
+        for x in xrange(xrng[0],xrng[1]):
+            for y in xrange(yrng[0]+1,yrng[1]+1):
+                for z in xrange(zrng[0],zrng[1]):
+                    pts = x*(self.ny+1)*self.nz + y*self.nz + z
+                    My[cnt,pts] = 1.0
+                    cnt += 1
+        
+        
+        '''populate the locations in the Z grid'''
+        Mz = sparse.dok_matrix((nR,self.nx*self.ny*(self.nz+1)))
+        cnt = 0
+        for x in xrange(xrng[0],xrng[1]):
+            for y in xrange(yrng[0],yrng[1]):
+                for z in xrange(zrng[0]+1,zrng[1]+1):
+                    pts = x*(self.ny)*(self.nz+1) + y*(self.nz+1) + z
+                    Mz[cnt,pts] = 1.0
+                    cnt += 1
+        
+        ''' put them all together in a block matrix '''    
+        self.Md = sparse.block_diag((Mx,My,Mz), 'csc')
+        
+        
+
         
     def parseFields(self,u):
         ''' Method to return the field in its square form'''
@@ -230,9 +283,15 @@ class solver(fwd):
         self.rhs = np.concatenate((rhsx.flatten(), rhsy.flatten(), rhsz.flatten()))
     
     def planeWave(self):
-        """ A routine to add a te planewave at angle as spec'd """
-        thi = self.incAng 
-        instep = 3+self.npml;
+        ''' populates self.rhs with a planewave with incident conditions:
+        self.incAng, self.azAng '''
+        
+        ''' incident angles, local copy '''
+        thi = self.incAng
+        phi = self.azAng 
+        
+        ''' how far in from the PML should we go? -- 2 grid points should be enough '''
+        instep = 2+self.npml;
         # mdpt = nx/2; # should replace by div
         x = np.arange(1,1+self.nx,dtype='float64')*self.dx
         # The assumption is that the Ez and materials are co
