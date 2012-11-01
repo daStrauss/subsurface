@@ -29,14 +29,16 @@ def test(ica):
     
     
     # fwd.sigmap[1] += self.Md.T*p
-    fwd.pointSource(10,10,10)
+    # fwd.pointSource(10,10,10)
 #        self.planeWave()
     fwd.planeWave()
     fwd.fwd_solve(0)
     # self.fwd_solve(1)
     [ex,ey,ez] = fwd.parseFields(fwd.sol[0])
+    rhx,rhy,rhz = fwd.parseFields(fwd.rhs)
     
-    D = {'ox':fwd.nabla2+fwd.getk(0),'rhs':fwd.rhs,'nbl':fwd.nabla2,'ex':ex, 'ey':ey, 'ez':ez}
+    D = {'ox':fwd.nabla2+fwd.getk(0),'rhs':fwd.rhs,'nbl':fwd.nabla2,'ex':ex, 'ey':ey, 'ez':ez,\
+         'rhx':rhx,'rhy':rhy,'rhz':rhz}
     
     spio.savemat('threeDTest', D)
     
