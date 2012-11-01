@@ -403,76 +403,76 @@ class solver(fwd):
         Msrcz = np.zeros([self.nx+1,self.ny+1,self.nz], dtype='complex128')
         
          # 5.48a
-        Jsrcx[xl+1:xr,yb,zb:zt] = Jsrcx[xl+1:xr,yb,zb:zt] + Hzinc[xl+1:xr,yb,zb:zt]/self.dx
+        Jsrcx[xl+1:(1+xr),yb,zb:(1+zt)] = Jsrcx[xl+1:(1+xr),yb,zb:(1+zt)] + Hzinc[xl+1:(1+xr),yb,zb:(1+zt)]/self.dx
         
         # 5.49a
-        Jsrcx[xl+1:xr,yt,zb:zt] = Jsrcx[xl+1:xr,yt,zb:zt] - Hzinc[xl+1:xr,yt+1,zb:zt]/self.dx
+        Jsrcx[xl+1:(1+xr),yt,zb:(1+zt)] = Jsrcx[xl+1:(1+xr),yt,zb:(1+zt)] - Hzinc[xl+1:(1+xr),yt+1,zb:(1+zt)]/self.dx
   
         # 5.48b
-        Jsrcz[xl:xr,yb,zb+1:zt] = Jsrcz[xl:xr,yb,zb+1:zt] - Hxinc[xl:xr,yb,zb+1:zt]/self.dx
+        Jsrcz[xl:(1+xr),yb,zb+1:(1+zt)] = Jsrcz[xl:(1+xr),yb,zb+1:(1+zt)] - Hxinc[xl:(1+xr),yb,zb+1:(1+zt)]/self.dx
         
         # 5.49b
-        Jsrcz[xl:xr,yt,zb+1:zt] = Jsrcz[xl:xr,yt,zb+1:zt] + Hxinc[xl:xr,yt+1,zb+1:zt]/self.dx
+        Jsrcz[xl:(1+xr),yt,zb+1:(1+zt)] = Jsrcz[xl:(1+xr),yt,zb+1:(1+zt)] + Hxinc[xl:(1+xr),yt+1,zb+1:(1+zt)]/self.dx
         
         # 5.50a
-        Jsrcx[xl+1:xr,yb:yt,zb] = Jsrcx[xl+1:xr,yb:yt,zb] - Hyinc[xl+1:xr,yb:yt,zb]/self.dx
+        Jsrcx[xl+1:(1+xr),yb:(1+yt),zb] = Jsrcx[xl+1:(1+xr),yb:(1+yt),zb] - Hyinc[xl+1:(1+xr),yb:(1+yt),zb]/self.dx
         
         # 5.50b
-        Jsrcy[xl:xr,yb+1:yt,zb] = Jsrcy[xl:xr,yb+1:yt,zb] + Hxinc[xl:xr,yb+1:yt,zb]/self.dx
+        Jsrcy[xl:(1+xr),yb+1:(1+yt),zb] = Jsrcy[xl:(1+xr),yb+1:(1+yt),zb] + Hxinc[xl:(1+xr),yb+1:(1+yt),zb]/self.dx
   
         # 5.51a
-        Jsrcx[xl+1:xr,yb:yt,zt] = Jsrcx[xl+1:xr,yb:yt,zt] + Hyinc[xl+1:xr,yb:yt,zt+1]/self.dx
+        Jsrcx[xl+1:(1+xr),yb:(1+yt),zt] = Jsrcx[xl+1:(1+xr),yb:(1+yt),zt] + Hyinc[xl+1:(1+xr),yb:(1+yt),zt+1]/self.dx
         
         # 5.51b
-        Jsrcy[xl:xr,yb+1:yt,zt] = Jsrcy[xl:xr,yb+1:yt,zt] - Hxinc[xl:xr,yb+1:yt,zt+1]/self.dx
+        Jsrcy[xl:(1+xr),yb+1:(1+yt),zt] = Jsrcy[xl:(1+xr),yb+1:(1+yt),zt] - Hxinc[xl:(1+xr),yb+1:(1+yt),zt+1]/self.dx
   
         # 5.52a
-        Jsrcy[xl,yb+1:yt,zb:zt] = Jsrcy[xl,yb+1:yt,zb:zt] - Hzinc[xl,yb+1:yt,zb:zt]/self.dx
+        Jsrcy[xl,yb+1:(1+yt),zb:(1+zt)] = Jsrcy[xl,yb+1:(1+yt),zb:(1+zt)] - Hzinc[xl,yb+1:(1+yt),zb:(1+zt)]/self.dx
         
         # 5.52b
-        Jsrcz[xl,yb:yt,zb+1:zt] = Jsrcz[xl,yb:yt,zb+1:zt] + Hyinc[xl,yb:yt,zb+1:zt]/self.dx
+        Jsrcz[xl,yb:(1+yt),zb+1:(1+zt)] = Jsrcz[xl,yb:(1+yt),zb+1:(1+zt)] + Hyinc[xl,yb:(1+yt),zb+1:(1+zt)]/self.dx
         
         # 5.53a
-        Jsrcy[xr,yb+1:yt,zb:zt] = Jsrcy[xr,yb+1:yt,zb:zt] + Hzinc[xr+1,yb+1:yt,zb:zt]/self.dx
+        Jsrcy[xr,yb+1:(1+yt),zb:(1+zt)] = Jsrcy[xr,yb+1:(1+yt),zb:(1+zt)] + Hzinc[xr+1,yb+1:(1+yt),zb:(1+zt)]/self.dx
   
         # 5.53b 
-        Jsrcz[xr,yb:yt,zb+1:zt] = Jsrcz[xr,yb:yt,zb+1:zt] - Hyinc[xr+1,yb:yt,zb+1:zt]/self.dx
+        Jsrcz[xr,yb:(1+yt),zb+1:(1+zt)] = Jsrcz[xr,yb:(1+yt),zb+1:(1+zt)] - Hyinc[xr+1,yb:(1+yt),zb+1:(1+zt)]/self.dx
         
         # 5.54a
-        Msrcz[xl+1:xr,yb,zb:zt] = Msrcz[xl+1:xr,yb,zb:zt] - Exinc[xl+1:xr,yb,zb:zt]/self.dx
+        Msrcz[xl+1:(1+xr),yb,zb:(1+zt)] = Msrcz[xl+1:(1+xr),yb,zb:(1+zt)] - Exinc[xl+1:(1+xr),yb,zb:(1+zt)]/self.dx
   
         # 5.54b
-        Msrcx[xl:xr,yb,zb+1:zt] = Msrcx[xl:xr,yb,zb+1:zt] + Ezinc[xl:xr,yb,zb+1:zt]/self.dx
+        Msrcx[xl:(1+xr),yb,zb+1:(1+zt)] = Msrcx[xl:(1+xr),yb,zb+1:(1+zt)] + Ezinc[xl:(1+xr),yb,zb+1:(1+zt)]/self.dx
   
         # 5.55a
-        Msrcz[xl+1:xr,yt+1,zb+1:zt] = Msrcz[xl+1:xr,yt+1,zb+1:zt] + Exinc[xl+1:xr,yt, zb+1:zt]/self.dx
+        Msrcz[xl+1:(1+xr),yt+1,zb+1:(1+zt)] = Msrcz[xl+1:(1+xr),yt+1,zb+1:(1+zt)] + Exinc[xl+1:(1+xr),yt, zb+1:(1+zt)]/self.dx
   
         # 5.55b
-        Msrcx[xl:xr,yt+1,zb+1:zt] = Msrcx[xl:xr,yt+1,zb+1:zt] - Ezinc[xl:xr,yt,zb+1:zt]/self.dx
+        Msrcx[xl:(1+xr),yt+1,zb+1:(1+zt)] = Msrcx[xl:(1+xr),yt+1,zb+1:(1+zt)] - Ezinc[xl:(1+xr),yt,zb+1:(1+zt)]/self.dx
   
         # 5.56a
-        Msrcy[xl+1:xr,yb:yt,zb] = Msrcy[xl+1:xr,yb:yt,zb] + Exinc[xl+1:xr,yb:yt,zb]/self.dx
+        Msrcy[xl+1:(1+xr),yb:(1+yt),zb] = Msrcy[xl+1:(1+xr),yb:(1+yt),zb] + Exinc[xl+1:(1+xr),yb:(1+yt),zb]/self.dx
   
         # 5.56b
-        Msrcx[xl:xr,yb+1:yt,zb] = Msrcx[xl:xr,yb+1:yt,zb] - Eyinc[xl:xr,yb+1:yt,zb]/self.dx
+        Msrcx[xl:(1+xr),yb+1:(1+yt),zb] = Msrcx[xl:(1+xr),yb+1:(1+yt),zb] - Eyinc[xl:(1+xr),yb+1:(1+yt),zb]/self.dx
   
         # 5.57a
-        Msrcy[xl+1:xr,yb:yt,zt+1] = Msrcy[xl+1:xr,yb:yt,zt+1] - Exinc[xl+1:xr,yb:yt,zt]/self.dx
+        Msrcy[xl+1:(1+xr),yb:(1+yt),zt+1] = Msrcy[xl+1:(1+xr),yb:(1+yt),zt+1] - Exinc[xl+1:(1+xr),yb:(1+yt),zt]/self.dx
   
         # 5.57b
-        Msrcx[xl:xr,yb+1:yt,zt+1] = Msrcx[xl:xr,yb+1:yt,zt+1] + Eyinc[xl:xr,yb+1:yt,zt]/self.dx
+        Msrcx[xl:(1+xr),yb+1:(1+yt),zt+1] = Msrcx[xl:(1+xr),yb+1:(1+yt),zt+1] + Eyinc[xl:(1+xr),yb+1:(1+yt),zt]/self.dx
   
         # 5.58a
-        Msrcz[xl, yb+1:yt,zb:zt] = Msrcz[xl, yb+1:yt, zb:zt] + Eyinc[xl, yb+1:yt, zb:zt]/self.dx
+        Msrcz[xl, yb+1:(1+yt),zb:(1+zt)] = Msrcz[xl, yb+1:(1+yt), zb:(1+zt)] + Eyinc[xl, yb+1:(1+yt), zb:(1+zt)]/self.dx
   
         # 5.58b
-        Msrcy[xl, yb:yt, zb+1:zt] = Msrcy[xl,yb:yt,zb+1:zt] - Ezinc[xl,yb:yt,zb+1:zt]/self.dx
+        Msrcy[xl, yb:(1+yt), zb+1:(1+zt)] = Msrcy[xl,yb:(1+yt),zb+1:(1+zt)] - Ezinc[xl,yb:(1+yt),zb+1:(1+zt)]/self.dx
   
         # 5.59a
-        Msrcz[xr+1,yb+1:yt,zb:zt] = Msrcz[xr+1,yb+1:yt,zb:zt] - Eyinc[xr, yb+1:yt,zb:zt]/self.dx
+        Msrcz[xr+1,yb+1:(1+yt),zb:(1+zt)] = Msrcz[xr+1,yb+1:(1+yt),zb:(1+zt)] - Eyinc[xr, yb+1:(1+yt),zb:(1+zt)]/self.dx
         
         # 5.59b
-        Msrcy[xr+1,yb:yt,zb+1:zt] =  Msrcy[xr+1,yb:yt,zb+1:zt] + Ezinc[xr,yb:yt,zb+1:zt]/self.dx
+        Msrcy[xr+1,yb:(1+yt),zb+1:(1+zt)] =  Msrcy[xr+1,yb:(1+yt),zb+1:(1+zt)] + Ezinc[xr,yb:(1+yt),zb+1:(1+zt)]/self.dx
         # spio.savemat('intrn', {'hxinc':Hxinc,'hyinc':Hyinc,'hzinc':Hzinc})
           
         
