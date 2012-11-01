@@ -374,7 +374,7 @@ class solver(fwd):
         Exinc = np.sin(phi)*te_ezf(Xx,Yx,Zx,thsx,kinc,ktx,rTE,tTE,kFS,kHS)
         Eyinc = np.zeros((self.nx,self.ny+1,self.nz),dtype='complex128')
         
-        spio.savemat('intrn', {'exinc':Exinc,'eyinc':Eyinc,'ezinc':Ezinc})
+        
         
         Hxinc = te_ezf(Xxh,Yxh,Zxh,thsxh,kinc,ktx,rTE,tTE,kFS,kHS)
         Hxinc[~thsxh] = Hxinc[~thsxh]*(1.0/etaF)*np.cos(phi)*kinc[1]
@@ -388,7 +388,7 @@ class solver(fwd):
         Hzinc[~thszh] = Hzinc[~thszh]*(1.0/etaF)*(-np.sin(phi)*kinc[1])
         Hzinc[thszh] = Hzinc[thszh]*(1.0/etaH)*(-np.sin(phi)*kinc[1])
         
-
+        spio.savemat('intrn', {'hxinc':Hxinc,'hyinc':Hyinc,'hzinc':Hzinc})
           
         xl = instep-1; xr = self.nx-instep-1;
         yb = instep-1; yt = self.ny-instep-1;
