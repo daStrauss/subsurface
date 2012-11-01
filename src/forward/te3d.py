@@ -473,6 +473,12 @@ class solver(fwd):
         
         # 5.59b
         Msrcy[xr+1,yb:yt,zb+1:zt] =  Msrcy[xr+1,yb:yt,zb+1:zt] + Ezinc[xr,yb:yt,zb+1:zt]/self.dx
+        # spio.savemat('intrn', {'hxinc':Hxinc,'hyinc':Hyinc,'hzinc':Hzinc})
+          
+        
+        spio.savemat('intrn', {'jsrcx':Jsrcx,'jsrcy':Jsrcy,'jsrcz':Jsrcz, \
+                               'msrcx':Msrcx,'Msrcy':Msrcy,'msrcz':Msrcz})
+          
         
         J = np.concatenate((Jsrcx.flatten(),Jsrcy.flatten(),Jsrcz.flatten()))
         M = np.concatenate((Msrcx.flatten(),Msrcy.flatten(),Msrcz.flatten()))
