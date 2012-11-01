@@ -7,13 +7,14 @@ Created on Sep 28, 2012
 import forward.flat
 import numpy as np
 import scipy.io as spio
+import time
 
 def test(ica):
     flavor = 'TE3D'
     freq = 1e7
     incAng = ica*np.pi/180.0
     
-    
+    strt = time.time()
     fwd = forward.flat.makeMeA(flavor, freq, incAng)
     
     bkgSig=0.0
@@ -34,8 +35,10 @@ def test(ica):
     fwd.planeWave()
     fwd.fwd_solve(0)
     # self.fwd_solve(1)
+    print 'Run time = ' + repr(time.time()-strt)
     [ex,ey,ez] = fwd.parseFields(fwd.sol[0])
     rhx,rhy,rhz = fwd.parseFields(fwd.rhs)
+    
     
     D = {'ox':fwd.nabla2+fwd.getk(0),'rhs':fwd.rhs,'nbl':fwd.nabla2,'ex':ex, 'ey':ey, 'ez':ez,\
          'rhx':rhx,'rhy':rhy,'rhz':rhz}

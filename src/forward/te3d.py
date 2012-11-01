@@ -8,6 +8,7 @@ from model import fwd
 import numpy as np
 from scipy import sparse
 import sparseTools as spt
+from scipy import io as spio
 
 def speye(n):
     return sparse.eye(n,n)
@@ -159,8 +160,8 @@ class solver(fwd):
         self.nSen = nSensors*nSensors
         '''First find the appropriate 10 indexes within the PML & illumination region '''
         indx = np.round(np.linspace(self.npml+5,self.nx-self.npml-5, nSensors)-1).astype(int);
-        print indx
-        print (indx + 1)
+        # print indx
+        # print (indx + 1)
         ''' make the exact X operator using strides '''
         xl,zl = np.meshgrid(indx+1,indx)
         Mx = sparse.dok_matrix((self.nSen,(self.nx+1)*self.ny*self.nz))
@@ -373,6 +374,7 @@ class solver(fwd):
         Exinc = np.sin(phi)*te_ezf(Xx,Yx,Zx,thsx,kinc,ktx,rTE,tTE,kFS,kHS)
         Eyinc = np.zeros((self.nx,self.ny+1,self.nz),dtype='complex128')
         
+        spio.savemat('intrn', {'exinc':Exinc,'eyinc':Eyinc,'ezinc':Ezinc})
         
         Hxinc = te_ezf(Xxh,Yxh,Zxh,thsxh,kinc,ktx,rTE,tTE,kFS,kHS)
         Hxinc[~thsxh] = Hxinc[~thsxh]*(1.0/etaF)*np.cos(phi)*kinc[1]
