@@ -357,11 +357,11 @@ class solver(fwd):
         
         ''' make selectors for the halfgrid subspace '''
         
-        thsyh = np.zeros((self.nx,self.ny+1,self.nz+1),dtype='bool')
-        thsyh[Yyh<0] = 1
-        
-        thsxh = np.zeros((self.nx+1,self.ny,self.nz+1),dtype='bool')
+        thsxh = np.zeros((self.nx,self.ny+1,self.nz+1),dtype='bool')
         thsxh[Yxh<0] = 1
+        
+        thsyh = np.zeros((self.nx+1,self.ny,self.nz+1),dtype='bool')
+        thsyh[Yyh<0] = 1
         
         thszh = np.zeros((self.nx+1,self.ny+1,self.nz),dtype='bool')
         thszh[Yzh<0] = 1
