@@ -294,6 +294,8 @@ class solver(fwd):
         instep = 2+self.npml;
         # mdpt = nx/2; # should replace by div
         x = np.arange(1,1+self.nx,dtype='float64')*self.dx
+        y = np.arange(1,1+self.ny,dtype='float64')*self.dy
+        z = np.arange(1,1+self.nz,dtype='float64')*self.dz
         # The assumption is that the Ez and materials are co
         # located. Since epsilon(50) => in the half space, epsilon(51) =>
         # is not, the actual zero boundary must be between them, or on
@@ -301,105 +303,234 @@ class solver(fwd):
         # Mapping is y,x because of how matlab treats these. annoying.
         # (
         # print self.div+1
-        Y,X = np.meshgrid(x-(self.div+1+0.5)*self.dx, x); # I do things backward
+        Yz,Xz,Zz = np.meshgrid(y-0.5,\
+                               x,\
+                               (np.append(0.0,z) + self.dz/2.0))
+        Yx,Xx,Zx = np.meshgrid(y-0.5,\
+                               (np.append(0.0,x) + self.dx/2.0),\
+                               z)
+        Yy,Xy,Zy = np.meshgrid((np.append(0.0,y) + self.dy/2.0)-0.5,\
+                               x,\
+                               z)
         
-        Yyh, Xyh = np.meshgrid(np.append(0.0,x)+(self.dx/2)\
-                               - (self.div+1+0.5)*self.dx,x);
-        Yxh, Xxh = np.meshgrid(x-(self.div+1+0.5)*self.dx, \
-                               np.append(0.0,x)+(self.dx/2));
+        Yxh,Xxh,Zxh = np.meshgrid(np.append(0.0,y)+self.dy/2.0 - 0.5, \
+                                  x,\
+                                  np.append(0.0,z)+self.dz/2.0)
+        Yyh,Xyh,Zyh = np.meshgrid(y-0.5,\
+                                  np.append(0.0,x)+self.dx/2.0,\
+                                  np.append(0.0,z)+self.dz/2.0)
+        Yzh,Xzh,Zzh = np.meshgrid(np.append(0.0,y)+self.dy/2.0-0.5,\
+                                  np.append(0.0,x)+self.dx/2.0,\
+                                  z)
+        
                                  
         # matOut.savemat('grids', {'Y':Y, 'X':X, 'Yyh':Yyh, 'Xyh':Xyh, 'Yxh':Yxh, 'Xxh':Xxh})
         ni = 1;
-        nt = np.sqrt((self.eHS-self.sHS/(1j*self.w))\
-                     *self.muo)/np.sqrt(self.epso*self.muo);
+        nt = np.sqrt((self.eHS-self.sHS/(1j*self.w))*self.muo)/np.sqrt(self.epso*self.muo);
     
         # transmitted angle angle
         # thi = 45*np.pi/180 # taken as input argument.
         tht = np.arcsin(ni*np.sin(thi)/nt);
     
         # create the coefficients to specify the space. 
-        kinc = -1*np.array([np.sin(thi), np.cos(thi)])
-        ktx = -1*np.array([np.sin(tht), np.cos(tht)])
+        kinc = -1*np.array([np.sin(thi)*np.cos(phi), np.cos(thi), -np.sin(phi)*np.sin(thi)])
+        ktx =  -1*np.array([np.sin(tht)*np.cos(phi), np.cos(tht), -np.sin(phi)*np.sin(thi)])
         kFS = 1j*self.kfree;
         kHS = 1j*self.kHS;
+        
         etaF = np.sqrt(self.muo/self.epso);
-        #   % [kFS kfs]
         etaH = np.sqrt(self.muo/(self.eHS+(1j*self.sHS/self.w)));
+        
         rTE = (ni*np.cos(thi) - nt*np.cos(tht))/(ni*np.cos(thi) + nt*np.cos(tht));
         tTE = (2*ni*np.cos(thi))/(ni*np.cos(thi) + nt*np.cos(tht));
           
-        # print rTE
-        # print tTE
-    
-        #   % [yy xx] = meshgrid(zeY, zeX);
-        #   % Make a selector for the half space.
-        ths = np.zeros([self.nx,self.ny],dtype='bool')
-        ths[Y<0] = 1
-        # ths = ths.astype(bool)
-        #   size(ths);
-    
-        thsy = np.zeros([self.nx,self.nx+1],dtype='bool')
-        thsy[Yyh<0] = 1
+        ''' make selectors for the subspace and so on'''
+        thsz = np.zeros((self.nx,self.ny,self.nz+1),dtype='bool')
+        thsz[Yz<0] = 1
+
+        thsx = np.zeros((self.nx+1,self.ny,self.nz),dtype='bool')
+        thsx[Yx<0] = 1
         # thsy = thsy.astype(bool)
     
-        thsx = np.zeros([self.nx+1,self.nx],dtype='bool')
-        thsx[Yxh<0] = 1
-        #     thsx = thsx.astype(bool)
-          
-        # matOut.savemat('selctors', {'ths':ths, 'thsy':thsy, 'thsx':thsx})
-    
-        # % kHS
-        # %  size(thsy)
-        Ezinc = np.zeros([self.nx,self.ny], dtype='complex128')
-        Ezinc[~ths] = np.exp(kFS*(X[~ths]*kinc[0] + Y[~ths]*kinc[1])) + \
-              rTE*np.exp(kFS*(X[~ths]*kinc[0] - Y[~ths]*kinc[1]))
-    
-        Ezinc[ths] = tTE*np.exp(kHS*(X[ths]*ktx[0] + Y[ths]*ktx[1]))
-    
-        Hxinc = np.zeros([self.nx,self.nx+1],dtype='complex128');
-        Hxinc[~thsy] = (1/etaF)*(kinc[1]*np.exp(kFS*(Xyh[~thsy]*kinc[0] + Yyh[~thsy]*kinc[1]))) \
-               +rTE*(1/etaF)*(-kinc[1]*np.exp(kFS*(Xyh[~thsy]*kinc[0] - Yyh[~thsy]*kinc[1])))
-    
-        Hxinc[thsy] = tTE*(1/etaH)*(ktx[1]*np.exp(kHS*(Xyh[thsy]*ktx[0] + Yyh[thsy]*ktx[1])));
-        #   Hxinc = Hxinc;
-    
-        Hyinc = np.zeros([self.nx+1,self.nx], dtype='complex128');
-        Hyinc[~thsx] = (1/etaF)*(kinc[0]*np.exp(kFS*(Xxh[~thsx]*kinc[0] + \
-                                             Yxh[~thsx]*kinc[1]))) + \
-               rTE*(1/etaF)*(kinc[0]*np.exp(kFS*(Xxh[~thsx]*kinc[0] - \
-                                                 Yxh[~thsx]*kinc[1])))
-    
-        Hyinc[thsx] = tTE*(1/etaH)*(ktx[0]*np.exp(kHS*(Xxh[thsx]*ktx[0] + \
-                                            Yxh[thsx]*ktx[1])))
-        Hyinc = -Hyinc;
+        thsy = np.zeros((self.nx,self.ny+1,self.nz),dtype='bool')
+        thsx[Yy<0] = 1
+        
+        ''' make selectors for the halfgrid subspace '''
+        
+        thsyh = np.zeros((self.nx,self.ny+1,self.nz+1),dtype='bool')
+        thsyh[Yyh<0] = 1
+        
+        thsxh = np.zeros((self.nx+1,self.ny,self.nz+1),dtype='bool')
+        thsxh[Yxh<0] = 1
+        
+        thszh = np.zeros((self.nx+1,self.ny+1,self.nz),dtype='bool')
+        thszh[Yzh<0] = 1
+        
+        
+        ''' in the matlab version, I stick some eHS in here at this point - not sure if I need that now '''
+        
+        Ezinc = np.cos(phi)*te_ezf(Xz,Yz,Zz,thsz,kinc,ktx,rTE,tTE,kFS,kHS)
+        Exinc = np.sin(phi)*te_ezf(Xx,Yx,Zx,thsx,kinc,ktx,rTE,tTE,kFS,kHS)
+        Eyinc = np.zeros((self.nx,self.ny+1,self.nz),dtype='complex128')
+        
+        
+        Hxinc = te_ezf(Xxh,Yxh,Zxh,thsxh,kinc,ktx,rTE,tTE,kFS,kHS)
+        Hxinc[~thsxh] = Hxinc[~thsxh]*(1.0/etaF)*np.cos(phi)*kinc[1]
+        Hxinc[thsxh] = Hxinc[thsxh]*(1.0/etaH)*np.cos(phi)*ktx[1]
+        
+        Hyinc = te_ezf(Xyh,Yyh,Zyh,thsyh,kinc,ktx,rTE,tTE,kFS,kHS)
+        Hyinc[~thsyh] = Hyinc[~thsyh]*(1.0/etaF)*(kinc[2]*np.sin(phi) - kinc[0]*np.cos(phi))
+        Hyinc[thsyh] = Hyinc[thsyh]*(1.0/etaH)*(ktx[2]*np.sin(phi) - ktx[0]*np.cos(phi))
+        
+        Hzinc = te_ezf(Xzh,Yzh,Zzh,thszh,kinc,ktx,rTE,tTE,kFS,kHS)
+        Hzinc[~thszh] = Hzinc[~thszh]*(1.0/etaF)*(-np.sin(phi)*kinc[1])
+        Hzinc[thszh] = Hzinc[thszh]*(1.0/etaH)*(-np.sin(phi)*kinc[1])
+        
+
           
         xl = instep-1; xr = self.nx-instep-1;
         yb = instep-1; yt = self.ny-instep-1;
-        Jsrcz = np.zeros([self.nx,self.ny],dtype='complex128');
-        Msrcx = np.zeros([self.nx,self.ny+1], dtype='complex128');
-        Msrcy = np.zeros([self.nx+1,self.ny], dtype='complex128');
-    
-        Jsrcz[xl,yb:(yt+1)] =    Jsrcz[xl,yb:(yt+1)] + (1)*(Hyinc[xl,yb:(yt+1)]/self.dx);
-        Jsrcz[xr,yb:(yt+1)] =    Jsrcz[xr,yb:(yt+1)] - (1)*(Hyinc[xr+1,yb:(yt+1)]/self.dx);
-        Jsrcz[xl:(xr+1),yb] =    Jsrcz[xl:(xr+1),yb] - (1)*(Hxinc[xl:(xr+1),yb]/self.dy);
-        Jsrcz[xl:(xr+1),yt] =    Jsrcz[xl:(xr+1),yt] + (1)*(Hxinc[xl:(xr+1),yt+1]/self.dy);
-    
-        Msrcx[xl:(xr+1),yb]   =  (1)*(Ezinc[xl:(xr+1),yb]/self.dy);
-        Msrcx[xl:(xr+1),yt+1] = -(1)*(Ezinc[xl:(xr+1),yt]/self.dy);
-      
-        Msrcy[xl,   yb:(yt+1)] = -(1)*(Ezinc[xl,yb:(yt+1)]/self.dx);
-        Msrcy[xr+1, yb:(yt+1)] =  (1)*(Ezinc[xr,yb:(yt+1)]/self.dx);
-          
-
-        pw = (1j*self.w*self.muo)*Jsrcz.flatten() - \
-              sparse.kron(sparse.eye(self.nx,self.nx), self.d2/self.dx)*Msrcx.flatten() + \
-              sparse.kron(self.d2/self.dx, sparse.eye(self.ny,self.ny))*Msrcy.flatten()
-    
-        self.rhs = pw.flatten();
+        zb = instep-1; zt = self.nz-instep-1;
         
+        Jsrcx = np.zeros([self.nx+1,self.ny,self.nz],dtype='complex128')
+        Jsrcy = np.zeros([self.nx,self.ny+1,self.nz],dtype='complex128')
+        Jsrcz = np.zeros([self.nx,self.ny,self.nz+1],dtype='complex128')
         
+        Msrcx = np.zeros([self.nx,self.ny+1,self.nz+1], dtype='complex128')
+        Msrcy = np.zeros([self.nx+1,self.ny,self.nz+1], dtype='complex128')
+        Msrcz = np.zeros([self.nx+1,self.ny+1,self.nz], dtype='complex128')
+        
+         # 5.48a
+        Jsrcx[xl+1:xr,yb,zb:zt] = Jsrcx[xl+1:xr,yb,zb:zt] + Hzinc[xl+1:xr,yb,zb:zt]/self.dx
+        
+        # 5.49a
+        Jsrcx[xl+1:xr,yt,zb:zt] = Jsrcx[xl+1:xr,yt,zb:zt] - Hzinc[xl+1:xr,yt+1,zb:zt]/self.dx
+  
+        # 5.48b
+        Jsrcz[xl:xr,yb,zb+1:zt] = Jsrcz[xl:xr,yb,zb+1:zt] - Hxinc[xl:xr,yb,zb+1:zt]/self.dx
+        
+        # 5.49b
+        Jsrcz[xl:xr,yt,zb+1:zt] = Jsrcz[xl:xr,yt,zb+1:zt] + Hxinc[xl:xr,yt+1,zb+1:zt]/self.dx
+        
+        # 5.50a
+        Jsrcx[xl+1:xr,yb:yt,zb] = Jsrcx[xl+1:xr,yb:yt,zb] - Hyinc[xl+1:xr,yb:yt,zb]/self.dx
+        
+        # 5.50b
+        Jsrcy[xl:xr,yb+1:yt,zb] = Jsrcy[xl:xr,yb+1:yt,zb] + Hxinc[xl:xr,yb+1:yt,zb]/self.dx
+  
+        # 5.51a
+        Jsrcx[xl+1:xr,yb:yt,zt] = Jsrcx[xl+1:xr,yb:yt,zt] + Hyinc[xl+1:xr,yb:yt,zt+1]/self.dx
+        
+        # 5.51b
+        Jsrcy[xl:xr,yb+1:yt,zt] = Jsrcy[xl:xr,yb+1:yt,zt] - Hxinc[xl:xr,yb+1:yt,zt+1]/self.dx
+  
+        # 5.52a
+        Jsrcy[xl,yb+1:yt,zb:zt] = Jsrcy[xl,yb+1:yt,zb:zt] - Hzinc[xl,yb+1:yt,zb:zt]/self.dx
+        
+        # 5.52b
+        Jsrcz[xl,yb:yt,zb+1:zt] = Jsrcz[xl,yb:yt,zb+1:zt] + Hyinc[xl,yb:yt,zb+1:zt]/self.dx
+        
+        # 5.53a
+        Jsrcy[xr,yb+1:yt,zb:zt] = Jsrcy[xr,yb+1:yt,zb:zt] + Hzinc[xr+1,yb+1:yt,zb:zt]/self.dx
+  
+        # 5.53b 
+        Jsrcz[xr,yb:yt,zb+1:zt] = Jsrcz[xr,yb:yt,zb+1:zt] - Hyinc[xr+1,yb:yt,zb+1:zt]/self.dx
+        
+        # 5.54a
+        Msrcz[xl+1:xr,yb,zb:zt] = Msrcz[xl+1:xr,yb,zb:zt] - Exinc[xl+1:xr,yb,zb:zt]/self.dx
+  
+        # 5.54b
+        Msrcx[xl:xr,yb,zb+1:zt] = Msrcx[xl:xr,yb,zb+1:zt] + Ezinc[xl:xr,yb,zb+1:zt]/self.dx
+  
+        # 5.55a
+        Msrcz[xl+1:xr,yt+1,zb+1:zt] = Msrcz[xl+1:xr,yt+1,zb+1:zt] + Exinc[xl+1:xr,yt, zb+1:zt]/self.dx
+  
+        # 5.55b
+        Msrcx[xl:xr,yt+1,zb+1:zt] = Msrcx[xl:xr,yt+1,zb+1:zt] - Ezinc[xl:xr,yt,zb+1:zt]/self.dx
+  
+        # 5.56a
+        Msrcy[xl+1:xr,yb:yt,zb] = Msrcy[xl+1:xr,yb:yt,zb] + Exinc[xl+1:xr,yb:yt,zb]/self.dx
+  
+        # 5.56b
+        Msrcx[xl:xr,yb+1:yt,zb] = Msrcx[xl:xr,yb+1:yt,zb] - Eyinc[xl:xr,yb+1:yt,zb]/self.dx
+  
+        # 5.57a
+        Msrcy[xl+1:xr,yb:yt,zt+1] = Msrcy[xl+1:xr,yb:yt,zt+1] - Exinc[xl+1:xr,yb:yt,zt]/self.dx
+  
+        # 5.57b
+        Msrcx[xl:xr,yb+1:yt,zt+1] = Msrcx[xl:xr,yb+1:yt,zt+1] + Eyinc[xl:xr,yb+1:yt,zt]/self.dx
+  
+        # 5.58a
+        Msrcz[xl, yb+1:yt,zb:zt] = Msrcz[xl, yb+1:yt, zb:zt] + Eyinc[xl, yb+1:yt, zb:zt]/self.dx
+  
+        # 5.58b
+        Msrcy[xl, yb:yt, zb+1:zt] = Msrcy[xl,yb:yt,zb+1:zt] - Ezinc[xl,yb:yt,zb+1:zt]/self.dx
+  
+        # 5.59a
+        Msrcz[xr+1,yb+1:yt,zb:zt] = Msrcz[xr+1,yb+1:yt,zb:zt] - Eyinc[xr, yb+1:yt,zb:zt]/self.dx
+        
+        # 5.59b
+        Msrcy[xr+1,yb:yt,zb+1:zt] =  Msrcy[xr+1,yb:yt,zb+1:zt] + Ezinc[xr,yb:yt,zb+1:zt]/self.dx
+        
+        J = np.concatenate((Jsrcx.flatten(),Jsrcy.flatten(),Jsrcz.flatten()))
+        M = np.concatenate((Msrcx.flatten(),Msrcy.flatten(),Msrcz.flatten()))
+        
+        # ok. have to make some transformations in order to make this happen.
+        pd1 = self.ph*self.d1 # maps full to half grid
+        pd2 = self.po*self.d2
+        
+        '''make a curl operator from M -> J '''
+        nex = (self.nx+1)*self.ny*self.nz
+        ney = self.nx*(self.ny+1)*self.nz
+        nez = self.nx*self.ny*(self.nz+1)
+        
+        nhx = self.nx*(self.ny+1)*(self.nz+1)
+        nhy = (self.nx+1)*self.ny*(self.nz+1)
+        nhz = (self.nx+1)*(self.ny+1)*self.nz
+                
+        AA = sparse.coo_matrix(nex,nhx)
+        
+        AB = -sparse.kron(speye(self.nx+1),sparse.kron(speye(self.ny),pd2))
+        
+        AC = sparse.kron(speye(self.nx+1),sparse.kron(pd2,speye(self.nz)))
+        
+        BA = sparse.kron(speye(self.nx+1),sparse.kron(speye(self.ny),pd2))
+        
+        BB = sparse.coo_matrix(ney,nhy)
+        
+        BC = -sparse.kron(pd2,sparse.kron(speye(self.ny+1),speye(self.nz)))
+        
+        CA = -sparse.kron(speye(self.nx),sparse.kron(pd2,speye(self.nz+1)))
+        
+        CB = sparse.kron(pd2,sparse.kron(speye(self.ny),sparse(self.nz+1)))
+        
+        CC = sparse.coo_matrix(nez,nhz)
+        
+        srB = spt.vCat([spt.hCat([AA,AB,AC]), spt.hCat([BA,BB,BC]), spt.hCat([CA,CB,CC])])
+        
+        self.rhs = 1j*self.muo*self.w*J + srB*M
+        
+    
     def getS(self):
         ''' return the coefficient necessary in the Md*P part to make things work '''
         return self.w*self.muo*1j
     
-        
+def te_ezf(X,Y,Z,xi,kinc,ktx,rTE,tTE,kFS,kHS):
+    m,n,p = X.shape
+    
+    ez = np.zeros((m,n,p),dtype='complex128')
+    ez[~xi] = np.exp(kFS*(X[~xi]*kinc[0]  + \
+                          Y[~xi]*kinc[1]  + \
+                          Z[~xi]*kinc[2])) + \
+              rTE*np.exp(kFS*(X[~xi]*kinc[0] - \
+                              Y[~xi]*kinc[1] + \
+                              Z[~xi]*kinc[2]))
+    ez[xi] = tTE*np.exp(kHS*(X[xi]*ktx[0]  + \
+                          Y[xi]*ktx[1]  + \
+                          Z[xi]*ktx[2]))
+    return ez
+
+    
+    
+    
+    

@@ -31,6 +31,7 @@ def test(ica):
     # fwd.sigmap[1] += self.Md.T*p
     fwd.pointSource(10,10,10)
 #        self.planeWave()
+    fwd.planeWave()
     fwd.fwd_solve(0)
     # self.fwd_solve(1)
     [ex,ey,ez] = fwd.parseFields(fwd.sol[0])
