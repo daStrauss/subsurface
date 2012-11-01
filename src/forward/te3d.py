@@ -353,7 +353,7 @@ class solver(fwd):
         # thsy = thsy.astype(bool)
     
         thsy = np.zeros((self.nx,self.ny+1,self.nz),dtype='bool')
-        thsx[Yy<0] = 1
+        thsy[Yy<0] = 1
         
         ''' make selectors for the halfgrid subspace '''
         
@@ -502,7 +502,7 @@ class solver(fwd):
         
         CA = -sparse.kron(speye(self.nx),sparse.kron(pd2,speye(self.nz+1)))
         
-        CB = sparse.kron(pd2,sparse.kron(speye(self.ny),sparse(self.nz+1)))
+        CB = sparse.kron(pd2,sparse.kron(speye(self.ny),speye(self.nz+1)))
         
         CC = sparse.coo_matrix(nez,nhz)
         
