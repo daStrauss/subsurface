@@ -488,7 +488,7 @@ class solver(fwd):
         nhy = (self.nx+1)*self.ny*(self.nz+1)
         nhz = (self.nx+1)*(self.ny+1)*self.nz
                 
-        AA = sparse.coo_matrix(nex,nhx)
+        AA = sparse.coo_matrix((nex,nhx))
         
         AB = -sparse.kron(speye(self.nx+1),sparse.kron(speye(self.ny),pd2))
         
@@ -496,7 +496,7 @@ class solver(fwd):
         
         BA = sparse.kron(speye(self.nx+1),sparse.kron(speye(self.ny),pd2))
         
-        BB = sparse.coo_matrix(ney,nhy)
+        BB = sparse.coo_matrix((ney,nhy))
         
         BC = -sparse.kron(pd2,sparse.kron(speye(self.ny+1),speye(self.nz)))
         
@@ -504,7 +504,7 @@ class solver(fwd):
         
         CB = sparse.kron(pd2,sparse.kron(speye(self.ny),speye(self.nz+1)))
         
-        CC = sparse.coo_matrix(nez,nhz)
+        CC = sparse.coo_matrix((nez,nhz))
         
         srB = spt.vCat([spt.hCat([AA,AB,AC]), spt.hCat([BA,BB,BC]), spt.hCat([CA,CB,CC])])
         
