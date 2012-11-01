@@ -8,6 +8,7 @@ import forward.flat
 import numpy as np
 import scipy.io as spio
 import time
+from superSolve import wrapCvxopt
 
 def test(ica):
     flavor = 'TE3D'
@@ -33,10 +34,14 @@ def test(ica):
     # fwd.pointSource(10,10,10)
 #        self.planeWave()
     fwd.planeWave()
-    fwd.fwd_solve(0)
+    
+    A = fwd.nabla2+fwd.getk(0)
+    sol = wrapCvxopt.linsolve(A, fwd.rhs)
+    
+    # fwd.fwd_solve(0)
     # self.fwd_solve(1)
     print 'Run time = ' + repr(time.time()-strt)
-    [ex,ey,ez] = fwd.parseFields(fwd.sol[0])
+    [ex,ey,ez] = fwd.parseFields(sol)
     rhx,rhy,rhz = fwd.parseFields(fwd.rhs)
     
     
