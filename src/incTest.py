@@ -11,7 +11,7 @@ import time
 
 def test(ica):
     flavor = 'TE3D'
-    freq = 1e7
+    freq = 0.5e7
     incAng = ica*np.pi/180.0
     
     strt = time.time()
@@ -20,7 +20,7 @@ def test(ica):
     bkgSig=0.0
     numSensors=4
     
-    fwd.setspace(21,21,21,5.0,5.0,5.0)
+    fwd.setspace(41,41,41,5.0,5.0,5.0)
     fwd.setmats(1,bkgSig,21/2)
     fwd.setOperators()
     fwd.makeGradOper()
