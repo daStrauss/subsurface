@@ -13,6 +13,7 @@ from mpi4py import MPI
 import sparseTools as spTools
 import scipy.io as spio
 from optimize import optimizer
+from superSolve import wrapCvxopt
 
 class problem(optimizer):
     ''' class that extents the contrast - Xadmm algorithm '''
