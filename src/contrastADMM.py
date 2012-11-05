@@ -14,6 +14,7 @@ import sparseTools as spTools
 import scipy.io as spio
 from optimize import optimizer
 from superSolve import wrapCvxopt
+import time
 
 class problem(optimizer):
     ''' class that extents the contrast - Xadmm algorithm '''
@@ -48,13 +49,16 @@ class problem(optimizer):
         
         ''' subtract out the background field '''
         self.uHat = self.uHat - self.fwd.Ms*self.ub
-        
+        pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
+        ''' in this instance, I don't care about the results, i.e., I don't care about the actual solutions'''
+        self.internalSymbolic(pfake)
     
     def internalSymbolic(self,thk):
         '''create an internal method that 
         (1) knows the structure of the matrix
         (2) only needs new theta estimates
         (3) keeps the symbolic factorization to reuse '''
+        cttm = time.time()
         nX = self.fwd.getXSize()
         pm = sparse.spdiags(self.s*self.fwd.p2x*thk, 0, nX, nX)
         # print pm.shape
@@ -85,13 +89,25 @@ class problem(optimizer):
                            spTools.hCat([bmxu, bmxx, bmxl]), \
                            spTools.hCat([bmlu, bmlx, bmll])])
         
-        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
         
-        updt = lin.spsolve(bm.tocsr(), rhsbm)
+        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
+        print 'construction time ' + repr(time.time()-cttm)
+        
+        sltm = time.time()
+        if hasattr(self,'symbFact'):
+            print 'Ive already got it'
+            updt = wrapCvxopt.solveNumeric(bm, rhsbm, self.symbFact)
+        else:
+            print 'got to do the symbolic calc'
+            self.symbFact = wrapCvxopt.createSymbolic(bm)
+            updt = wrapCvxopt.solveNumeric(bm, rhsbm, self.symbFact)
+        
+        # updt = lin.spsolve(bm.tocsr(), rhsbm)
         
         # N = self.nx*self.ny
         us = updt[:self.fwd.N]
         x = updt[self.fwd.N:(self.fwd.N+nX)]
+        print 'solve time ' + repr(time.time()-sltm)
         return us,x
         
     def internalHard(self, thk):
@@ -143,7 +159,8 @@ class problem(optimizer):
         self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
         
         ''' jointly update u,x '''
-        self.us,self.X = self.internalHard(P)
+        pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
+        self.us,self.X = self.internalSymbolic(pfake)
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         return obj
