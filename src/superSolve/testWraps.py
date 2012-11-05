@@ -25,16 +25,18 @@ def matricles():
         A = A.tocsr()
         b = np.random.randn(N)
         
-        Q = lin.factorized(A)
-        P = wrapCvxopt.staticSolver(A)
+        
+        
         
         for ix in range(1):
             b = np.random.randn(N)
             ti = time.time()
+            P = wrapCvxopt.staticSolver(A)
             uOPT = P(b)
             print 'cvx opt time = ' + repr(time.time()-ti)
         
             ti = time.time()
+            Q = lin.factorized(A)
             uSPS = Q(b)
             print 'scipy time  = ' + repr(time.time() - ti)
         
