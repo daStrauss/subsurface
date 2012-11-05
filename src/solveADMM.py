@@ -86,7 +86,7 @@ def balancingAct(D,rank,nProc):
     allFreqs, allAngs = np.meshgrid(D['freqs'], D['inc'])
     allFreqs = allFreqs.flatten()
     allAngs = allAngs.flatten()
-    print(D['flavor'])
+    # print(D['flavor'])
     
     if D['flavor'] == 'both':
         allFlav = ['TE']*len(allFreqs) + ['TM']*len(allFreqs)
@@ -95,15 +95,15 @@ def balancingAct(D,rank,nProc):
     else:
         allFlav = [D['flavor']]*len(allFreqs)
     
-    print(repr(allFreqs.shape))
-    print(repr(nProc))
+    # print(repr(allFreqs.shape))
+    # print(repr(nProc))
     
     nPer = len(allFreqs)/nProc
     assert nPer*nProc == allFreqs.size
     
-    print(allFlav)
+    # print(allFlav)
     lRng = rank*nPer + np.arange(nPer)
-    print(allFlav[lRng] + ' ' + repr(lRng))
+    # print(allFlav[lRng] + ' ' + repr(lRng))
     return allFreqs[lRng],allAngs[lRng],[allFlav[lRng]]
     
     
@@ -121,7 +121,7 @@ def semiParallel(solverType, flavor, **kwargs):
     
     fout.write('xi ' + repr(D['xi']) + ' rho = ' + repr(D['rho']) + '\n')
 
-    print(D['flavor'])
+    
     # allocate according to the number of processors available
     freqLocal,angLocal,flavLocal = balancingAct(D, rank, nProc)
     

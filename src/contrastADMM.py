@@ -45,52 +45,106 @@ class problem(optimizer):
         self.Z = np.zeros(self.fwd.getXSize(),dtype='complex128')
         self.fwd.setCTRX()
         
+        ''' subtract out the background field '''
+        self.uHat = self.uHat - self.fwd.Ms*self.ub
+        
     
-    def runOpt(self,P):
-        ''' to run at each layer at each iteration '''
-        self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
-        
-        uHatLocal =  self.uHat - self.fwd.Ms*self.ub  #remove background field
-        
+    def internalSymbolic(self,thk):
+        '''create an internal method that 
+        (1) knows the structure of the matrix
+        (2) only needs new theta estimates
+        (3) keeps the symbolic factorization to reuse '''
         nX = self.fwd.getXSize()
-        pm = sparse.spdiags(self.s*self.fwd.p2x*P, 0, nX, nX)
+        pm = sparse.spdiags(self.s*self.fwd.p2x*thk, 0, nX, nX)
         # print pm.shape
         # print self.fwd.x2u.shape
+        ''' ds changes at ever iteration '''
         ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
   
         # Construct the KKT Matrix
+        ''' changes '''
         bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
         bmux = -self.rho*ds.T.conj()
+        bmxu = -self.rho*ds 
+        ''' static ''' 
         bmul = self.A.T.conj()
-        
-        rhsu = self.fwd.Ms.T.conj()*uHatLocal - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
-        
-  
-        bmxu = -self.rho*ds
         bmxx = self.rho*sparse.eye(nX, nX)
         bmxl = self.fwd.x2u.T
-        rhsx = self.rho*ds*self.ub - self.rho*self.Z
-  
         bmlu = self.A
         bmlx = self.fwd.x2u
-
-        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N)) 
+        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
+        
+        ''' right hand side ''' 
+        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
+        rhsx = self.rho*ds*self.ub - self.rho*self.Z # chng
         rhsl = np.zeros(self.fwd.N)
   
   
         bm = spTools.vCat([spTools.hCat([bmuu, bmux, bmul]), \
-                             spTools.hCat([bmxu, bmxx, bmxl]), \
-                             spTools.hCat([bmlu, bmlx, bmll])])
+                           spTools.hCat([bmxu, bmxx, bmxl]), \
+                           spTools.hCat([bmlu, bmlx, bmll])])
         
         rhsbm = np.concatenate((rhsu, rhsx, rhsl))
         
         updt = lin.spsolve(bm.tocsr(), rhsbm)
         
         # N = self.nx*self.ny
-        self.us = updt[:self.fwd.N]
-        self.X = updt[self.fwd.N:(self.fwd.N+nX)]
+        us = updt[:self.fwd.N]
+        x = updt[self.fwd.N:(self.fwd.N+nX)]
+        return us,x
         
-        obj = np.linalg.norm(uHatLocal-self.fwd.Ms*self.us)
+    def internalHard(self, thk):
+        '''creates the matrix every time, a hard alternative, to internalSymbolic
+        so that I can do A/B testing easily w.r.t the old standard'''
+        nX = self.fwd.getXSize()
+        pm = sparse.spdiags(self.s*self.fwd.p2x*thk, 0, nX, nX)
+        # print pm.shape
+        # print self.fwd.x2u.shape
+        ''' ds changes at ever iteration '''
+        ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
+  
+        # Construct the KKT Matrix
+        ''' changes '''
+        bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
+        bmux = -self.rho*ds.T.conj()
+        bmxu = -self.rho*ds 
+        ''' static ''' 
+        bmul = self.A.T.conj()
+        bmxx = self.rho*sparse.eye(nX, nX)
+        bmxl = self.fwd.x2u.T
+        bmlu = self.A
+        bmlx = self.fwd.x2u
+        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
+        
+        ''' right hand side ''' 
+        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
+        rhsx = self.rho*ds*self.ub - self.rho*self.Z # chng
+        rhsl = np.zeros(self.fwd.N)
+  
+  
+        bm = spTools.vCat([spTools.hCat([bmuu, bmux, bmul]), \
+                           spTools.hCat([bmxu, bmxx, bmxl]), \
+                           spTools.hCat([bmlu, bmlx, bmll])])
+        
+        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
+        
+        updt = lin.spsolve(bm.tocsr(), rhsbm)
+        
+        # N = self.nx*self.ny
+        us = updt[:self.fwd.N]
+        x = updt[self.fwd.N:(self.fwd.N+nX)]
+        return us,x
+    
+    def runOpt(self,P):
+        ''' to run at each layer at each iteration '''
+        
+        '''update dual variables first '''
+        self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
+        
+        ''' jointly update u,x '''
+        self.us,self.X = self.internalHard(P)
+        
+        obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         return obj
         
     def writeOut(self, rank, ix=0):

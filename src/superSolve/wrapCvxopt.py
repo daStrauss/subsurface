@@ -9,7 +9,8 @@ from cvxopt import umfpack
 import copy
 import numpy as np
 from cvxopt import lapack
-from scipy import sparse
+# i guess I don't explicitly check that these are sparse matrices.
+# from scipy import sparse
 
 def linsolve(A,b):
     aLocal = A.tocoo()
