@@ -25,20 +25,48 @@ def matricles():
         A = A.tocsr()
         b = np.random.randn(N)
         
-        Q = lin.factorized(A)
-        P = wrapCvxopt.staticSolver(A)
+        
+        
         
         for ix in range(1):
             b = np.random.randn(N)
             ti = time.time()
+            P = wrapCvxopt.staticSolver(A)
             uOPT = P(b)
             print 'cvx opt time = ' + repr(time.time()-ti)
         
             ti = time.time()
+            Q = lin.factorized(A)
             uSPS = Q(b)
             print 'scipy time  = ' + repr(time.time() - ti)
         
             print np.linalg.norm(uOPT-uSPS)
+
+def reNumber():
+    N = 2000
+    A = scipy.sparse.rand(N,N,0.2) + scipy.sparse.eye(N,N)
+    b = np.random.randn(N)
+    
+    aLocal = A.tocoo()
+    
+    I = aLocal.row.tolist()
+    J = aLocal.col.tolist()
+    D = aLocal.data.tolist()
+    
+    print len(D)
+    # print A.shape
+    alltm = time.time()
+    Fs = wrapCvxopt.createSymbolic(A)
+    solA = wrapCvxopt.solveNumeric(A, b, Fs)
+    # return A,Fs
+    # print A.shape
+    print 'symb and num ' + repr(time.time()-alltm)
+
+    M = scipy.sparse.coo_matrix((np.random.randn(len(D)),(I,J)))
+    numTim = time.time()
+    solB = wrapCvxopt.solveNumeric(M, b, Fs)
+    print Fs
+    print 'num only ' + repr(time.time()-numTim)
         
 if __name__=='__main__':
     matricles()

@@ -10,7 +10,7 @@ import scipy.special as spec
 import pickle
 import scipy.io as spio
 import numpy as np
-# import superSolve.wrapCvxopt
+import superSolve.wrapCvxopt
 import time
 from scipy import linalg
 
@@ -155,8 +155,8 @@ class fwd(object):
 
     def fwd_solve(self, ind):
         '''Does the clean solve for the given index. The factorization is not cached'''      
-        self.gogo[ind] = lin.factorized(sparse.csc_matrix(self.nabla2+self.getk(ind)) )
-        # self.gogo[ind] = superSolve.wrapCvxopt.staticSolver(self.nabla2+self.getk(ind))
+        # self.gogo[ind] = lin.factorized(sparse.csc_matrix(self.nabla2+self.getk(ind)) )
+        self.gogo[ind] = superSolve.wrapCvxopt.staticSolver(self.nabla2+self.getk(ind))
         
         self.sol[ind] = self.gogo[ind](self.rhs.flatten())
 

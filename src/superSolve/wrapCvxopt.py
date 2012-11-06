@@ -34,6 +34,29 @@ def staticSolver(A):
     
     return Q
 
+def createSymbolic(A):
+    ''' returns a symbolic factorization object for later reuse'''
+    
+    s = A.shape
+    aLocal = A.tocoo()
+    AC = cvxopt.spmatrix(aLocal.data.tolist(),aLocal.row.tolist(), aLocal.col.tolist(),s)
+    Fs = umfpack.symbolic(AC)
+    return Fs
+
+def solveNumeric(A,b, Fs):
+    ''' given a static Fs, or symbolic factorization of the matrix A, performs the numeric part '''
+    aLocal = A.tocoo()
+    s = A.shape
+
+    AC = cvxopt.spmatrix(aLocal.data.tolist(),aLocal.row.tolist(), aLocal.col.tolist(),s)
+    # Fs = umfpack.symbolic(AC)
+    FA = umfpack.numeric(AC,Fs)
+    bLocal = cvxopt.matrix(copy.deepcopy(b))
+    umfpack.solve(AC,FA,bLocal)
+    bLocal = np.array(bLocal).flatten()
+    return bLocal
+    
+
 def denseSolve(A,b):
     ''' solves an Ax = b matrix system with gesv'''
     if isinstance(A,np.ndarray):
