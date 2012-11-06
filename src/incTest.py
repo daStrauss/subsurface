@@ -18,10 +18,10 @@ def test(ica):
     strt = time.time()
     fwd = forward.flat.makeMeA(flavor, freq, incAng)
     
-    bkgSig=0.0
+    bkgSig=0.05
     numSensors=4
     
-    fwd.setspace(41,41,41,5.0,5.0,5.0)
+    fwd.setspace(21,21,21,5.0,5.0,5.0)
     fwd.setmats(1,bkgSig,21/2)
     fwd.setOperators()
     fwd.makeGradOper()
