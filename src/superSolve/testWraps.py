@@ -61,12 +61,24 @@ def reNumber():
     # return A,Fs
     # print A.shape
     print 'symb and num ' + repr(time.time()-alltm)
+    
+    lnf = time.time()
+    Q = lin.factorized(A)
+    uSPS = Q(b)
+    print 'umfpack + scipy ' + repr(time.time()-lnf)
+    
 
     M = scipy.sparse.coo_matrix((np.random.randn(len(D)),(I,J)))
     numTim = time.time()
     solB = wrapCvxopt.solveNumeric(M, b, Fs)
     print Fs
     print 'num only ' + repr(time.time()-numTim)
+    
+    lnf = time.time()
+    Q = lin.factorized(M)
+    uSPS = Q(b)
+    print 'umfpack + scipy ' + repr(time.time()-lnf)
+    
         
 if __name__=='__main__':
     matricles()
