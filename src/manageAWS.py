@@ -35,10 +35,10 @@ def checkForExit(jobName):
     try:
         P = xml.fromstring(f)
         print 'parsed string'
-        rtf = P.getroot()
+        # rtf = P.getroot() ? interesting it returns the root
         print 'got root'
         ''' just have to check to see if it is in the joblist -- they disappear quickly'''
-        for job in rtf.iter('job_list'):
+        for job in P.iter('job_list'):
             for z in job.iter('JB_name'):
                 if z.text == jobName:
                     doExit == False
