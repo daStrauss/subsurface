@@ -47,6 +47,7 @@ def main():
         cmd = ['qsub', '-pe', 'orte', '16', '-cwd', fileName]
         print cmd
         ppid = submitJob(cmd)
+        print ppid
         # waitForExit(ppid)
         
 if __name__=='__main__':
