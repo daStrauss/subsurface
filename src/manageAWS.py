@@ -38,16 +38,17 @@ def submitJob(cmd):
     return f
 
 def main():
-    for ix in range(6,200):
+    for ix in range(1):
         jobTitle = 'run' + sys.argv[1] + repr(ix)
         fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
         fid = open(fileName, 'w')
-        fid.write('mpiexec -wdir /home/sgeadmin/subsurface/src/ python coordinate.py ' + sys.argv[1] + ' ' + repr(ix) + ' ' + 'TE')
+        fid.write('mpiexec -wdir /home/sgeadmin/subsurface/src/ python awsDummy.py ') # + sys.argv[1] + ' ' + repr(ix) + ' ' + 'TE')
         fid.close()
-        cmd = ['qsub', '-pe', 'orte', '16', '-cwd', fileName]
+        cmd = ['qsub', '-pe', 'orte', '1', '-cwd', fileName]
         print cmd
         ppid = submitJob(cmd)
         print ppid
+        
         # waitForExit(ppid)
         
 if __name__=='__main__':
