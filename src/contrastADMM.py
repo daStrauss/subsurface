@@ -160,7 +160,7 @@ class problem(optimizer):
         
         ''' jointly update u,x '''
         pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
-        self.us,self.X = self.internalSymbolic(pfake)
+        self.us,self.X = self.internalHard(pfake)
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         return obj
