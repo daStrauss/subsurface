@@ -2,13 +2,49 @@
 Created on Jun 21, 2012
 
 @author: dstrauss
+
+more notes! update in November:
+I now know more about what I want this to do, so I'm going to do it.
+I know how to parse the xml files to look at what jobs are currently running
+
+Differences w.r.t. the maui/torque platform:
+(1) returns from qsub are not valuable
+(2) query all of qstat to get xml output
+(3) search the jobnames that are running to see if they match
+(4) return false otherwise.
+(5) make the joblist just the names of the scripts
+(6) jobname is really not necessary
+
 '''
 
 import xml.etree.ElementTree as xml
 import subprocess
 import time
 import sys
- 
+import doFolders
+import math
+   
+def checkForExit(jobName):
+    ''' Routine to check and see if a particular job is still running, if not, return.
+    Returns True if the job is still running with status R, returns false if job has completed
+    or simply does not have status R. '''
+    doExit = True
+    pipeOut = subprocess.Popen(['qstat', '-xml'], stdout=subprocess.PIPE)
+    f = pipeOut.stdout.read()
+    try:
+        P = xml.fromstring(f)
+        rtf = P.getroot()
+        ''' just have to check to see if it is in the joblist -- they disappear quickly'''
+        for job in rtf.iter('job_list'):
+            for z in job.iter('JB_name'):
+                if z.text == jobName:
+                    doExit == False
+
+    except:
+        print 'wrong string or something?'
+    return doExit
+
+  
     
 def waitForExit(jobName):
     ''' Routine to check and see if a particular job is still running, if not, return '''
@@ -38,18 +74,62 @@ def submitJob(cmd):
     return f
 
 def main():
-    for ix in range(1):
-        jobTitle = 'run' + sys.argv[1] + repr(ix)
-        fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
-        fid = open(fileName, 'w')
-        fid.write('mpiexec -wdir /home/sgeadmin/subsurface/src/ python awsDummy.py ') # + sys.argv[1] + ' ' + repr(ix) + ' ' + 'TE')
-        fid.close()
-        cmd = ['qsub', '-pe', 'orte', '1', '-cwd', fileName]
-        print cmd
-        ppid = submitJob(cmd)
-        print ppid
+    ''' main routine: creates a runList and a jobList. JobList are currently running, 
+    runList are too run
+    '''
+    ''' parse the starting index, should be the second argument '''
+    if len(sys.argv) >= 3:
+        startIx = int(sys.argv[2])
+    else:
+        startIx = 0
+    
+    ''' get the number of simultaneous workers, i.e. pool size '''
+    if len(sys.argv) == 4:
+        numWorkers = int(sys.argv[3])
+    else:
+        numWorkers = 1
         
-        # waitForExit(ppid)
+    ''' import the management script '''
+    prSpec = __import__(sys.argv[1])
+    finalIx = prSpec.D['numRuns']
+    
+    ''' creat a list of jobs to run '''
+    runList = range(startIx,finalIx)
+    
+    ''' create a pool of jobs '''
+    jobList = list()
+    
+    while len(runList) > 0:
+        
+        ''' populate the joblist '''
+        if len(jobList) < numWorkers:
+            # launch worker
+            ix = runList.pop(0)
+            doFolders.ensureFolders(prSpec.D, ix)
+            
+            lclD = prSpec.getMyVars(ix, prSpec.D)
+            nProcs = lclD['numProcs']
+            nNodes = int(math.ceil(nProcs/8.0))
+            
+            ''' create a submit.pbs file '''
+            fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
+        
+            fid = open(fileName, 'w')
+            fid.write('mpiexec -wdir /home/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
+            fid.close()
+            
+            cmd = ['qsub', '-pe', 'orte', repr(nProcs), '-cwd', fileName]    
+            print cmd
+                
+            submitJob(cmd)
+            jobList.append(fileName)
+        else:
+            time.sleep(5)
+    
+        for jbs in jobList:
+            if checkForExit(jbs):
+                jobList.remove(jbs)
+  
         
 if __name__=='__main__':
     main()
