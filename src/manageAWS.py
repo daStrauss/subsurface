@@ -31,6 +31,7 @@ def checkForExit(jobName):
     doExit = True
     pipeOut = subprocess.Popen(['qstat', '-xml'], stdout=subprocess.PIPE)
     f = pipeOut.stdout.read()
+    print f
     try:
         P = xml.fromstring(f)
         rtf = P.getroot()
