@@ -31,17 +31,17 @@ def checkForExit(jobName):
     doExit = True
     pipeOut = subprocess.Popen(['qstat', '-xml'], stdout=subprocess.PIPE)
     f = pipeOut.stdout.read()
-    print f
+    # print f
     try:
         P = xml.fromstring(f)
-        print 'parsed string'
+        # print 'parsed string'
         # rtf = P.getroot() ? interesting it returns the root
-        print 'got root'
+        # print 'got root'
         ''' just have to check to see if it is in the joblist -- they disappear quickly'''
         for job in P.iter('job_list'):
             for z in job.iter('JB_name'):
                 if z.text == jobName:
-                    doExit == False
+                    doExit = False
 
     except:
         print 'wrong string or something?'
