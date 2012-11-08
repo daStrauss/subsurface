@@ -30,7 +30,7 @@ class problem(optimizer):
         self.s = self.fwd.getS() #  1j*self.muo*self.w
         self.A = self.fwd.nabla2+self.fwd.getk(0)
         
-        self.scaleC = 1.0/(self.fwd.Ms*self.ub)
+        
         # oh. this is going to get strange. 
         # integrate TE concepts first.
         # contrast variable
@@ -41,7 +41,7 @@ class problem(optimizer):
         self.us = np.zeros(self.fwd.N,dtype='complex128')
         # just to make life easier:
         self.ub = self.fwd.sol[0] # shouldn't need --> .flatten()
-        
+        self.scaleC = 1.0/(self.fwd.Ms*self.ub)
         # create some new operators for doing what is necessary for the 
         # contrast X work
         self.X = np.zeros(self.fwd.getXSize(),dtype='complex128')
