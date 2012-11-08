@@ -41,7 +41,7 @@ class problem(optimizer):
         self.us = np.zeros(self.fwd.N,dtype='complex128')
         # just to make life easier:
         self.ub = self.fwd.sol[0] # shouldn't need --> .flatten()
-        self.scaleC = 1.0/np.linalg.norm(self.fwd.Ms*self.ub)
+        self.scaleC = 1.0 # 1.0/np.linalg.norm(self.fwd.Ms*self.ub)
         # create some new operators for doing what is necessary for the 
         # contrast X work
         self.X = np.zeros(self.fwd.getXSize(),dtype='complex128')
