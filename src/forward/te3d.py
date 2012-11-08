@@ -130,13 +130,13 @@ class solver(fwd):
         # sigma is not so straight forward
         
         sigX = np.zeros((self.nx+1,self.ny,self.nz))
-        sigX[:,:(div+1),:] = self.sHS
+        sigX[:,:(div-1),:] = self.sHS
         
         sigY = np.zeros((self.nx,self.ny+1,self.nz))
-        sigY[:,:(div+2),:] = self.sHS
+        sigY[:,:(div),:] = self.sHS
         
         sigZ = np.zeros((self.nx,self.ny,self.nz+1))
-        sigZ[:,:(div+1),:] = self.sHS
+        sigZ[:,:(div-1),:] = self.sHS
         
         self.sigX = sigX
         self.sigY = sigY
