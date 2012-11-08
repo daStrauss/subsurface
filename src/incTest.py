@@ -38,20 +38,20 @@ def test(ica):
 #        self.planeWave()
     fwd.planeWave()
     
-    A = fwd.nabla2+fwd.getk(0)
-    sol = wrapCvxopt.linsolve(A, fwd.rhs)
-    
-    # fwd.fwd_solve(0)
-    # self.fwd_solve(1)
-    print 'Run time = ' + repr(time.time()-strt)
-    [ex,ey,ez] = fwd.parseFields(sol)
-    rhx,rhy,rhz = fwd.parseFields(fwd.rhs)
-    
-    
-    D = {'ox':fwd.nabla2+fwd.getk(0),'rhs':fwd.rhs,'nbl':fwd.nabla2,'ex':ex, 'ey':ey, 'ez':ez,\
-         'rhx':rhx,'rhy':rhy,'rhz':rhz}
-    
-    spio.savemat('threeDTest', D)
+#    A = fwd.nabla2+fwd.getk(0)
+#    sol = wrapCvxopt.linsolve(A, fwd.rhs)
+#    
+#    # fwd.fwd_solve(0)
+#    # self.fwd_solve(1)
+#    print 'Run time = ' + repr(time.time()-strt)
+#    [ex,ey,ez] = fwd.parseFields(sol)
+#    rhx,rhy,rhz = fwd.parseFields(fwd.rhs)
+#    
+#    
+#    D = {'ox':fwd.nabla2+fwd.getk(0),'rhs':fwd.rhs,'nbl':fwd.nabla2,'ex':ex, 'ey':ey, 'ez':ez,\
+#         'rhx':rhx,'rhy':rhy,'rhz':rhz}
+#    
+#    spio.savemat('threeDTest', D)
     
     ''' Define a big project, with a tag and a test No -- will draw from ../mats'''
     # trm = spio.loadmat('mats/tMat' + repr(1) + '.mat')
