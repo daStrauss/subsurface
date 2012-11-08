@@ -46,27 +46,43 @@ class solver(fwd):
     def setMs(self, nSensors=10):
         '''Tell me the number of sensors, and I will distribute them equally across the surface
         '''
-        self.nSen = nSensors
-        indxRaw = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
-        indx = np.unique(indxRaw)
-        if indx.size != indxRaw.size:
-            print 'mismatch in index set!'
-        
-        oprx = np.zeros((self.nx,self.ny),dtype='bool')
-        
-        oprx[indx,self.div] = 1;
-        
+        if nSensors < 160:
+            self.nSen = nSensors
+            indxRaw = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
+            indx = np.unique(indxRaw)
+            if indx.size != indxRaw.size:
+                print 'mismatch in index set!'
+            
+            oprx = np.zeros((self.nx,self.ny),dtype='bool')
+            
+            oprx[indx,self.div] = 1;
+            
+
+        else:    
+            bkx = self.nx-2*self.npml-20;
+            bky = self.div-self.npml-10;
+    
+            sps = np.zeros(bkx*bky,dtype='bool');
+            idx = np.round(np.linspace(0,bkx*bky-1,nSensors)).astype(int);
+            sps[idx] = 1;
+            sps = sps.reshape(bkx,bky)
+            
+            oprx = np.zeros((self.nx,self.ny),dtype='bool')
+            oprx[self.npml+10:(self.nx-self.npml-10),(self.div+1):(self.nx-self.npml-10)] = sps
+            
+
+            
         idx = np.arange(self.N)
         oprx = oprx.flatten()
         idx = idx[oprx]
-        
+            
         self.Ms = sparse.lil_matrix((self.N,idx.size))
-        
+            
         for i in range(sum(oprx)):
             self.Ms[idx[i],i] = 1.0
         self.Ms = self.Ms.tocsc()
         self.Ms = self.Ms.T
-        
+
     def setCTRX(self):
         ''' it appears that this is a generalized routine that allows one to map from
         p to x and x to p and x to u so that the approrpiate variables can be put together'''

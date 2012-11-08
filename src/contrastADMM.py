@@ -163,7 +163,7 @@ class problem(optimizer):
         pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
         self.us,self.X = self.internalSymbolic(pfake)
         
-        self.gap.append(np.linalg.norm(self.X - P*(self.s*self.fwd.Md*self.us)))
+        self.gap.append(np.linalg.norm(self.X - P*(self.s*self.fwd.Md*(self.us+self.ub))))
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         return obj
