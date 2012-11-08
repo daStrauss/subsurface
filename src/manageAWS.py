@@ -141,6 +141,8 @@ def main():
     
         for jbs in jobList:
             if checkForExit(jbs):
+                cmd = ['mkdir', '-p', 'mnt/dstrauss/' + jbs.folder]
+                submitJob(cmd)
                 cmd = ['rsync', '-a', jbs.folder, '/mnt/dstrauss/' + jbs.folder]
                 submitJob(cmd)
                 jobList.remove(jbs)
