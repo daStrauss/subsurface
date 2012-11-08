@@ -23,11 +23,18 @@ import time
 import sys
 import doFolders
 import math
+
+class jobParm(object):
+    def __init__(self, name, folder):
+        self.name = name
+        self.folder = folder
    
 def checkForExit(jobName):
     ''' Routine to check and see if a particular job is still running, if not, return.
     Returns True if the job is still running with status R, returns false if job has completed
-    or simply does not have status R. '''
+    or simply does not have status R. 
+    update! jobname is now a class/structure as defined above!
+    '''
     doExit = True
     pipeOut = subprocess.Popen(['qstat', '-xml'], stdout=subprocess.PIPE)
     f = pipeOut.stdout.read()
@@ -40,7 +47,7 @@ def checkForExit(jobName):
         ''' just have to check to see if it is in the joblist -- they disappear quickly'''
         for job in P.iter('job_list'):
             for z in job.iter('JB_name'):
-                if z.text == jobName:
+                if z.text == jobName.name:
                     doExit = False
 
     except:
@@ -108,7 +115,7 @@ def main():
         if len(jobList) < numWorkers:
             # launch worker
             ix = runList.pop(0)
-            doFolders.ensureFolders(prSpec.D, ix)
+            mvFolder = doFolders.ensureFolders(prSpec.D, ix)
             
             lclD = prSpec.getMyVars(ix, prSpec.D)
             nProcs = lclD['numProcs']
@@ -125,12 +132,17 @@ def main():
             print cmd
                 
             submitJob(cmd)
-            jobList.append(fileName)
+            
+            nJob = jobParm(fileName,mvFolder)
+            jobList.append(nJob)
+            
         else:
             time.sleep(5)
     
         for jbs in jobList:
             if checkForExit(jbs):
+                cmd = ['rsync', '-a', jbs.folder, '/mnt/dstrauss/' + jbs.folder]
+                submitJob(cmd)
                 jobList.remove(jbs)
   
         
