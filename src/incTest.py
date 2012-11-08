@@ -12,7 +12,7 @@ from superSolve import wrapCvxopt
 
 def test(ica):
     flavor = 'TE3D'
-    freq = 0.5e7
+    freq = 1e4
     incAng = ica*np.pi/180.0
     
     strt = time.time()
