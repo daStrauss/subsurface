@@ -49,7 +49,7 @@ class solver(fwd):
         self.nSen = nSensors
         indxRaw = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
         indx = np.unique(indxRaw)
-        if indx.size ~= indxRaw.size:
+        if indx.size != indxRaw.size:
             print 'mismatch in index set!'
         
         oprx = np.zeros((self.nx,self.ny),dtype='bool')
