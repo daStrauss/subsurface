@@ -138,6 +138,9 @@ class solver(fwd):
         sigZ = np.zeros((self.nx,self.ny,self.nz+1))
         sigZ[:,:(div+1),:] = self.sHS
         
+        self.sigX = sigX
+        self.sigY = sigY
+        self.sigZ = sigZ
         
         self.sigmap = np.concatenate((sigX.flatten(), sigY.flatten(), sigZ.flatten()))
         # and duplicate
@@ -388,7 +391,7 @@ class solver(fwd):
         Hzinc[~thszh] = Hzinc[~thszh]*(1.0/etaF)*(-np.sin(phi)*kinc[1])
         Hzinc[thszh] = Hzinc[thszh]*(1.0/etaH)*(-np.sin(phi)*kinc[1])
         
-        spio.savemat('intrn', {'hxinc':Hxinc,'hyinc':Hyinc,'hzinc':Hzinc})
+        # spio.savemat('intrn', {'hxinc':Hxinc,'hyinc':Hyinc,'hzinc':Hzinc})
           
         xl = instep-1; xr = self.nx-instep-1;
         yb = instep-1; yt = self.ny-instep-1;
@@ -476,8 +479,11 @@ class solver(fwd):
         # spio.savemat('intrn', {'hxinc':Hxinc,'hyinc':Hyinc,'hzinc':Hzinc})
           
         
-        spio.savemat('intrn', {'jsrcx':Jsrcx,'jsrcy':Jsrcy,'jsrcz':Jsrcz, \
-                               'msrcx':Msrcx,'Msrcy':Msrcy,'msrcz':Msrcz})
+        spio.savemat('intrn', {'sigx':self.sigX, 'sigy':self.sigY, 'sigz':self.sigZ,\
+                               'exinc':Exinc,'eyinc':Eyinc,'ezinc':Ezinc,\
+                               'hxinc':Hxinc,'hyinc':Hyinc,'hzinc':Hzinc,\
+                               'jsrcx':Jsrcx,'jsrcy':Jsrcy,'jsrcz':Jsrcz, \
+                               'msrcx':Msrcx,'msrcy':Msrcy,'msrcz':Msrcz})
           
         
         J = np.concatenate((Jsrcx.flatten(),Jsrcy.flatten(),Jsrcz.flatten()))
