@@ -304,23 +304,23 @@ class solver(fwd):
         # Mapping is y,x because of how matlab treats these. annoying.
         # (
         # print self.div+1
-        Yz,Xz,Zz = np.meshgrid(y-0.5,\
+        Yz,Xz,Zz = np.meshgrid(y-(self.div-1)*self.dy,\
                                x,\
                                (np.append(0.0,z) + self.dz/2.0))
-        Yx,Xx,Zx = np.meshgrid(y-0.5,\
+        Yx,Xx,Zx = np.meshgrid(y-(self.div-1)*self.dy,\
                                (np.append(0.0,x) + self.dx/2.0),\
                                z)
-        Yy,Xy,Zy = np.meshgrid((np.append(0.0,y) + self.dy/2.0)-0.5,\
+        Yy,Xy,Zy = np.meshgrid((np.append(0.0,y) + self.dy/2.0)-(self.div-1)*self.dy,\
                                x,\
                                z)
         
-        Yxh,Xxh,Zxh = np.meshgrid(np.append(0.0,y)+self.dy/2.0 - 0.5, \
+        Yxh,Xxh,Zxh = np.meshgrid(np.append(0.0,y)+self.dy/2.0 - (self.div-1)*self.dy, \
                                   x,\
                                   np.append(0.0,z)+self.dz/2.0)
-        Yyh,Xyh,Zyh = np.meshgrid(y-0.5,\
+        Yyh,Xyh,Zyh = np.meshgrid(y-(self.div-1)*self.dy,\
                                   np.append(0.0,x)+self.dx/2.0,\
                                   np.append(0.0,z)+self.dz/2.0)
-        Yzh,Xzh,Zzh = np.meshgrid(np.append(0.0,y)+self.dy/2.0-0.5,\
+        Yzh,Xzh,Zzh = np.meshgrid(np.append(0.0,y)+self.dy/2.0-(self.div-1)*self.dy,\
                                   np.append(0.0,x)+self.dx/2.0,\
                                   z)
         
