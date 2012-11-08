@@ -31,6 +31,7 @@ class problem(optimizer):
         self.A = self.fwd.nabla2+self.fwd.getk(0)
         
         self.gap = list()
+        self.objInt = list()
         # oh. this is going to get strange. 
         # integrate TE concepts first.
         # contrast variable
@@ -166,6 +167,7 @@ class problem(optimizer):
         self.gap.append(np.linalg.norm(self.X - P*(self.s*self.fwd.Md*(self.us+self.ub))))
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
+        self.objInt.append(obj)
         return obj
         
     def writeOut(self, rank, ix=0):
@@ -179,7 +181,8 @@ class problem(optimizer):
             
         D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
              'us':us[0], 'uTrue':uTrue[0], \
-             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap}
+             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
+             'obj':self.objInt, 'Ms':self.fws.Ms}
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
