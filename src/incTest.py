@@ -21,13 +21,16 @@ def test(ica):
     bkgSig=0.05
     numSensors=4
     
-    fwd.setspace(21,21,21,5.0,5.0,5.0)
-    fwd.setmats(1,bkgSig,21/2)
+    fwd.setspace(31,31,31,5.0,5.0,5.0)
+    fwd.setmats(1,bkgSig,31/2)
     fwd.setOperators()
     fwd.makeGradOper()
     
     fwd.setMs(numSensors)
-    fwd.setMd([7,13], [7,9], [7,13])
+    # for 31 use:
+    fwd.setMd([8,22], [8,15], [8,22])
+    # for 21 use:
+    # fwd.setMd([7,13], [7,9], [7,13])
     
     
     # fwd.sigmap[1] += self.Md.T*p
@@ -58,4 +61,5 @@ def test(ica):
     
     return fwd
 
-
+if __name__=='__main__':
+    test(45)

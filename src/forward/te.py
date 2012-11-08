@@ -61,6 +61,7 @@ class solver(fwd):
         else:    
             bkx = self.nx-2*self.npml-20;
             bky = self.div-self.npml-10;
+            print 'total available sample spots = ' + repr(bkx*bky)
     
             sps = np.zeros(bkx*bky,dtype='bool');
             idx = np.round(np.linspace(0,bkx*bky-1,nSensors)).astype(int);
