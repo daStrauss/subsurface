@@ -30,6 +30,7 @@ class problem(optimizer):
         self.s = self.fwd.getS() #  1j*self.muo*self.w
         self.A = self.fwd.nabla2+self.fwd.getk(0)
         
+        self.scaleC = 1.0/(self.fwd.Ms*self.ub)
         # oh. this is going to get strange. 
         # integrate TE concepts first.
         # contrast variable
@@ -68,7 +69,7 @@ class problem(optimizer):
   
         # Construct the KKT Matrix
         ''' changes '''
-        bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
+        bmuu = self.scaleC*(self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
         bmux = -self.rho*ds.T.conj()
         bmxu = -self.rho*ds 
         ''' static ''' 
@@ -80,7 +81,7 @@ class problem(optimizer):
         bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
         
         ''' right hand side ''' 
-        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
+        rhsu = self.scaleC*self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
         rhsx = self.rho*ds*self.ub - self.rho*self.Z # chng
         rhsl = np.zeros(self.fwd.N)
   
@@ -122,7 +123,7 @@ class problem(optimizer):
   
         # Construct the KKT Matrix
         ''' changes '''
-        bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
+        bmuu = self.scaleC*(self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
         bmux = -self.rho*ds.T.conj()
         bmxu = -self.rho*ds 
         ''' static ''' 
@@ -134,7 +135,7 @@ class problem(optimizer):
         bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
         
         ''' right hand side ''' 
-        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
+        rhsu = self.scaleC*self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
         rhsx = self.rho*ds*self.ub - self.rho*self.Z # chng
         rhsl = np.zeros(self.fwd.N)
   
