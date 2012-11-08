@@ -30,7 +30,7 @@ class problem(optimizer):
         self.s = self.fwd.getS() #  1j*self.muo*self.w
         self.A = self.fwd.nabla2+self.fwd.getk(0)
         
-        
+        self.gap = list()
         # oh. this is going to get strange. 
         # integrate TE concepts first.
         # contrast variable
@@ -163,6 +163,8 @@ class problem(optimizer):
         pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
         self.us,self.X = self.internalSymbolic(pfake)
         
+        self.gap.append(np.linalg.norm(self.X - P*(self.s*self.fwd.Md*self.us)))
+        
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         return obj
         
@@ -177,7 +179,7 @@ class problem(optimizer):
             
         D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
              'us':us[0], 'uTrue':uTrue[0], \
-             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor}
+             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap}
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
