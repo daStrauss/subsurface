@@ -47,7 +47,11 @@ class solver(fwd):
         '''Tell me the number of sensors, and I will distribute them equally across the surface
         '''
         self.nSen = nSensors
-        indx = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
+        indxRaw = np.round(np.linspace(self.npml+10,self.nx-self.npml-10, nSensors)-1).astype(int);
+        indx = np.unique(indxRaw)
+        if indx.size ~= indxRaw.size:
+            print 'mismatch in index set!'
+        
         oprx = np.zeros((self.nx,self.ny),dtype='bool')
         
         oprx[indx,self.div] = 1;
