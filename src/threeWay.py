@@ -14,7 +14,7 @@ def getMyVars(parseNumber, D):
     if (parseNumber == 0):
         D['freqs'] = np.array([1e3])
         D['numProcs'] = 1
-        ['numSensors'] = 400
+        D['numSensors'] = 400
     elif (parseNumber == 1):
         D['freqs'] = np.array([1e3, 25e3])
         D['numProcs'] = 2
