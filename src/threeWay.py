@@ -14,13 +14,15 @@ def getMyVars(parseNumber, D):
     if (parseNumber == 0):
         D['freqs'] = np.array([1e3])
         D['numProcs'] = 1
+        ['numSensors'] = 400
     elif (parseNumber == 1):
         D['freqs'] = np.array([1e3, 25e3])
         D['numProcs'] = 2
-        D['numSensors'] = 300
+        D['numSensors'] = 400
     elif (parseNumber == 2):
         D['freqs'] = np.array([25e3])
         D['numProcs'] = 1
+        D['numSensors'] = 400
     elif (parseNumber == 3):
         D['freqs'] = np.linspace(1e3,25e3,6)
         D['numProcs'] = 6
