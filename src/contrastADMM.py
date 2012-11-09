@@ -288,7 +288,7 @@ class problem(optimizer):
 #        B = comm.allreduce(bL,B,op=MPI.SUM)
 #        
         num = self.rho*(U.real*B.real + U.imag*B.imag)
-        den = self.rho*(U.conj*U)
+        den = self.rho*(U.conj()*U)
         
 #        P = lin.spsolve(U,B)
         # print num
