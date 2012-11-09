@@ -29,7 +29,7 @@ def getMyVars(parseNumber, D):
         D['numSensors'] = 400
         
     D['lam'] = 1e-8
-    D['rho'] = 1e-3    
+    D['rho'] = 0.1    
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  0
     D['maxIter'] = 200
