@@ -111,7 +111,7 @@ def main():
                 fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
         
                 fid = open(fileName, 'w')
-                fid.write('mpiexec -n ' + repr(nProcs) + '--mca btl_tcp_if_include "p3p2" -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
+                fid.write('mpiexec -n ' + repr(nProcs) + ' --mca btl_tcp_if_include "p3p2" -wdir /shared/users/dstrauss/dev/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
                 fid.close()
                 cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=20:00:00', '-l','nodes=' + repr(nProcs), '-l', 'nice=0', '-q','batchnew', fileName]        
                 print cmd
