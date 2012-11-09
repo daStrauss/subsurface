@@ -248,23 +248,23 @@ class problem(optimizer):
         N = np.size(S)
         n = S[0].fwd.nRx*S[0].fwd.nRy
         
-        uL = sparse.lil_matrix((n,n),dtype='complex128')
+        #uL = sparse.lil_matrix((n,n),dtype='complex128')
+        #bL = np.zeros(n,dtype='complex128')
+        
+        uL = np.zeros(n,dtype='complex128')
         bL = np.zeros(n,dtype='complex128')
         
 #        U = np.zeros((n,N),dtype='complex128')
 #        Q = np.zeros((n,N),dtype='complex128')
-        nX = self.fwd.getXSize()
+#        nX = self.fwd.getXSize()
         for L in S:
-            # for ix in range(N):
-#            s = S[ix].s
-            # print s
-#            U[:,ix] = s*S[ix].fwd.Md*(S[ix].ub + S[ix].us)
-#            Q[:,ix] = S[ix].X + S[ix].Z
-            # print L.fwd.x2u.shape
             
-            M = L.s*(sparse.spdiags(L.fwd.x2u.T*(L.ub+L.us),0,nX,nX))*self.fwd.p2x
-            uL += M.T.conj()*M
-            bL += M.T.conj()*(L.X + L.Z)
+#            M = L.s*(sparse.spdiags(L.fwd.x2u.T*(L.ub+L.us),0,nX,nX))*self.fwd.p2x
+#            uL += M.T.conj()*M
+#            bL += M.T.conj()*(L.X + L.Z)
+#            
+            uL += self.s*self.fwd.Md*(self.us + self.ub)
+            bL += self.X + self.Z
             
             
 #        numLocal = np.sum(U.real*Q.real + U.imag*Q.imag,1)
@@ -275,15 +275,25 @@ class problem(optimizer):
 #
 #        den = np.zeros(denLocal.shape)
 #        den = comm.allreduce(denLocal,den,op=MPI.SUM)
-        U = sparse.lil_matrix((n,n),dtype='complex128')
+#        U = sparse.lil_matrix((n,n),dtype='complex128')
+#        B = np.zeros(n,dtype='complex128')
+        
+        U = np.zeros(n,dtype='complex128')
         B = np.zeros(n,dtype='complex128')
         
         U = comm.allreduce(uL,U,op=MPI.SUM)
         B = comm.allreduce(bL,B,op=MPI.SUM)
         
-        P = lin.spsolve(U,B)
+#        U = comm.allreduce(uL,U,op=MPI.SUM)
+#        B = comm.allreduce(bL,B,op=MPI.SUM)
+#        
+        num = self.rho*(U.real*B.real + U.imag*B.imag)
+        den = self.rho*(U.conj*U)
+        
+#        P = lin.spsolve(U,B)
         # print num
         # print den
+        P = (num/den)
         
         P = P.real
         
