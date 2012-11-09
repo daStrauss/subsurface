@@ -21,8 +21,8 @@ def test(ica):
     bkgSig=0.05
     numSensors=4
     
-    fwd.setspace(31,31,31,5.0,5.0,5.0)
-    fwd.setmats(1,bkgSig,31/2)
+    fwd.setspace(99,99,15,5.0,5.0,5.0)
+    fwd.setmats(1,bkgSig,99/2)
     fwd.setOperators()
     fwd.makeGradOper()
     

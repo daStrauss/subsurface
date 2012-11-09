@@ -7,7 +7,7 @@ Created on Nov 8, 2012
 import numpy as np
 
 
-D = {'solverType':'contrastX', 'flavor':'TM', 'numRuns':100, 'expt':'newParams2', 'numProcs':2}
+D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':100, 'expt':'newParams2', 'numProcs':2}
 
 
 def getMyVars(parseNumber, D):
