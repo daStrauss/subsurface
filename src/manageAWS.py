@@ -145,6 +145,7 @@ def main():
                 submitJob(cmd)
                 cmd = ['rsync', '-a', jbs.folder, '/mnt/dstrauss/' + jbs.folder]
                 submitJob(cmd)
+                cmd = ['rm', '-r', jbs.folder]
                 jobList.remove(jbs)
   
         
