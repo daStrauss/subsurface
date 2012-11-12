@@ -29,7 +29,7 @@ def getMyVars(parseNumber, D):
         D['numSensors'] = 400
         
     D['lam'] = 0.0
-    D['rho'] = 0.001 
+    D['rho'] = 0.01 
     D['xi'] = 1e-13 
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  0
