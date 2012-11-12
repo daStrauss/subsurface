@@ -179,7 +179,7 @@ class problem(optimizer):
         self.gap.append(np.linalg.norm(self.X - P*(self.s*self.fwd.Md*(self.us+self.ub))))
         
         ''' update tL '''
-        self.tL = self.updateThetaLocal()
+        self.tL = self.updateThetaLocal(P)
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         self.objInt.append(obj)
