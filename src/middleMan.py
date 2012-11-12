@@ -1,9 +1,13 @@
 '''
-Created on Jun 3, 2012
+Created on Nov 11, 2012
 
 @author: dstrauss
 
+
 implementation of contrast source ADMM optimization
+Extended for the middle-man estimate of theta. I don't understand, but it seems as though it
+might make sense to add an additional step where each local frequency object
+estimates its own theta, such that theta_{local} = theta_{global}
 '''
 
 import numpy as np
@@ -48,6 +52,11 @@ class problem(optimizer):
         # contrast X work
         self.X = np.zeros(self.fwd.getXSize(),dtype='complex128')
         self.Z = np.zeros(self.fwd.getXSize(),dtype='complex128')
+        
+        self.tD = np.zeros(self.fwd.nRx*self.fwd.nRy,dtype='complex128')
+        self.tL = np.zeros(self.fwd.nRx*self.fwd.nRy,dtype='complex128')
+        
+        
         self.fwd.setCTRX()
         
         ''' subtract out the background field '''
@@ -160,12 +169,17 @@ class problem(optimizer):
         
         '''update dual variables first '''
         self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
+        self.tD = self.tD + (self.tL - P)
         
         ''' jointly update u,x '''
-        # pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
-        self.us,self.X = self.internalHard(P)
+        pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
+        self.us,self.X = self.internalHard(pfake)
         
+        ''' do some accounting '''
         self.gap.append(np.linalg.norm(self.X - P*(self.s*self.fwd.Md*(self.us+self.ub))))
+        
+        ''' update tL '''
+        self.tL = self.updateThetaLocal()
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         self.objInt.append(obj)
