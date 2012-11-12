@@ -193,13 +193,13 @@ class problem(optimizer):
             
         localT = (P - self.tL)
         
-        self.tL = (self.rho*(uL.conj()*bL) + self.xi*(localT))/(self.rho*(uL.conj()*uL) + self.xi + self.lmb)
+        theta = (self.rho*(uL.conj()*bL) + self.xi*(localT))/(self.rho*(uL.conj()*uL) + self.xi + self.lmb)
         
-        self.tL = self.tL.real
+        theta = theta.real
         
-        P = np.maximum(self.tL,0)
-        P = np.minimum(self.tL,self.upperBound)
-        
+        theta = np.maximum(theta,0)
+        theta = np.minimum(theta,self.upperBound)
+        return theta
         
     
     def writeOut(self, rank, ix=0):
