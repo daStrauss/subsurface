@@ -1,9 +1,16 @@
 '''
-Created on Oct 19, 2012
+Created on Nov 11, 2012
 
 @author: dstrauss
 
-implementation of the phase Split algorithm -- minimal matrix factorization routine.
+
+implementation of contrast source ADMM optimization
+with phase split modification.
+
+This is a new experiment to see if I can bring any of the power of the phase split method to
+light here? 
+So we know that X and u ought to have the same phase, but in the end, they rarely do. (odd? dontcha think?)
+So lets add in the phase holding term. Cuz they ought to have the same phase.
 
 '''
 
@@ -11,19 +18,18 @@ import numpy as np
 import scipy.sparse as sparse
 import scipy.sparse.linalg as lin
 from mpi4py import MPI
-import sparseTools as spt
+import sparseTools as spTools
 import scipy.io as spio
 from optimize import optimizer
-# import matplotlib.pyplot as plt
+from superSolve import wrapCvxopt
+import time
 
 class problem(optimizer):
-    ''' an instance of an optimizer that will solve using the soft contrast X algorithm 
-    In this algorithm, I'm going to discard the "background field" its just annoying.'''
+    ''' class that extents the contrast - Xadmm algorithm '''
     def initOpt(self, uHat, D):
         self.rho = D['rho']
-        ''' no use for a xi in this problem'''
-        # self.xi = D['xi']
-        
+        self.xi = D['xi']
+        self.uHat = uHat
         self.upperBound = D['uBound']
         self.lmb = D['lmb']
         self.obj = np.zeros(D['maxIter'])
@@ -32,6 +38,9 @@ class problem(optimizer):
         self.s = self.fwd.getS() #  1j*self.muo*self.w
         self.A = self.fwd.nabla2+self.fwd.getk(0)
         
+        self.gap = list()
+        self.objInt = list()
+        self.pL = list()
         # oh. this is going to get strange. 
         # integrate TE concepts first.
         # contrast variable
@@ -42,87 +51,174 @@ class problem(optimizer):
         self.us = np.zeros(self.fwd.N,dtype='complex128')
         # just to make life easier:
         self.ub = self.fwd.sol[0] # shouldn't need --> .flatten()
-        '''remove background field once and for all'''
-        self.uHat = uHat - self.fwd.Ms*self.ub
+        self.scaleC = 1.0 # 1.0/np.linalg.norm(self.fwd.Ms*self.ub)
         # create some new operators for doing what is necessary for the 
         # contrast X work
+        
+        self.pp = np.zeros(self.fwd.getXSize(),dtype='float64')
         self.X = np.zeros(self.fwd.getXSize(),dtype='complex128')
         self.Z = np.zeros(self.fwd.getXSize(),dtype='complex128')
         
-        # this operator creates a matrix that maps to the X variables which are field specific
+        self.tD = np.zeros(self.fwd.nRx*self.fwd.nRy,dtype='complex128')
+        self.tL = np.zeros(self.fwd.nRx*self.fwd.nRy,dtype='complex128')
+        
+        
         self.fwd.setCTRX()
-        # create an operator that makes a projector used for updating u,x jointly
-        self.prepProjector()
         
-        
+        ''' subtract out the background field '''
+        self.uHat = self.uHat - self.fwd.Ms*self.ub
+        pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
+        ''' in this instance, I don't care about the results, i.e., I don't care about the actual solutions'''
+        self.internalSymbolic(pfake)
     
-    def runOpt(self,P):
-        ''' to run at each layer at each iteration '''
-        
-        # update dual variable
-        self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.us+self.ub))*(self.fwd.p2x*P))
-        
-        
-        
-        # uHatLocal =  self.uHat - self.fwd.Ms*self.ub  #remove background field
-        
+    def internalSymbolic(self,thk):
+        '''create an internal method that 
+        (1) knows the structure of the matrix
+        (2) only needs new theta estimates
+        (3) keeps the symbolic factorization to reuse '''
+        cttm = time.time()
         nX = self.fwd.getXSize()
-        pm = sparse.spdiags(self.s*self.fwd.p2x*P, 0, nX, nX)
+        pm = sparse.spdiags(self.s*self.fwd.p2x*thk, 0, nX, nX)
         # print pm.shape
         # print self.fwd.x2u.shape
+        ''' ds changes at ever iteration '''
         ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
   
         # Construct the KKT Matrix
-        bmuu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(ds.T.conj()*ds)
+        ''' changes '''
+        bmuu = self.scaleC*(self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
         bmux = -self.rho*ds.T.conj()
+        bmxu = -self.rho*ds 
+        ''' static ''' 
         bmul = self.A.T.conj()
-        
-        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
-        # 
-  
-        bmxu = -self.rho*ds
         bmxx = self.rho*sparse.eye(nX, nX)
         bmxl = self.fwd.x2u.T
-        rhsx = - self.rho*self.Z + self.rho*ds*self.ub 
-        # 
-        
         bmlu = self.A
         bmlx = self.fwd.x2u
-
-        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N)) 
+        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
+        
+        ''' right hand side ''' 
+        rhsu = self.scaleC*self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
+        rhsx = self.rho*ds*self.ub - self.rho*self.Z # chng
         rhsl = np.zeros(self.fwd.N)
-        # rhsl = self.fwd.rhs
   
-        bm = spt.vCat([spt.hCat([bmuu, bmux, bmul]), \
-                       spt.hCat([bmxu, bmxx, bmxl]), \
-                       spt.hCat([bmlu, bmlx, bmll])])
+  
+        bm = spTools.vCat([spTools.hCat([bmuu, bmux, bmul]), \
+                           spTools.hCat([bmxu, bmxx, bmxl]), \
+                           spTools.hCat([bmlu, bmlx, bmll])])
+        
+        
+        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
+        print 'construction time ' + repr(time.time()-cttm)
+        
+        sltm = time.time()
+        if hasattr(self,'symbFact'):
+            print 'Ive already got it'
+            updt = wrapCvxopt.solveNumeric(bm, rhsbm, self.symbFact)
+        else:
+            print 'got to do the symbolic calc'
+            self.symbFact = wrapCvxopt.createSymbolic(bm)
+            updt = wrapCvxopt.solveNumeric(bm, rhsbm, self.symbFact)
+        
+        # updt = lin.spsolve(bm.tocsr(), rhsbm)
+        
+        # N = self.nx*self.ny
+        us = updt[:self.fwd.N]
+        x = updt[self.fwd.N:(self.fwd.N+nX)]
+        print 'solve time ' + repr(time.time()-sltm)
+        return us,x
+        
+    def internalHard(self, thk):
+        '''creates the matrix every time, a hard alternative, to internalSymbolic
+        so that I can do A/B testing easily w.r.t the old standard'''
+        nX = self.fwd.getXSize()
+        pm = sparse.spdiags(self.s*self.fwd.p2x*thk, 0, nX, nX)
+        plp = sparse.spdiags(np.exp(1j*self.pp),0,nX,nX)
+        # print pm.shape
+        # print self.fwd.x2u.shape
+        ''' ds changes at ever iteration '''
+        ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
+  
+        # Construct the KKT Matrix
+        ''' changes '''
+        bmuu = self.scaleC*(self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
+        bmux = -self.rho*(plp*ds.T.conj())
+        bmxu = -self.rho*(plp.T.conj()*ds)
+        ''' static ''' 
+        bmul = self.A.T.conj()
+        bmxx = self.rho*sparse.eye(nX, nX)
+        bmxl = plp.T.conj()*self.fwd.x2u.T
+        bmlu = self.A
+        bmlx = self.fwd.x2u*plp
+        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
+        
+        ''' right hand side ''' 
+        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
+        rhsx = self.rho*plp.T.conj()*(ds*self.ub - self.Z) # chng
+        rhsl = np.zeros(self.fwd.N)
+  
+  
+        bm = spTools.vCat([spTools.hCat([bmuu, bmux, bmul]), \
+                           spTools.hCat([bmxu, bmxx, bmxl]), \
+                           spTools.hCat([bmlu, bmlx, bmll])])
         
         rhsbm = np.concatenate((rhsu, rhsx, rhsl))
         
         updt = lin.spsolve(bm.tocsr(), rhsbm)
         
         # N = self.nx*self.ny
-        dirUS = updt[:self.fwd.N]
-        dirX = updt[self.fwd.N:(self.fwd.N+nX)]
+        us = updt[:self.fwd.N]
+        x = updt[self.fwd.N:(self.fwd.N+nX)]
+        return us,x
+    
+    def runOpt(self,P):
+        ''' to run at each layer at each iteration '''
         
+        ''' the global tT update happens effectively here -- in parallel with u,x update'''
         
-#        
-        fooUs,fooX = self.contrastProjector(P,dirUS,dirX)
+        ''' jointly update u,x '''
+        # pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
+        self.pp = np.angle(self.fwd.x2u.T*(self.us + self.ub))
+        nX = self.fwd.getXSize()
+        plp = sparse.spdiags(np.exp(1j*self.pp),0,nX,nX)
         
-        D = {'dirUs':dirUS.reshape(self.fwd.nx,self.fwd.ny), 'dirX':dirX.reshape(self.fwd.nRx,self.fwd.nRy),\
-              'fooUs':fooUs.reshape(self.fwd.nx,self.fwd.ny), 'fooX':fooX.reshape(self.fwd.nRx,self.fwd.nRy),\
-              'P':P.reshape(self.fwd.nRx,self.fwd.nRy), 'AA':self.A}
-        spio.savemat('dircomp',D)
+        self.us,self.X = self.internalHard(self.tL)
         
-        self.us = fooUs;
-        self.X = fooX;
-#        print 'udiff ' + repr(np.linalg.norm(usCP-self.us)/np.linalg.norm(self.us))
-#        print 'xdiff ' + repr(np.linalg.norm(xCP-self.X)/np.linalg.norm(self.X))
-
+        ''' do some accounting '''
+        self.gap.append(np.linalg.norm(plp*self.X - self.tL*(self.s*self.fwd.Md*(self.us+self.ub))))
+        
+        ''' update tL '''
+        self.tL = self.updateThetaLocal(P)
+        self.pL.append(self.tL)
+        
+        '''update dual variables last '''
+        self.Z = self.Z + (plp*self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*self.tL))
+        self.tD = self.tD + (self.tL-P)
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
+        self.objInt.append(obj)
         return obj
+    
+    def updateThetaLocal(self,P):
+        '''routine that solves for a local copy of the parameters theta '''
+        uL = self.s*self.fwd.Md*(self.us + self.ub)
         
+        nX = self.fwd.getXSize()
+        plp = sparse.spdiags(np.exp(1j*self.pp),0,nX,nX)
+        
+        bL = plp*self.X + self.Z
+            
+        localT = (P - self.tD)
+        
+        theta = (self.rho*(uL.conj()*bL) + self.xi*(localT))/(self.rho*(uL.conj()*uL) + self.xi + self.lmb)
+        
+        theta = theta.real
+        
+        theta = np.maximum(theta,0)
+        theta = np.minimum(theta,self.upperBound)
+        return theta
+        
+    
     def writeOut(self, rank, ix=0):
         import os
         assert os.path.exists(self.outDir + 'Data')
@@ -130,170 +226,30 @@ class problem(optimizer):
         us = self.fwd.parseFields(self.us)
         ub = self.fwd.parseFields(self.fwd.sol[0])
         sgmm = self.fwd.parseFields(self.fwd.sigmap[0])
-        uTrue = self.fwd.parseFields(self.fwd.sol[1]-self.fwd.sol[0])
-        
-        uSmp = self.fwd.Ms*self.us
-        uSolSmp = self.fwd.Ms*(self.fwd.sol[1]-self.fwd.sol[0])
+        uTrue = self.fwd.parseFields(self.fwd.sol[1])
             
         D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
              'us':us[0], 'uTrue':uTrue[0], \
-             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'uSmp':uSmp, 'uSolSmp':uSolSmp}
+             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
+             'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL}
         
-        spio.savemat(self.outDir + 'Data/contrastSoftX' + repr(rank) + '_' + repr(ix), D)
-
-
-    def prepProjector(self):
-        ''' create a projection function, stored inside, that does the u,x projection step'''
-        n = self.fwd.N
-        m = self.fwd.getXSize()
-        
-        uu = self.fwd.Ms.T*self.fwd.Ms + xi2*sparse.eye(n,n)
-        ux = sparse.coo_matrix((n,m),dtype='complex128')
-        ul = self.A.T.conj()
-        
-        xu = sparse.coo_matrix((m,n),dtype='complex128')
-        xx = self.xi*sparse.eye(m,m,dtype='complex128')
-        xl = self.fwd.x2u.T.conj()
-        
-        lu = self.A
-        lx = self.fwd.x2u
-        ll = sparse.coo_matrix((n,n),dtype='complex128')
-        
-        M = spt.vCat([spt.hCat([uu,ux,ul]),\
-                      spt.hCat([xu,xx,xl]),\
-                      spt.hCat([lu,lx,ll])])
-        
-        self.projector = lin.factorized(M.tocsc())
-        
-    def contrastProjector(self,P,uTrue,xTrue):
-        '''subroutine to actually do the projection '''
-        n = self.fwd.N
-        m = self.fwd.getXSize()
-
-        # Aa = sparse.eye(n+m,n+m);
-        # Bb = -sparse.eye(n+m,n+m);
-        eAbs = 1e-5;
-        eRel = 1e-5;
-
-        u = np.zeros(n,dtype='complex128');
-        ut = self.us;
-        ud = np.zeros(n,dtype='complex128');
-
-        x = np.zeros(m,dtype='complex128');
-        xt = self.X;
-        xd = np.zeros(m,dtype='complex128');
-
-        z = np.zeros(n+m,dtype='complex128');
-        print self.rho
-        print self.xi
-        
-        TT = sparse.spdiags(self.s*self.fwd.p2x*P,0,m,m)*self.fwd.x2u.T
-        print 'tt norm ' + repr(np.linalg.norm(TT.todense()))
-        
-        
-        uu = self.rho*TT.T.conj()*TT + xi2*sparse.eye(n,n,dtype='complex128');
-        ux = -self.rho*TT.T.conj()
-        xu = -self.rho*TT
-        xx = self.rho*sparse.eye(m,m,dtype='complex128') + self.xi*sparse.eye(m,m,dtype='complex128')
-        
-        R = spt.vCat([spt.hCat([uu, ux]), spt.hCat([xu, xx])])
-        spio.savemat('ttout', {'R':R})
-        g = lin.factorized(R.tocsc())
-        
-        ePri = 0.0
-        eDua = 0.0
-        rErr = np.ones(n+m)
-        sErr = np.ones(n+m)
-        # gap = np.zeros(100)
-        
-        iter = 0
-        while (iter<20): # & (np.linalg.norm(rErr)>ePri) & (np.linalg.norm(sErr)>eDua):
-            ''' inner loop to solve the projection '''
-            iter += 1
-            rhs = np.concatenate((self.fwd.Ms.T*self.uHat + xi2*(ut-ud),\
-                                  self.xi*(xt-xd),\
-                                  np.zeros(n)))
-            updt = self.projector(rhs)
-            u = updt[:n]
-            x = updt[n:(n+m)]
-            
-            rhs = np.concatenate((xi2*(u+ud) + self.rho*TT.T.conj()*(self.Z-TT*self.ub),\
-                                  self.xi*(x+xd) - self.rho*(self.Z-TT*self.ub)))
-            
-            zold = z;
-            z = g(rhs);
-            ut = z[:n]
-            xt = z[n:]        
-    
-            ud += u-ut;
-            xd += x-xt;
-            gap = np.linalg.norm(np.concatenate((u,x))-np.concatenate((ut,xt)))
-            print 'Gap at iter ' + repr(iter) + ' ' + repr(gap)
-            
-            print 'uErr ' + repr(np.linalg.norm(u-uTrue)/np.linalg.norm(uTrue))
-            print 'xErr ' + repr(np.linalg.norm(x-xTrue)/np.linalg.norm(xTrue))
-            print 'cnstr ' + repr(np.linalg.norm(self.A*u + self.fwd.x2u*x))
-            print 'cnstr twiddle ' + repr(np.linalg.norm(self.A*ut + self.fwd.x2u*xt))
-            
-            sErr = -self.rho*(z-zold);
-            rErr = np.concatenate((u,x)) - z;
-    
-            ePri = np.sqrt(2*n)*eAbs + eRel*max(np.linalg.norm(np.concatenate((ut,xt))),\
-                                                np.linalg.norm(-1.0*z))
-                                                
-            eDua = np.sqrt(2*n)*eAbs + eRel*np.linalg.norm(np.concatenate((ud,xd))*self.rho);
-            # if (np.linalg.norm(rErr)<ePri) & (np.linalg.norm(sErr)<eDua):
-            #    break
-    
-        print 'inner iters = ' + repr(iter)
-#        plt.figure(1)
-#        plt.plot(range(100),gap)
-#        plt.show()
-        return u,x
+        spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
 
     def aggregatorSemiParallel(self,S, comm):
-        ''' Do the aggregation step in parallel whoop! '''
-        N = np.size(S)
-        n = S[0].fwd.nRx*S[0].fwd.nRy
+        ''' Do the aggregation step in parallel whoop! 
+        Revised to be just a simple aggregation/mean step '''
         
-        uL = sparse.lil_matrix((n,n),dtype='complex128')
-        bL = np.zeros(n,dtype='complex128')
+        n = self.fwd.nRx*self.fwd.nRy
+        tt = self.tL + self.tD
         
-#        U = np.zeros((n,N),dtype='complex128')
-#        Q = np.zeros((n,N),dtype='complex128')
-        nX = self.fwd.getXSize()
-        for L in S:
-            # for ix in range(N):
-#            s = S[ix].s
-            # print s
-#            U[:,ix] = s*S[ix].fwd.Md*(S[ix].ub + S[ix].us)
-#            Q[:,ix] = S[ix].X + S[ix].Z
-            # print L.fwd.x2u.shape
-            
-            M = L.s*(sparse.spdiags(L.fwd.x2u.T*(L.us+L.ub),0,nX,nX))*self.fwd.p2x
-            uL += M.T.conj()*M
-            bL += M.T.conj()*(L.X + L.Z)
-            
-        U = sparse.lil_matrix((n,n),dtype='complex128')
-        B = np.zeros(n,dtype='complex128')
+        T = np.zeros(n,dtype='complex128')
         
-        U = comm.allreduce(uL,U,op=MPI.SUM)
-        B = comm.allreduce(bL,B,op=MPI.SUM)
-        
-        P = lin.spsolve(U,B)
-        # print num
-        # print den
-        
-        P = P.real
-        
-        # print P[1]
-        P = np.maximum(P,0)
-        # print self.upperBound
-        P = np.minimum(P,self.upperBound)
-        # print P[1]
-               
-        return P
+                
+        T = comm.allreduce(tt,T,op=MPI.SUM)
+        T = T/comm.Get_size()
+                       
+        return T
         
     def plotSemiParallel(self,P,resid,rank,ix=0):
         ''' Plotting routine if things are semiParallel'''
@@ -308,7 +264,7 @@ class problem(optimizer):
         # vv = S.Ms*S.v
         uu = self.fwd.Ms*self.us
         ub = self.fwd.Ms*self.ub
-        skt = self.uHat
+        skt = self.uHat-ub
         
         plt.figure(100 + rank + 10*ix)
         plt.plot(np.arange(self.fwd.nSen), skt.real, np.arange(self.fwd.nSen), uu.real)

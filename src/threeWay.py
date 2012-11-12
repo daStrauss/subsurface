@@ -5,7 +5,7 @@ Created on Nov 7, 2012
 '''
 
 import numpy as np
-D = {'solverType':'middleMan', 'flavor':'TE', 'numRuns':4, 'expt':'testThree'}
+D = {'solverType':'phaseSplit', 'flavor':'TE', 'numRuns':4, 'expt':'testThree'}
 
 
 def getMyVars(parseNumber, D):
@@ -33,6 +33,6 @@ def getMyVars(parseNumber, D):
     D['xi'] = 1e-12 
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  0
-    D['maxIter'] = 200
+    D['maxIter'] = 20
     
     return D
