@@ -279,7 +279,7 @@ class problem(optimizer):
 #        U = sparse.lil_matrix((n,n),dtype='complex128')
 #        B = np.zeros(n,dtype='complex128')
 
-        self.pL.append = (uL.real*bL.real + uL.imag*bL.imag)/(uL.conj()*uL)
+        self.pL.append((uL.real*bL.real + uL.imag*bL.imag)/(uL.conj()*uL))
         
         U = np.zeros(n,dtype='complex128')
         B = np.zeros(n,dtype='complex128')
