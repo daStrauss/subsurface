@@ -172,8 +172,8 @@ class problem(optimizer):
         self.tD = self.tD + (self.tL - P)
         
         ''' jointly update u,x '''
-        pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
-        self.us,self.X = self.internalHard(pfake)
+        # pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
+        self.us,self.X = self.internalHard(P)
         
         ''' do some accounting '''
         self.gap.append(np.linalg.norm(self.X - P*(self.s*self.fwd.Md*(self.us+self.ub))))
@@ -184,7 +184,24 @@ class problem(optimizer):
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         self.objInt.append(obj)
         return obj
+    
+    def updateThetaLocal(self,P):
+        '''routine that solves for a local copy of the parameters theta '''
+        uL = self.s*self.fwd.Md*(self.us + self.ub)
         
+        bL = self.X + self.Z
+            
+        localT = (P - self.tL)
+        
+        self.tL = (self.rho*(uL.conj()*bL) + self.xi*(localT))/(self.rho*(uL.conj()*uL) + self.xi + self.lmb)
+        
+        self.tL = self.tL.real
+        
+        P = np.maximum(self.tL,0)
+        P = np.minimum(self.tL,self.upperBound)
+        
+        
+    
     def writeOut(self, rank, ix=0):
         import os
         assert os.path.exists(self.outDir + 'Data')
@@ -201,126 +218,21 @@ class problem(optimizer):
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
-        
-#   Just break it -- I don't plan to use it anyway     
-#    def aggregatorSerial(self, S):
-#        ''' routine to do the aggregation step and return an update for P '''
-#        N = np.size(S)
-#        n = S[0].nRx*S[0].nRy
-#        # print N
-#        # print n
-#        
-#        U = np.zeros((n,N),dtype='complex128')
-#        Q = np.zeros((n,N),dtype='complex128')
-#        
-#        for ix in range(N):
-#            s = S[ix].s
-#            U[:,ix] = s*S[ix].Md*(S[ix].ub + S[ix].us)
-#            Q[:,ix] = S[ix].X + S[ix].Z
-#            
-#        num = np.sum(U.real*Q.real + U.imag*Q.imag,1)
-#        
-#        den = np.sum(U.conj()*U,1) + self.lmb/S[0].rho
-#        
-#        P = (num/den).real
-#        P = np.maximum(P,0)
-#        P = np.minimum(P,self.upperBound)
-#        
-#        gap = np.zeros(N)
-#        for ix in range(N):
-#            gap[ix] = np.linalg.norm(U[:,ix]*P - S[ix].X)
-#            
-#        return P
-#    
-#    def aggregatorParallel(self, comm):
-#        ''' Do the aggregation step in parallel whoop! '''
-#        N = np.size(self)
-#        print repr(N) + ' == better be 1!'
-#        
-#        U = self.s*self.Md*(self.ub+self.us)
-#        Q = self.X + self.Z
-#        
-#        q = U.real*Q.real + U.imag*Q.imag
-#        num = np.zeros(q.shape)
-#        
-#        num = comm.allreduce(q,num,op=MPI.SUM)
-#        
-#        q = U.conj()*U + self.lmb/self.rho
-#        den = np.zeros(q.shape)
-#        den = comm.allreduce(q,den,op=MPI.SUM)
-#        
-#        P = (num/den).real
-#        P = np.maximum(P,0)
-#        P = np.minimum(P,self.upperBound)
-#        
-#        # gap = np.linalg.norm(U*P - self.X)
-#        # print 'Proc ' + repr(comm.Get_rank()) + ' gap = ' + repr(gap)
-#        
-#        return P
-#    
-    def aggregatorSemiParallel(self,S, comm):
-        ''' Do the aggregation step in parallel whoop! '''
-        N = np.size(S)
-        n = S[0].fwd.nRx*S[0].fwd.nRy
-        
-        #uL = sparse.lil_matrix((n,n),dtype='complex128')
-        #bL = np.zeros(n,dtype='complex128')
-        
-        uL = np.zeros(n,dtype='complex128')
-        bL = np.zeros(n,dtype='complex128')
-        
-#        U = np.zeros((n,N),dtype='complex128')
-#        Q = np.zeros((n,N),dtype='complex128')
-#        nX = self.fwd.getXSize()
-        for L in S:
-            
-#            M = L.s*(sparse.spdiags(L.fwd.x2u.T*(L.ub+L.us),0,nX,nX))*self.fwd.p2x
-#            uL += M.T.conj()*M
-#            bL += M.T.conj()*(L.X + L.Z)
-#            
-            uL += self.s*self.fwd.Md*(self.us + self.ub)
-            bL += self.X + self.Z
-            
-            
-#        numLocal = np.sum(U.real*Q.real + U.imag*Q.imag,1)
-#        denLocal = np.sum(U.conj()*U,1) + self.lmb/S[0].rho
-#        
-#        num = np.zeros(numLocal.shape)
-#        num = comm.allreduce(numLocal,num,op=MPI.SUM)
-#
-#        den = np.zeros(denLocal.shape)
-#        den = comm.allreduce(denLocal,den,op=MPI.SUM)
-#        U = sparse.lil_matrix((n,n),dtype='complex128')
-#        B = np.zeros(n,dtype='complex128')
 
-        self.pL.append((uL.real*bL.real + uL.imag*bL.imag)/(uL.conj()*uL))
+    def aggregatorSemiParallel(self,S, comm):
+        ''' Do the aggregation step in parallel whoop! 
+        Revised to be just a simple aggregation/mean step '''
         
-        U = np.zeros(n,dtype='complex128')
-        B = np.zeros(n,dtype='complex128')
+        n = self.fwd.nRx*self.fwd.nRy
+        tt = self.tL + self.tD
         
-        U = comm.allreduce(uL,U,op=MPI.SUM)
-        B = comm.allreduce(bL,B,op=MPI.SUM)
+        T = np.zeros(n,dtype='complex128')
         
-#        U = comm.allreduce(uL,U,op=MPI.SUM)
-#        B = comm.allreduce(bL,B,op=MPI.SUM)
-#        
-        num = self.rho*(U.real*B.real + U.imag*B.imag)
-        den = self.rho*(U.conj()*U) + self.lmb
-        
-#        P = lin.spsolve(U,B)
-        # print num
-        # print den
-        P = (num/den)
-        
-        P = P.real
-        
-        # print P[1]
-        P = np.maximum(P,0)
-        # print self.upperBound
-        P = np.minimum(P,self.upperBound)
-        # print P[1]
-               
-        return P
+                
+        T = comm.allreduce(tt,T,op=MPI.SUM)
+        T = T/comm.Get_size()
+                       
+        return T
         
     def plotSemiParallel(self,P,resid,rank,ix=0):
         ''' Plotting routine if things are semiParallel'''

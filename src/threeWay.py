@@ -5,7 +5,7 @@ Created on Nov 7, 2012
 '''
 
 import numpy as np
-D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':4, 'expt':'testThree'}
+D = {'solverType':'middleMan', 'flavor':'TE', 'numRuns':4, 'expt':'testThree'}
 
 
 def getMyVars(parseNumber, D):
@@ -29,7 +29,8 @@ def getMyVars(parseNumber, D):
         D['numSensors'] = 400
         
     D['lam'] = 1e-8
-    D['rho'] = 0.1    
+    D['rho'] = 0.1 
+    D['xi'] = 0.1   
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  0
     D['maxIter'] = 200

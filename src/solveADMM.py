@@ -46,6 +46,9 @@ def delegator(solverType, flavor, freq, incAng):
     elif solverType == 'projection':
         import projection
         S = map(projection.problem, freq, incAng, flavor)
+    elif solverType == 'middleMan':
+        import middleMan
+        S = map(middleMan.problem, freq, incAng, flavor)
         return S
     
     
