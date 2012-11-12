@@ -7,13 +7,14 @@ Created on Nov 8, 2012
 import numpy as np
 
 
-D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':100, 'expt':'newParams2', 'numProcs':2}
+D = {'solverType':'middleMan', 'flavor':'TE', 'numRuns':245, 'expt':'newParams2', 'numProcs':2}
 
 
 def getMyVars(parseNumber, D):
     '''routine to return the parameters to test at the current iteration.'''
-    rhos, bkgLocal = np.meshgrid(np.logspace(-4,0,20), range(5))
+    rhos, xis, bkgLocal = np.meshgrid(np.logspace(-4,0,7), np.logspace(-16,-8,7), range(5))
     rhos = rhos.flatten()
+    xis = xis.flatten()
     bkgLocal = bkgLocal.flatten()
     
         
@@ -24,12 +25,12 @@ def getMyVars(parseNumber, D):
     D['lam'] = 1e-7
 #    D['rho'] = 1e-3    
     D['inc'] = np.array([75*np.pi/180])
-    D['bkgNo'] =  0
     D['maxIter'] = 200
 
     
     
     D['rho'] = rhos[parseNumber] 
+    D['xi'] = xis[parseNumber]
     D['bkgNo'] =  bkgLocal[parseNumber] + 100
     D['numProcs'] = 2
     return D
