@@ -174,7 +174,7 @@ class problem(optimizer):
         self.us,self.X = self.internalHard(self.tL)
         
         ''' do some accounting '''
-        self.gap.append(np.linalg.norm(self.X - P*(self.s*self.fwd.Md*(self.us+self.ub))))
+        self.gap.append(np.linalg.norm(self.X - self.tL*(self.s*self.fwd.Md*(self.us+self.ub))))
         
         ''' update tL '''
         self.tL = self.updateThetaLocal(P)
