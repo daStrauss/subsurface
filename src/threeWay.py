@@ -33,6 +33,6 @@ def getMyVars(parseNumber, D):
     D['xi'] = 1e-13 
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  0
-    D['maxIter'] = 20
+    D['maxIter'] = 200
     
     return D
