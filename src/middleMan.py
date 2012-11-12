@@ -182,7 +182,7 @@ class problem(optimizer):
         
         '''update dual variables last '''
         self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*self.tL))
-        self.tD = self.tD + (self.tL - P)
+        self.tD = self.tD + (self.tL-P)
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         self.objInt.append(obj)
@@ -194,7 +194,7 @@ class problem(optimizer):
         
         bL = self.X + self.Z
             
-        localT = (P - self.tL)
+        localT = (P - self.tD)
         
         theta = (self.rho*(uL.conj()*bL) + self.xi*(localT))/(self.rho*(uL.conj()*uL) + self.xi + self.lmb)
         
