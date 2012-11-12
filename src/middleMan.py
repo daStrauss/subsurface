@@ -167,9 +167,7 @@ class problem(optimizer):
     def runOpt(self,P):
         ''' to run at each layer at each iteration '''
         
-        '''update dual variables first '''
-        self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
-        self.tD = self.tD + (self.tL - P)
+        ''' the global tT update happens effectively here -- in parallel with u,x update'''
         
         ''' jointly update u,x '''
         # pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
@@ -180,6 +178,11 @@ class problem(optimizer):
         
         ''' update tL '''
         self.tL = self.updateThetaLocal(P)
+        self.pL.append(self.tL)
+        
+        '''update dual variables last '''
+        self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
+        self.tD = self.tD + (self.tL - P)
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         self.objInt.append(obj)
