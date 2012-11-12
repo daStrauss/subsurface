@@ -171,7 +171,7 @@ class problem(optimizer):
         
         ''' jointly update u,x '''
         # pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
-        self.us,self.X = self.internalHard(P)
+        self.us,self.X = self.internalHard(self.tL)
         
         ''' do some accounting '''
         self.gap.append(np.linalg.norm(self.X - P*(self.s*self.fwd.Md*(self.us+self.ub))))
@@ -181,7 +181,7 @@ class problem(optimizer):
         self.pL.append(self.tL)
         
         '''update dual variables last '''
-        self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
+        self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*self.tL))
         self.tD = self.tD + (self.tL - P)
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
