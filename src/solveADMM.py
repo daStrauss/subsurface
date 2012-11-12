@@ -49,6 +49,10 @@ def delegator(solverType, flavor, freq, incAng):
     elif solverType == 'middleMan':
         import middleMan
         S = map(middleMan.problem, freq, incAng, flavor)
+        
+    elif solverType == 'phaseSplit':
+        import phaseSplit
+        S = map(phaseSplit.problem, freq, incAng, flavor)
         return S
     
     
