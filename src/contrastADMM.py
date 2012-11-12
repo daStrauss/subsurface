@@ -32,6 +32,7 @@ class problem(optimizer):
         
         self.gap = list()
         self.objInt = list()
+        self.pL = list()
         # oh. this is going to get strange. 
         # integrate TE concepts first.
         # contrast variable
@@ -182,7 +183,7 @@ class problem(optimizer):
         D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
              'us':us[0], 'uTrue':uTrue[0], \
              'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
-             'obj':self.objInt, 'Ms':self.fwd.Ms}
+             'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL}
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
@@ -277,6 +278,8 @@ class problem(optimizer):
 #        den = comm.allreduce(denLocal,den,op=MPI.SUM)
 #        U = sparse.lil_matrix((n,n),dtype='complex128')
 #        B = np.zeros(n,dtype='complex128')
+
+        self.pL.append = (uL.real*bL.real + uL.imag*bL.imag)/(uL.conj()*uL)
         
         U = np.zeros(n,dtype='complex128')
         B = np.zeros(n,dtype='complex128')
