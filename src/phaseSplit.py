@@ -142,8 +142,8 @@ class problem(optimizer):
         # Construct the KKT Matrix
         ''' changes '''
         bmuu = self.scaleC*(self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
-        bmux = -self.rho*(plp*ds.T.conj())
-        bmxu = -self.rho*(plp.T.conj()*ds)
+        bmux = -self.rho*(ds.T.conj()*plp)
+        bmxu = -self.rho*(ds*plp.T.conj())
         ''' static ''' 
         bmul = self.A.T.conj()
         bmxx = self.rho*sparse.eye(nX, nX)
