@@ -14,7 +14,7 @@ def getMyVars(parseNumber, D):
     if (parseNumber == 0):
         D['freqs'] = np.array([1e3])
         D['numProcs'] = 1
-        D['numSensors'] = 400
+        D['numSensors'] = 2100
     elif (parseNumber == 1):
         D['freqs'] = np.array([1e3, 25e3])
         D['numProcs'] = 2
@@ -22,7 +22,7 @@ def getMyVars(parseNumber, D):
     elif (parseNumber == 2):
         D['freqs'] = np.array([25e3])
         D['numProcs'] = 1
-        D['numSensors'] = 400
+        D['numSensors'] = 2100
     elif (parseNumber == 3):
         D['freqs'] = np.linspace(1e3,25e3,6)
         D['numProcs'] = 6
@@ -30,9 +30,9 @@ def getMyVars(parseNumber, D):
         
     D['lam'] = 0.0
     D['rho'] = 0.001 
-    D['xi'] = 1e-10 
+    D['xi'] = 0 
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  100
-    D['maxIter'] = 20
+    D['maxIter'] = 50
     
     return D
