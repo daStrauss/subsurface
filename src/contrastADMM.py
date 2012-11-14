@@ -52,9 +52,9 @@ class problem(optimizer):
         
         ''' subtract out the background field '''
         self.uHat = self.uHat - self.fwd.Ms*self.ub
-        pfake = (self.upperBound/2.0)*np.ones(self.fwd.getPSize(),dtype='complex128')
+        # pfake = (self.upperBound/2.0)*np.ones(self.fwd.getPSize(),dtype='complex128')
         ''' in this instance, I don't care about the results, i.e., I don't care about the actual solutions'''
-        self.internalSymbolic(pfake)
+        # self.internalSymbolic(pfake)
     
     def internalSymbolic(self,thk):
         '''create an internal method that 
@@ -159,8 +159,10 @@ class problem(optimizer):
         ''' to run at each layer at each iteration '''
         
         '''update dual variables first '''
-        print 'size of ub ' + repr(self.ub.shape)
+        print 'size of us ' + repr(self.us.shape)
         print 'size of x2u ' + repr(self.fwd.x2u.shape)
+        print 'size of p2x ' + repr(self.fwd.p2x.shape)
+        print 'size of Z ' + repr(self.Z.shape) + ' and X ' + repr(self.X.shape)
         self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
         
         ''' jointly update u,x '''
