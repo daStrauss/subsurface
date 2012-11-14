@@ -214,6 +214,8 @@ class problem(optimizer):
         U = comm.allreduce(uL,U,op=MPI.SUM)
         B = comm.allreduce(bL,B,op=MPI.SUM)
         
+        U += sparse.spdiags((self.lmb/self.rho)*np.ones(n), 0, n, n)
+        
         P = lin.spsolve(U,B)
         self.pL.append(lin.spsolve(uL,bL))
         

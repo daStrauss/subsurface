@@ -5,7 +5,7 @@ Created on Oct 17, 2012
 '''
 
 import numpy as np
-D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':5, 'expt':'testSolver'}
+D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':1, 'expt':'testSolver'}
 
 
 def getMyVars(parseNumber, D):
@@ -16,7 +16,7 @@ def getMyVars(parseNumber, D):
     # D['xi'] = 1e-9
     D['freqs'] = np.array([1e3])
     D['inc'] = np.array([75*np.pi/180])
-    D['bkgNo'] =  0
+    D['bkgNo'] =  100
     D['numProcs'] = 1
     D['maxIter'] = 10
     
