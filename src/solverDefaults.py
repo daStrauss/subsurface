@@ -38,6 +38,7 @@ def getDefaults(solverType, flavor, customDefs):
         
     elif (solverType == 'middleMan') & (flavor=='TE'):
         D = {'rho':1e-3, 'xi':1e-3, 'lmb':0}
+        
     elif (solverType == 'phaseSplit') & (flavor=='TE'):
         D = {'rho':1e-3, 'xi':1e-3, 'lmb':0}
     
