@@ -197,8 +197,8 @@ class solver(fwd):
         self.p2x = sparse.eye(self.nRx*self.nRy*self.nRz,self.nRx*self.nRy*self.nRz)
         self.p2x = sparse.vstack((self.p2x,self.p2x,self.p2x))
         
-         if ~hasattr(self, 'x2u'):
-             print 'Oh youre hosed now!"
+        if not(hasattr(self, 'x2u')):
+            print 'Oh youre hosed now!'
         
 #        # print self.p2x.shape
 #        self.x2u = self.Md.T
