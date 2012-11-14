@@ -320,9 +320,11 @@ class solver(fwd):
         Yxh,Xxh,Zxh = np.meshgrid(np.append(0.0,y)+self.dy/2.0 - (self.div)*self.dy, \
                                   x,\
                                   np.append(0.0,z)+self.dz/2.0)
+        
         Yyh,Xyh,Zyh = np.meshgrid(y-(self.div)*self.dy,\
                                   np.append(0.0,x)+self.dx/2.0,\
                                   np.append(0.0,z)+self.dz/2.0)
+        
         Yzh,Xzh,Zzh = np.meshgrid(np.append(0.0,y)+self.dy/2.0-(self.div)*self.dy,\
                                   np.append(0.0,x)+self.dx/2.0,\
                                   z)
@@ -379,7 +381,7 @@ class solver(fwd):
         
         
         
-        Hxinc = te_ezf(Xxh,Yxh,Zxh,thsxh,kinc,ktx,rTE,tTE,kFS,kHS)
+        Hxinc = te_hf(Xxh,Yxh,Zxh,thsxh,kinc,ktx,rTE,tTE,kFS,kHS)
         Hxinc[~thsxh] = Hxinc[~thsxh]*(1.0/etaF)*np.cos(phi)*kinc[1]
         Hxinc[thsxh] = Hxinc[thsxh]*(1.0/etaH)*np.cos(phi)*ktx[1]
         
@@ -545,6 +547,20 @@ def te_ezf(X,Y,Z,xi,kinc,ktx,rTE,tTE,kFS,kHS):
     return ez
 
     
+def te_hf(X,Y,Z,xi,kinc,ktx,rTE,tTE,kFS,kHS):
+    ''' right the only difference is in the sign of the reflected wave '''
+    m,n,p = X.shape
     
-    
+    ez = np.zeros((m,n,p),dtype='complex128')
+    ez[~xi] = np.exp(kFS*(X[~xi]*kinc[0]  + \
+                          Y[~xi]*kinc[1]  + \
+                          Z[~xi]*kinc[2])) - \
+              rTE*np.exp(kFS*(X[~xi]*kinc[0] - \
+                              Y[~xi]*kinc[1] + \
+                              Z[~xi]*kinc[2]))
+    ez[xi] = tTE*np.exp(kHS*(X[xi]*ktx[0]  + \
+                          Y[xi]*ktx[1]  + \
+                          Z[xi]*ktx[2]))
+    return ez
+
     
