@@ -254,7 +254,7 @@ class solver(fwd):
         
         ''' put them all together in a block matrix '''    
         self.Md = sparse.block_diag((Mx,My,Mz), 'csc')
-        
+        print 'Md shape ' + repr(self.Md.shape)
         
 
         
