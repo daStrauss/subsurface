@@ -81,7 +81,9 @@ class solver(fwd):
         
         return [hz,ex,ey]
         
-        
+    def parseP(self,P):
+        ''' the other two solvers are simple, this one is different '''
+        return P.reshape(self.nRx,self.nRy)        
             
             
     def setMs(self, nSensors=10):

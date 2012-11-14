@@ -124,6 +124,11 @@ class solver(fwd):
         else:
             localU = np.dot(self.Phi,u)
             return [localU.reshape(self.nx,self.ny)]
+        
+    def parseP(self,P):
+        ''' the other two solvers are simple, this one is different '''
+        return P.reshape(self.nRx,self.nRy)
+    
     
     def pointSource(self, x,y):
         """ A routine to add a point source at the grid loc (x,y) """

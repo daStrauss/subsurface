@@ -125,7 +125,7 @@ class problem(optimizer):
   
         # Construct the KKT Matrix
         ''' changes '''
-        bmuu = self.scaleC*(self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
+        bmuu = (self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
         bmux = -self.rho*ds.T.conj()
         bmxu = -self.rho*ds 
         ''' static ''' 
@@ -137,7 +137,7 @@ class problem(optimizer):
         bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
         
         ''' right hand side ''' 
-        rhsu = self.scaleC*self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
+        rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
         rhsx = self.rho*ds*self.ub - self.rho*self.Z # chng
         rhsl = np.zeros(self.fwd.N)
   

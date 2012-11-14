@@ -209,7 +209,13 @@ class solver(fwd):
         ''' return the proper size of X so that the optimization routine can work its magic '''
         return 3*self.nRx*self.nRy*self.nRz
     def getPSize(self):
+        ''' remember, it changes from solver to solver '''
         return self.nRx*self.nRy*self.nRz
+    
+    def parseP(self,P):
+        ''' the other two solvers are simple, this one is different '''
+        return P.reshape(self.nRx,self.nRy,self.nRz)
+        
         
     def setMd(self, xrng, yrng, zrng):
         '''Tell me the xrange,yrange, and zrange and Ill
