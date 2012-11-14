@@ -95,6 +95,10 @@ class solver(fwd):
     def getXSize(self):
         ''' return the proper size of X so that the optimizatoin routine can work its magic '''
         return self.nRx*self.nRy
+    
+    def getPSize(self):
+        ''' this should return the number of parameters we are trying to find '''
+        return self.nRx*self.nRy
         
     def setMd(self, xrng, yrng):
         '''Tell me the xrange and the yrange and I'll make selector'''

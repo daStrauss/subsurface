@@ -154,6 +154,9 @@ class solver(fwd):
     def getXSize(self):
         ''' return the proper size of X so that the optimization routine can work its magic '''
         return 2*self.nRx*self.nRy
+    
+    def getPSize(self):
+        return self.nRx*self.nRy
         
     def setMd(self, xrng, yrng):
         '''Tell me the xrange and the yrange and I'll make selector

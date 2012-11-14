@@ -172,7 +172,7 @@ def semiParallel(solverType, flavor, **kwargs):
         fout.write('initialize time ' + repr(time.time()-ti) + '\n')
     
     
-    P = np.zeros(S[0].fwd.nRx*S[0].fwd.nRy)
+    P = np.zeros(S[0].fwd.getPSize())
     resid = np.zeros(D['maxIter'])
     tmvc = np.zeros(D['maxIter'])
     
