@@ -202,7 +202,7 @@ def semiParallel(solverType, flavor, **kwargs):
         S[ix].writeOut(rank,ix)
     
     if rank == 0:
-        D['Pfinal'] = S[0].parseP(P)
+        D['Pfinal'] = S[0].fwd.parseP(P)
         D['nProc'] = nProc
         D['resid'] = resid
         D['timing'] = tmvc
