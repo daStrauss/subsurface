@@ -155,7 +155,7 @@ def semiParallel(solverType, flavor, **kwargs):
     S = delegator(solverType, flavLocal, freqLocal, angLocal)
     print flavLocal
     
-    if flavLocal == 'TE3D':
+    if flavLocal[0] == 'TE3D':
         print 'is this happening'
         S,pTrue = feas3dProj(S,D)
     else:
