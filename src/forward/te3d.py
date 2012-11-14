@@ -24,7 +24,7 @@ class solver(fwd):
         self.dy = dy # delta y
         self.dz = dz # delta z
 
-        self.npml = min(10,round((nx+2.0)/10))
+        self.npml = min(10,round(nx/10))
     
     def makeGradOper(self):
         ''' routine to make a big matrix for TE problems ex,ey,ez all incorporated,
@@ -295,7 +295,7 @@ class solver(fwd):
         phi = self.azAng 
         
         ''' how far in from the PML should we go? -- 2 grid points should be enough '''
-        instep = 5+self.npml;
+        instep = 2+self.npml;
         # mdpt = nx/2; # should replace by div
         x = np.arange(1,1+self.nx,dtype='float64')*self.dx
         y = np.arange(1,1+self.ny,dtype='float64')*self.dy
