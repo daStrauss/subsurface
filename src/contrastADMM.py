@@ -159,6 +159,8 @@ class problem(optimizer):
         ''' to run at each layer at each iteration '''
         
         '''update dual variables first '''
+        print 'size of ub ' + repr(self.ub.shape)
+        print 'size of x2u ' + repr(self.fwd.x2u.shape)
         self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
         
         ''' jointly update u,x '''

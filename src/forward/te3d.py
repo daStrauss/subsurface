@@ -19,7 +19,7 @@ class solver(fwd):
         self.nx = nx # number x points
         self.ny = ny # number y points
         self.nz = nz # number z points
-        self.N = nx*ny*nz # super size of space
+        self.N = (nx+1)*ny*nz + nx*(ny+1)*nz + nx*ny*(nz+1) # super size of space
         self.dx = dx # delta x
         self.dy = dy # delta y
         self.dz = dz # delta z
