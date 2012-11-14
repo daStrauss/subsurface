@@ -197,6 +197,7 @@ class solver(fwd):
         self.p2x = sparse.eye(self.nRx*self.nRy*self.nRz,self.nRx*self.nRy*self.nRz)
         self.p2x = sparse.vstack((self.p2x,self.p2x,self.p2x))
         
+        print 'p2x size  ' + repr(self.p2x.shape)
         if not(hasattr(self, 'x2u')):
             print 'Oh youre hosed now!'
         
