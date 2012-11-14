@@ -263,7 +263,7 @@ class solver(fwd):
         self.Md = spt.vCat([Mx.T,My.T,Mz.T]).T
         print 'Md shape ' + repr(self.Md.shape)
         
-        self.x2u = sparse.block_diag((Mx,My,Mz), 'csc')
+        self.x2u = sparse.block_diag((Mx,My,Mz), 'csc').T
         print 'x2u shape ' + repr(self.x2u.shape)
         
 
