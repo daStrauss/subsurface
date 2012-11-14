@@ -64,13 +64,17 @@ class fwd(object):
         
     def init3Dfeas(self, p, bkg=0.005, numSensors=10):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
-        self.setspace(31,31,31,5.0,5.0,5.0)
-        self.setmats(1,bkg,31/2)
+        self.setspace(21,21,21,5.0,5.0,5.0)
+        self.setmats(1,bkg,21/2)
         self.setOperators()
         self.makeGradOper()
         self.setMs(numSensors)
-        self.setMd([8,22], [8,15], [8,22])
-        self.sigmap[1] += self.Md.T*np.ones(1372)*0.01 # don't worry about specific shapes.        
+        ''' for 31,31,31 -- use '''
+        # self.setMd([8,22], [8,15], [8,22])
+        # self.sigmap[1] += self.Md.T*np.ones(1372)*0.01 # don't worry about specific shapes. 
+        ''' for 21, 21,21 -- use '''
+        self.setMd([7,17], [7,10],[7,17])
+        self.sigmap[1] += self.Md.T*p # don't worry about specific shapes. 
         self.planeWave()
         self.fwd_solve(0)
         self.fwd_solve(1)

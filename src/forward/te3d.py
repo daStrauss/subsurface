@@ -196,8 +196,12 @@ class solver(fwd):
         ''' create some operators to map back and forth between the x space and the u '''
         self.p2x = sparse.eye(self.nRx*self.nRy*self.nRz,self.nRx*self.nRy*self.nRz)
         self.p2x = sparse.vstack((self.p2x,self.p2x,self.p2x))
+        
+         if ~hasattr(self, 'x2u'):
+             print 'Oh youre hosed now!"
+        
 #        # print self.p2x.shape
-        self.x2u = self.Md.T
+#        self.x2u = self.Md.T
 #        # print self.x2u.shape
     
     def getXSize(self):

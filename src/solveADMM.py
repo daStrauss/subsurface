@@ -88,8 +88,9 @@ def smallProj(S,D):
 
 def feas3dProj(S,D):
     '''build for a small project, ie 99x99 '''
-    pTrue = np.ones((14,7,14))*0.01
-    pTrue[:7,:,:] = 0.02
+    # pTrue = np.ones((14,7,14))*0.01
+    pTrue = np.ones((10,3,10))*0.01
+    pTrue[:3,:,:] = 0.02
     pTrue = pTrue.flatten()
     
     for F in S:
