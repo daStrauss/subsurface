@@ -18,7 +18,7 @@ def test(ica):
     strt = time.time()
     fwd = forward.flat.makeMeA(flavor, freq, incAng)
     
-    bkgSig=0.05
+    bkgSig=0.005
     numSensors=4
     
     fwd.setspace(31,31,31,5.0,5.0,5.0)
