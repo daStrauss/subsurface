@@ -49,15 +49,28 @@ class fwd(object):
         self.fwd_solve(0)
         self.fwd_solve(1)
         
-    def initSmall(self, p, bkg=0.005):
+    def initSmall(self, p, bkg=0.005, numSensors=10):
         '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
         self.setspace(99,99,5.0,5.0)
         self.setmats(1,bkg,99/2)
         self.setOperators()
         self.makeGradOper()
-        self.setMs(10)
+        self.setMs(numSensors)
         self.setMd([30, 70], [35, 45])
         self.sigmap[1] += self.Md.T*np.ones(40*10)*0.01 # don't worry about specific shapes.        
+        self.planeWave()
+        self.fwd_solve(0)
+        self.fwd_solve(1)
+        
+    def init3Dfeas(self, p, bkg=0.005, numSensors=10):
+        '''Create a "big" (nx=ny=199) style problem with some basic background parameters '''
+        self.setspace(31,31,31,5.0,5.0,5.0)
+        self.setmats(1,bkg,31/2)
+        self.setOperators()
+        self.makeGradOper()
+        self.setMs(numSensors)
+        self.setMd([8,22], [8,15], [8,22])
+        self.sigmap[1] += self.Md.T*np.ones(1372)*0.01 # don't worry about specific shapes.        
         self.planeWave()
         self.fwd_solve(0)
         self.fwd_solve(1)

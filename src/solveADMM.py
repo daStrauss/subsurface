@@ -84,6 +84,21 @@ def smallProj(S,D):
         else:
             F.fwd.buildROM(D['rom'],force=True)
     
+    return S,pTrue 
+
+def feas3dProj(S,D):
+    '''build for a small project, ie 99x99 '''
+    pTrue = np.ones((14,7,14))*0.01
+    pTrue[:7,:,:] = 0.02
+    pTrue = pTrue.flatten()
+    
+    for F in S:
+        F.fwd.init3Dfeas(pTrue,D['bkgSig'])
+        F.outDir = D['outDir']
+        if not D['rom']:
+            F.fwd.isRom = False
+        else:
+            F.fwd.buildROM(D['rom'],force=True)
     
     return S,pTrue 
 
@@ -139,9 +154,10 @@ def semiParallel(solverType, flavor, **kwargs):
     # the delegator makes the local set of problems
     S = delegator(solverType, flavLocal, freqLocal, angLocal)
     
-    
-    
-    S,pTrue = bigProj(S, D)
+    if flavLocal == 'TE3D':
+        S,pTrue = feas3dProj(S,D)
+    else:
+        S,pTrue = bigProj(S, D)
     
     N = np.size(S)
 
