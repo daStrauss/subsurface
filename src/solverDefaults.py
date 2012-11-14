@@ -41,9 +41,13 @@ def getDefaults(solverType, flavor, customDefs):
         
     elif (solverType == 'phaseSplit') & (flavor=='TE'):
         D = {'rho':1e-3, 'xi':1e-3, 'lmb':0}
+        
+    elif (solverType == 'contrastX') & (flavor=='TE3D'):
+        D = {'rho':1e-3, 'xi':1e-3, 'lmb':0}
     
     else:
-        print 'somehow you did not specify a valid combination'
+        D = {'rho':1e-3, 'xi':1e-3, 'lmb':0}
+        print 'CAUTION: you have not specified this flavor/solver: ' + flavor + ' ' + solverType
         
 
     
