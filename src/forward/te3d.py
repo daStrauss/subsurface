@@ -208,8 +208,8 @@ class solver(fwd):
     def getXSize(self):
         ''' return the proper size of X so that the optimization routine can work its magic '''
         return 3*self.nRx*self.nRy*self.nRz
-    def getTSize(self):
-        return self.nRx.self.nRy*self.nRz
+    def getPSize(self):
+        return self.nRx*self.nRy*self.nRz
         
     def setMd(self, xrng, yrng, zrng):
         '''Tell me the xrange,yrange, and zrange and Ill

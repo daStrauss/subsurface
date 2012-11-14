@@ -52,7 +52,7 @@ class problem(optimizer):
         
         ''' subtract out the background field '''
         self.uHat = self.uHat - self.fwd.Ms*self.ub
-        pfake = (self.upperBound/2.0)*np.ones(self.fwd.getTSize(),dtype='complex128')
+        pfake = (self.upperBound/2.0)*np.ones(self.fwd.getPSize(),dtype='complex128')
         ''' in this instance, I don't care about the results, i.e., I don't care about the actual solutions'''
         self.internalSymbolic(pfake)
     
