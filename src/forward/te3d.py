@@ -295,7 +295,7 @@ class solver(fwd):
         phi = self.azAng 
         
         ''' how far in from the PML should we go? -- 2 grid points should be enough '''
-        instep = 2+self.npml;
+        instep = 5+self.npml;
         # mdpt = nx/2; # should replace by div
         x = np.arange(1,1+self.nx,dtype='float64')*self.dx
         y = np.arange(1,1+self.ny,dtype='float64')*self.dy
@@ -307,25 +307,25 @@ class solver(fwd):
         # Mapping is y,x because of how matlab treats these. annoying.
         # (
         # print self.div+1
-        Yz,Xz,Zz = np.meshgrid(y-(self.div)*self.dy,\
+        Yz,Xz,Zz = np.meshgrid(y-(self.div+0.5)*self.dy,\
                                x,\
                                (np.append(0.0,z) + self.dz/2.0))
-        Yx,Xx,Zx = np.meshgrid(y-(self.div)*self.dy,\
+        Yx,Xx,Zx = np.meshgrid(y-(self.div+0.5)*self.dy,\
                                (np.append(0.0,x) + self.dx/2.0),\
                                z)
-        Yy,Xy,Zy = np.meshgrid((np.append(0.0,y) + self.dy/2.0)-(self.div)*self.dy,\
+        Yy,Xy,Zy = np.meshgrid((np.append(0.0,y) + self.dy/2.0)-(self.div+0.5)*self.dy,\
                                x,\
                                z)
         
-        Yxh,Xxh,Zxh = np.meshgrid(np.append(0.0,y)+self.dy/2.0 - (self.div)*self.dy, \
+        Yxh,Xxh,Zxh = np.meshgrid(np.append(0.0,y)+self.dy/2.0 - (self.div+0.5)*self.dy, \
                                   x,\
                                   np.append(0.0,z)+self.dz/2.0)
         
-        Yyh,Xyh,Zyh = np.meshgrid(y-(self.div)*self.dy,\
+        Yyh,Xyh,Zyh = np.meshgrid(y-(self.div+0.5)*self.dy,\
                                   np.append(0.0,x)+self.dx/2.0,\
                                   np.append(0.0,z)+self.dz/2.0)
         
-        Yzh,Xzh,Zzh = np.meshgrid(np.append(0.0,y)+self.dy/2.0-(self.div)*self.dy,\
+        Yzh,Xzh,Zzh = np.meshgrid(np.append(0.0,y)+self.dy/2.0-(self.div+0.5)*self.dy,\
                                   np.append(0.0,x)+self.dx/2.0,\
                                   z)
         
@@ -524,7 +524,7 @@ class solver(fwd):
         
         srB = spt.vCat([spt.hCat([AA,AB,AC]), spt.hCat([BA,BB,BC]), spt.hCat([CA,CB,CC])])
         
-        self.rhs = 1j*self.muo*self.w*J + srB*M
+        self.rhs = -(1j*self.muo*self.w*J + srB*M)
         
     
     def getS(self):
