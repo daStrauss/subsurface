@@ -154,9 +154,12 @@ def semiParallel(solverType, flavor, **kwargs):
     # the delegator makes the local set of problems
     S = delegator(solverType, flavLocal, freqLocal, angLocal)
     print flavLocal
+    
     if flavLocal == 'TE3D':
+        print 'is this happening'
         S,pTrue = feas3dProj(S,D)
     else:
+        print 'or am I not making it'
         S,pTrue = bigProj(S, D)
     
     N = np.size(S)
