@@ -253,7 +253,9 @@ class solver(fwd):
                     cnt += 1
         
         ''' put them all together in a block matrix '''    
-        self.Md = sparse.block_diag((Mx,My,Mz), 'csc')
+        self.Md = spt.vCat([Mx,My,Mz]).T
+        
+        self.x2u = sparse.block_diag((Mx,My,Mz), 'csc')
         print 'Md shape ' + repr(self.Md.shape)
         
 
