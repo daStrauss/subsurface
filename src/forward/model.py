@@ -174,11 +174,11 @@ class fwd(object):
         '''Does the clean solve for the given index. The factorization is not cached'''      
         strm = time.time()
         self.gogo[ind] = lin.factorized(sparse.csc_matrix(self.nabla2+self.getk(ind)) )
-        
+        print 'factor time = ' + repr(time.time()-strm)
         # self.gogo[ind] = superSolve.wrapCvxopt.staticSolver(self.nabla2+self.getk(ind))
-        
+        strm = time.time()
         self.sol[ind] = self.gogo[ind](self.rhs.flatten())
-        print 'sol ' + repr(ind) + ' time = ' + repr(time.time()-strm)
+        print 'sol time ' + repr(ind) + ' time = ' + repr(time.time()-strm)
         
     def parseFields(self,u):
         '''method to reshape and return according to internal dimensions '''
