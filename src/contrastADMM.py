@@ -205,16 +205,16 @@ class problem(optimizer):
         
         for L in S:
             M = L.s*(sparse.spdiags(L.fwd.x2u.T*(L.ub+L.us),0,nX,nX))*self.fwd.p2x
-            uL += M.T.conj()*M
-            bL += M.T.conj()*(L.X + L.Z)
+            uL = uL + M.T.conj()*M
+            bL = bL + M.T.conj()*(L.X + L.Z)
             
         U = sparse.lil_matrix((n,n),dtype='complex128')
         B = np.zeros(n,dtype='complex128')
 
         U = comm.allreduce(uL,U,op=MPI.SUM)
         B = comm.allreduce(bL,B,op=MPI.SUM)
-        
-        U += sparse.spdiags((self.lmb/self.rho)*np.ones(n), 0, n, n)
+        ''' interesting: += isn't implemented?'''
+        U = U + sparse.spdiags((self.lmb/self.rho)*np.ones(n), 0, n, n)
         
         P = lin.spsolve(U,B)
         self.pL.append(lin.spsolve(uL,bL))
