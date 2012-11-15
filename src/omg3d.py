@@ -23,6 +23,6 @@ def getMyVars(parseNumber, D):
     D['bkgNo'] =  0
     D['numProcs'] = 2
     D['maxIter'] = 200
-    D['lmb'] = 0
+    D['lmb'] = 1e-13
     
     return D
