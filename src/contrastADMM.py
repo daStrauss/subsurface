@@ -188,13 +188,22 @@ class problem(optimizer):
         
         us = self.fwd.parseFields(self.us)
         ub = self.fwd.parseFields(self.fwd.sol[0])
-        sgmm = self.fwd.parseFields(self.fwd.sigmap[0])
+        sgmm = self.fwd.parseFields(self.fwd.sigmap[1])
         uTrue = self.fwd.parseFields(self.fwd.sol[1])
-            
-        D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
-             'us':us[0], 'uTrue':uTrue[0], \
-             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
-             'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL}
+        
+        if (self.fwd.flavor == 'TE') | (self.fwd.flavor == 'TM'):   
+            D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
+                 'us':us[0], 'uTrue':uTrue[0], \
+                 'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
+                 'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL}
+        elif (self.fwd.flavor == 'TE3D'):
+            D = {'f':self.fwd.f, 'angle':self.fwd.incAng, \
+                 'sigMatX':sgmm[0], 'sigMatY':sgmm[1], 'sigMatZ': sgmm[2],\
+                 'ubX':ub[0], 'ubY':ub[1], 'ubZ':ub[2], \
+                 'usX':us[0], 'usY':us[1], 'usZ':us[2], \
+                 'uTrueX':uTrue[0], 'uTrueY':uTrue[1], 'uTrueZ':uTrue[2], \
+                 'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
+                 'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL,'Md':self.fwd.Md}
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
