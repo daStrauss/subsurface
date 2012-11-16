@@ -151,7 +151,11 @@ class problem(optimizer):
         
         
         updt = lin.spsolve(bm.tocsr(), rhsbm)
-        spio.savemat('hugeM', {'bm':bm, 'rhs':rhsbm, 'sol':updt})
+        if self.fwd.flavor == 'TE3D':
+            spio.savemat('hugeM', {'bm':bm, 'rhs':rhsbm, 'sol':updt})
+        elif self.fwd.flavor == 'TE':
+            spio.savemat('normalTE', {'bm':bm, 'rhs':rhsbm, 'sol':updt})
+            
         
         # N = self.nx*self.ny
         us = updt[:self.fwd.N]
