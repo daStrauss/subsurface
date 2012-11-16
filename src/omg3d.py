@@ -18,10 +18,10 @@ def getMyVars(parseNumber, D):
     
     # D['rho'] = 0.00001
     # D['xi'] = 1e-9
-    D['freqs'] = np.array([1e3, 2e3])
+    D['freqs'] = np.array([1e3])
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  0
-    D['numProcs'] = 2
+    D['numProcs'] = 1
     D['maxIter'] = 1
     D['lmb'] = 1e-13
     
