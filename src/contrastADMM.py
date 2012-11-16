@@ -148,6 +148,8 @@ class problem(optimizer):
         
         rhsbm = np.concatenate((rhsu, rhsx, rhsl))
         
+        spio.savemat('hugeM', {'bm':bm, 'rhs':rhsbm})
+        
         updt = lin.spsolve(bm.tocsr(), rhsbm)
         
         # N = self.nx*self.ny

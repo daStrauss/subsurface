@@ -22,7 +22,7 @@ def getMyVars(parseNumber, D):
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  0
     D['numProcs'] = 2
-    D['maxIter'] = 200
+    D['maxIter'] = 1
     D['lmb'] = 1e-13
     
     return D
