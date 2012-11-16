@@ -197,13 +197,14 @@ class problem(optimizer):
                  'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
                  'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL}
         elif (self.fwd.flavor == 'TE3D'):
+            print 'writing out TE3d data'
             D = {'f':self.fwd.f, 'angle':self.fwd.incAng, \
                  'sigMatX':sgmm[0], 'sigMatY':sgmm[1], 'sigMatZ': sgmm[2],\
                  'ubX':ub[0], 'ubY':ub[1], 'ubZ':ub[2], \
                  'usX':us[0], 'usY':us[1], 'usZ':us[2], \
                  'uTrueX':uTrue[0], 'uTrueY':uTrue[1], 'uTrueZ':uTrue[2], \
                  'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
-                 'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL,'Md':self.fwd.Md}
+                 'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL,'Md':self.fwd.Md, 'x2u':self.fwd.x2u}
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
