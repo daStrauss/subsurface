@@ -200,9 +200,9 @@ class problem(optimizer):
             print 'writing out TE3d data'
             
             print 'ms shape ' + repr(self.fwd.Ms.shape)
-            print 'sumd shape ' + repr(self.fwd.Ms.sum(0))
+            print 'sumd shape ' + repr(self.fwd.Ms.sum(0).shape)
             
-            sns = self.fwd.parseFields(self.fwd.Ms.T.sum(0))
+            sns = self.fwd.parseFields(self.fwd.Ms.sum(0).A[0])
             
             
             D = {'f':self.fwd.f, 'angle':self.fwd.incAng, \
