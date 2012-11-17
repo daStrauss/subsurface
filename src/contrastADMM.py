@@ -203,7 +203,7 @@ class problem(optimizer):
             print 'sumd shape ' + repr(self.fwd.Ms.sum(0).shape)
             
             sns = self.fwd.parseFields(self.fwd.Ms.sum(0).A.flatten())
-            
+            ppp = self.fwd.parseFields(self.fwd.Md.sum(0).A.flatten())
             
             D = {'f':self.fwd.f, 'angle':self.fwd.incAng, \
                  'sigMatX':sgmm[0], 'sigMatY':sgmm[1], 'sigMatZ': sgmm[2],\
@@ -211,6 +211,7 @@ class problem(optimizer):
                  'usX':us[0], 'usY':us[1], 'usZ':us[2], \
                  'uTrueX':uTrue[0], 'uTrueY':uTrue[1], 'uTrueZ':uTrue[2], \
                  'MsX':sns[0], 'MsY':sns[1], 'MsZ':sns[2],\
+                 'MsX':ppp[0], 'MsY':ppp[1], 'MsZ':ppp[2],\
                  'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
                  'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL,'Md':self.fwd.Md, 'x2u':self.fwd.x2u}
         
