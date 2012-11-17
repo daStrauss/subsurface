@@ -202,7 +202,7 @@ class problem(optimizer):
             print 'ms shape ' + repr(self.fwd.Ms.shape)
             print 'sumd shape ' + repr(self.fwd.Ms.sum(0).shape)
             
-            sns = self.fwd.parseFields(self.fwd.Ms.sum(0).A[0])
+            sns = self.fwd.parseFields(self.fwd.Ms.sum(0).A.flatten())
             
             
             D = {'f':self.fwd.f, 'angle':self.fwd.incAng, \
