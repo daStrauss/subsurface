@@ -199,7 +199,7 @@ class problem(optimizer):
         elif (self.fwd.flavor == 'TE3D'):
             print 'writing out TE3d data'
             
-            sns = self.fwd.parseFields(self.fwd.Ms.sum(0))
+            sns = self.fwd.parseFields(self.fwd.Ms.T.sum(0))
             
             
             D = {'f':self.fwd.f, 'angle':self.fwd.incAng, \
