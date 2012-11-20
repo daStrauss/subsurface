@@ -23,19 +23,20 @@ def getMyVars(parseNumber, D):
         noFreqs = noFreqs.flatten()
         noPhis = noPhis.flatten() 
         bkg = bkg.flatten()
+        lcp = parseNumber
     else:
         noFreqs,noPhis,bkg = np.mgrid[1:7,1:7,50:100]
         noFreqs = noFreqs.flatten()
         noPhis = noPhis.flatten() 
         bkg = bkg.flatten()
-        
+        lcp = parseNumber-1800
     
 
         
     
-    D['freqs'] = np.round(np.logspace(np.log10(1000), np.log10(50000), noFreqs[parseNumber]))
-    D['inc'] = (np.linspace(-75,75,noPhis[parseNumber])*np.pi/180.0)
-    D['bkgNo'] = bkg[parseNumber]+100
+    D['freqs'] = np.round(np.logspace(np.log10(1000), np.log10(50000), noFreqs[lcp]))
+    D['inc'] = (np.linspace(-75,75,noPhis[lcp])*np.pi/180.0)
+    D['bkgNo'] = bkg[lcp]+100
     D['numProcs'] = len(D['freqs'])*len(D['inc'])
     
         
