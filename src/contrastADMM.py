@@ -151,10 +151,10 @@ class problem(optimizer):
         
         
         updt = lin.spsolve(bm.tocsr(), rhsbm)
-        if self.fwd.flavor == 'TE3D':
-            spio.savemat('hugeM', {'bm':bm, 'rhs':rhsbm, 'sol':updt})
-        elif self.fwd.flavor == 'TE':
-            spio.savemat('normalTE', {'bm':bm, 'rhs':rhsbm, 'sol':updt})
+        # if self.fwd.flavor == 'TE3D':
+        #     spio.savemat('hugeM', {'bm':bm, 'rhs':rhsbm, 'sol':updt})
+        # elif self.fwd.flavor == 'TE':
+        #    spio.savemat('normalTE', {'bm':bm, 'rhs':rhsbm, 'sol':updt})
             
         
         # N = self.nx*self.ny
@@ -166,10 +166,10 @@ class problem(optimizer):
         ''' to run at each layer at each iteration '''
         
         '''update dual variables first '''
-        print 'size of us ' + repr(self.us.shape)
-        print 'size of x2u ' + repr(self.fwd.x2u.shape)
-        print 'size of p2x ' + repr(self.fwd.p2x.shape)
-        print 'size of Z ' + repr(self.Z.shape) + ' and X ' + repr(self.X.shape)
+        # print 'size of us ' + repr(self.us.shape)
+        # print 'size of x2u ' + repr(self.fwd.x2u.shape)
+        # print 'size of p2x ' + repr(self.fwd.p2x.shape)
+        # print 'size of Z ' + repr(self.Z.shape) + ' and X ' + repr(self.X.shape)
         self.Z = self.Z + (self.X - (self.s*self.fwd.x2u.T*(self.ub + self.us))*(self.fwd.p2x*P))
         
         ''' jointly update u,x '''
@@ -195,7 +195,7 @@ class problem(optimizer):
             D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
                  'us':us[0], 'uTrue':uTrue[0], \
                  'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
-                 'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL}
+                 'obj':self.objInt, 'Ms':self.fwd.Ms}
         elif (self.fwd.flavor == 'TE3D'):
             print 'writing out TE3d data'
             

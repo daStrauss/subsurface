@@ -6,7 +6,7 @@ Created on Aug 30, 2012
 
 
 import numpy as np
-import scipy.io as spio
+# import scipy.io as spio
 
 # F = spio.loadmat('incCondGo.mat')
 # numRuns = F['goTo'].shape[0]
