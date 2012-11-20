@@ -13,16 +13,23 @@ import scipy.io as spio
 
 F = {'goTo':np.arange(1800)}
 
-D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':1800, 'expt':'incConds', 'numProcs':16}
+D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':3600, 'expt':'incConds', 'numProcs':16}
 
 
 def getMyVars(parseNumber, D):
     '''routine to return the parameters to test at the current iteration.'''
     # noFreqs,noPhis,bkg = np.meshgrid(range(1,7), range(1,7), range(100))
-    noFreqs,noPhis,bkg = np.mgrid[1:7,1:7,0:50]
-    noFreqs = noFreqs.flatten()
-    noPhis = noPhis.flatten() 
-    bkg = bkg.flatten()
+    if parseNumber < 1800:
+        noFreqs,noPhis,bkg = np.mgrid[1:7,1:7,0:50]
+        noFreqs = noFreqs.flatten()
+        noPhis = noPhis.flatten() 
+        bkg = bkg.flatten()
+    else:
+        noFreqs,noPhis,bkg = np.mgrid[1:7,1:7,50:100]
+        noFreqs = noFreqs.flatten()
+        noPhis = noPhis.flatten() 
+        bkg = bkg.flatten()
+        
     
 
         

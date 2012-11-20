@@ -162,7 +162,7 @@ class solver(fwd):
         
         self.nSen = nSensors*nSensors
         '''First find the appropriate 10 indexes within the PML & illumination region '''
-        indx = np.round(np.linspace(self.npml+5,self.nx-self.npml-5, nSensors)-1).astype(int);
+        indx = np.round(np.linspace(self.npml+5,self.nx-self.npml-5, nSensors)).astype(int)-1;
         indx = np.unique(indx)
         # print (indx + 1)
         ''' make the exact X operator using strides '''
