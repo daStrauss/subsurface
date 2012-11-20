@@ -11,7 +11,6 @@ import numpy as np
 # F = spio.loadmat('incCondGo.mat')
 # numRuns = F['goTo'].shape[0]
 
-F = {'goTo':np.arange(1800)}
 
 D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':3600, 'expt':'incConds', 'numProcs':16}
 
@@ -39,10 +38,5 @@ def getMyVars(parseNumber, D):
     D['bkgNo'] = bkg[parseNumber]+100
     D['numProcs'] = len(D['freqs'])*len(D['inc'])
     
-    if parseNumber in F['goTo']:
-        print 'here we go'
-    else:
-        D['numProcs'] = 0
-        
         
     return D
