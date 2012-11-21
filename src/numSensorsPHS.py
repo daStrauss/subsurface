@@ -11,7 +11,7 @@ import numpy as np
 # numRuns = F['goTo'].shape[0]
 
 
-D = {'solverType':'phaseSplit', 'flavor':'TE', 'numRuns':4800, 'expt':'noSense', 'numProcs':16}
+D = {'solverType':'phaseSplit', 'flavor':'TE', 'numRuns':4800, 'expt':'noSense', 'numProcs':1}
 
 
 def getMyVars(parseNumber, D):
@@ -30,7 +30,7 @@ def getMyVars(parseNumber, D):
     D['numSensors'] = allfrq[noPhis[parseNumber]]
     
     D['bkgNo'] = bkg[parseNumber]+100;
-    D['incAng'] = np.array([45*np.pi/180.0])
+    D['inc'] = np.array([45.0*np.pi/180.0])
     D['numProcs'] = len(D['freqs'])
     D['rho'] = 1e-3
     D['xi'] = 1e-12
