@@ -55,7 +55,7 @@ class problem(optimizer):
         # create some new operators for doing what is necessary for the 
         # contrast X work
         
-        self.pp = np.zeros(self.fwd.getXSize(),dtype='float64')
+        self.pp = np.zeros(self.fwd.getXSize(),dtype='complex128')
         self.X = np.zeros(self.fwd.getXSize(),dtype='complex128')
         self.Z = np.zeros(self.fwd.getXSize(),dtype='complex128')
         
@@ -67,66 +67,7 @@ class problem(optimizer):
         
         ''' subtract out the background field '''
         self.uHat = self.uHat - self.fwd.Ms*self.ub
-        pfake = (self.upperBound/2.0)*np.ones(self.fwd.getXSize(),dtype='complex128')
         ''' in this instance, I don't care about the results, i.e., I don't care about the actual solutions'''
-        self.internalSymbolic(pfake)
-    
-    def internalSymbolic(self,thk):
-        '''create an internal method that 
-        (1) knows the structure of the matrix
-        (2) only needs new theta estimates
-        (3) keeps the symbolic factorization to reuse '''
-        cttm = time.time()
-        nX = self.fwd.getXSize()
-        pm = sparse.spdiags(self.s*self.fwd.p2x*thk, 0, nX, nX)
-        # print pm.shape
-        # print self.fwd.x2u.shape
-        ''' ds changes at ever iteration '''
-        ds = pm*self.fwd.x2u.T #  The sampling and material scaling.
-  
-        # Construct the KKT Matrix
-        ''' changes '''
-        bmuu = self.scaleC*(self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
-        bmux = -self.rho*ds.T.conj()
-        bmxu = -self.rho*ds 
-        ''' static ''' 
-        bmul = self.A.T.conj()
-        bmxx = self.rho*sparse.eye(nX, nX)
-        bmxl = self.fwd.x2u.T
-        bmlu = self.A
-        bmlx = self.fwd.x2u
-        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
-        
-        ''' right hand side ''' 
-        rhsu = self.scaleC*self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
-        rhsx = self.rho*ds*self.ub - self.rho*self.Z # chng
-        rhsl = np.zeros(self.fwd.N)
-  
-  
-        bm = spTools.vCat([spTools.hCat([bmuu, bmux, bmul]), \
-                           spTools.hCat([bmxu, bmxx, bmxl]), \
-                           spTools.hCat([bmlu, bmlx, bmll])])
-        
-        
-        rhsbm = np.concatenate((rhsu, rhsx, rhsl))
-        print 'construction time ' + repr(time.time()-cttm)
-        
-        sltm = time.time()
-        if hasattr(self,'symbFact'):
-            print 'Ive already got it'
-            updt = wrapCvxopt.solveNumeric(bm, rhsbm, self.symbFact)
-        else:
-            print 'got to do the symbolic calc'
-            self.symbFact = wrapCvxopt.createSymbolic(bm)
-            updt = wrapCvxopt.solveNumeric(bm, rhsbm, self.symbFact)
-        
-        # updt = lin.spsolve(bm.tocsr(), rhsbm)
-        
-        # N = self.nx*self.ny
-        us = updt[:self.fwd.N]
-        x = updt[self.fwd.N:(self.fwd.N+nX)]
-        print 'solve time ' + repr(time.time()-sltm)
-        return us,x
         
     def internalHard(self, thk):
         '''creates the matrix every time, a hard alternative, to internalSymbolic
