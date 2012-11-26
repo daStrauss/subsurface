@@ -26,26 +26,27 @@ def delegator(solverType, flavor, freq, incAng):
     if solverType == 'contrastX':
         import contrastADMM
         S = map(contrastADMM.problem, freq, incAng, flavor)
-        return S
+        
     elif solverType == 'splitField':
         import admm
         S = map(admm.problem, freq, incAng, flavor)
-        return S
+        
     elif solverType == 'sba':
         import sba
         S = map(sba.problem, freq, incAng, flavor)
-        return S
+        
     elif solverType == 'biconvex':
         import biconvex
         S = map(biconvex.problem, freq, incAng, flavor)
-        return S
+        
     elif solverType == 'contrastSoftX':
         import contrastSoftX
         S = map(contrastSoftX.problem, freq, incAng, flavor)
-        return S
+        
     elif solverType == 'projection':
         import projection
         S = map(projection.problem, freq, incAng, flavor)
+    
     elif solverType == 'middleMan':
         import middleMan
         S = map(middleMan.problem, freq, incAng, flavor)
@@ -53,7 +54,13 @@ def delegator(solverType, flavor, freq, incAng):
     elif solverType == 'phaseSplit':
         import phaseSplit
         S = map(phaseSplit.problem, freq, incAng, flavor)
-        return S
+    
+    elif solverType == 'ctxdev':
+        import ctxdev
+        S = map(ctxdev.problem, freq, incAng, flavor)
+    
+    return S
+    
     
     
 def bigProj(S, D):
