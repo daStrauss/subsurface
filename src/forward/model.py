@@ -74,7 +74,7 @@ class fwd(object):
         # self.sigmap[1] += self.Md.T*np.ones(1372)*0.01 # don't worry about specific shapes. 
         ''' for 21, 21,21 -- use '''
         self.setMd([7,14], [6,9],[7,14])
-        self.sigmap[1] += self.Md.T*p # don't worry about specific shapes. 
+        # self.sigmap[1] += self.Md.T*p # don't worry about specific shapes. 
         self.planeWave()
         self.fwd_solve(0)
         self.fwd_solve(1)
