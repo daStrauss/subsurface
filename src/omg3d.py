@@ -22,7 +22,7 @@ def getMyVars(parseNumber, D):
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  0
     D['numProcs'] = 1
-    D['reg'] = 1e-9
+    D['reg'] = 1e-8
     if parseNumber == 0:
         D['maxIter'] = 1
     elif parseNumber == 1:
