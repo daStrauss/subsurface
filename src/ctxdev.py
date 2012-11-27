@@ -150,7 +150,9 @@ class problem(optimizer):
         
         
         
-        updt = lin.spsolve(bm.tocsr(), rhsbm)
+#        updt = lin.spsolve(bm.tocsr(), rhsbm)
+        updt = wrapCvxopt.linsolve(bm, rhsbm)
+        
         if self.fwd.flavor == 'TE3D':
             spio.savemat('hugeM', {'bm':bm, 'rhs':rhsbm, 'sol':updt, 'Ms':self.fwd.Ms})
         elif self.fwd.flavor == 'TE':
