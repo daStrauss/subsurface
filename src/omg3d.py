@@ -9,7 +9,7 @@ Simple routine to do optimization over 3D!
 
 
 import numpy as np
-D = {'solverType':'ctxdev', 'flavor':'TE', 'numRuns':3, 'expt':'huge', 'numProcs':1}
+D = {'solverType':'ctxdev', 'flavor':'TE', 'numRuns':4, 'expt':'huge', 'numProcs':1}
 
 
 def getMyVars(parseNumber, D):
@@ -27,8 +27,11 @@ def getMyVars(parseNumber, D):
         D['maxIter'] = 1
     elif parseNumber == 1:
         D['maxIter'] = 2
-    else:
+    elif parseNumber == 2:
         D['maxIter'] = 10
+    elif parseNumber == 3:
+        D['maxIter'] = 10
+        D['reg'] = 0.0    
         
         
     D['lmb'] = 1e-13
