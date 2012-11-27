@@ -125,12 +125,12 @@ class problem(optimizer):
   
         # Construct the KKT Matrix
         ''' changes '''
-        bmuu = (self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
+        bmuu = self.reg*sparse.eye(self.fwd.N,self.fwd.N) + (self.fwd.Ms.T*self.fwd.Ms) + self.rho*(ds.T.conj()*ds)
         bmux = -self.rho*ds.T.conj()
         bmxu = -self.rho*ds 
         ''' static ''' 
         bmul = self.A.T.conj()
-        bmxx = self.rho*sparse.eye(nX, nX)
+        bmxx = self.reg*sparse.eye(nX,nX) + self.rho*sparse.eye(nX, nX)
         bmxl = self.fwd.x2u.T
         bmlu = self.A
         bmlx = self.fwd.x2u
