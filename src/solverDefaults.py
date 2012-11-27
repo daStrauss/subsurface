@@ -62,6 +62,7 @@ def getDefaults(solverType, flavor, customDefs):
     D['bkgSig'] = 0.005;
     D['flavor'] = flavor
     D['numSensors'] = 10
+    D['reg'] = 0.0
     # D['flavor'] = 'TE' # do this by default, although it should be set explicitly
     
     for key,value in customDefs.iteritems():
