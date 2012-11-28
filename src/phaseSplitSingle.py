@@ -136,6 +136,7 @@ class problem(optimizer):
         Revised to be just a simple aggregation/mean step '''
         
         ''' nothing to do here really'''
+        print self.rt.shape
         P = self.rt/np.abs(self.s*self.fwd.Md.T*(self.us+self.ub))
         return P
         
