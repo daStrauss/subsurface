@@ -5,7 +5,7 @@ Created on Oct 17, 2012
 '''
 
 import numpy as np
-D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':1, 'expt':'testSolver'}
+D = {'solverType':'phaseSplitSingle', 'flavor':'TE', 'numRuns':1, 'expt':'testSolver'}
 
 
 def getMyVars(parseNumber, D):

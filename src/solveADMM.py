@@ -58,6 +58,10 @@ def delegator(solverType, flavor, freq, incAng):
     elif solverType == 'ctxdev':
         import ctxdev
         S = map(ctxdev.problem, freq, incAng, flavor)
+        
+    elif solverType == 'phaseSplitSingle':
+        import phaseSplitSingle
+        S = map(phaseSplitSingle.problem, freq, incAng, flavor)
     
     return S
     
