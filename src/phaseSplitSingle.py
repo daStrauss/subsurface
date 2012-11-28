@@ -137,7 +137,7 @@ class problem(optimizer):
         
         ''' nothing to do here really'''
         print self.rt.shape
-        P = self.rt/np.abs(self.s*self.fwd.Md.T*(self.us+self.ub))
+        P = self.rt/np.abs(self.s*self.fwd.Md*(self.us+self.ub))
         return P
         
         
