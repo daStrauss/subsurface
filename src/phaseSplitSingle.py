@@ -127,7 +127,8 @@ class problem(optimizer):
              'us':us[0], 'uTrue':uTrue[0], \
              'rt':self.rt, 'rd':self.rd, 'zd':self.zd, 'zt':self.zt, \
              'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
-             'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL}
+             'obj':self.objInt, 'Ms':self.fwd.Ms, 'Md':self.fwd.Md,\
+             'phist':self.pL,'pp':self.pp}
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
