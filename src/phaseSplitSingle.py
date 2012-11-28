@@ -41,7 +41,7 @@ class problem(optimizer):
         # just to make life easier:
         self.ub = self.fwd.sol[0] # shouldn't need --> .flatten()
         
-        self.pp = np.zeros(self.fwd.getXSize(),dtype='float64')
+        self.pp = np.zeros(self.fwd.getXSize(),dtype='complex128')
         
         self.r = np.zeros(self.fwd.getXSize(),dtype='complex128') # primal
         self.rt = np.zeros(self.fwd.getXSize(),dtype='complex128') # twiddle
@@ -59,12 +59,12 @@ class problem(optimizer):
         self.uHat = self.uHat - self.fwd.Ms*self.ub
         
         ''' create the system KKT matrix '''
-        uu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(self.upperBound*self.s*self.s.conj()*self.fwd.x2u*self.fwd.x2u.T*self.upperBound)
-        ur = -self.rho*self.upperBound*self.s.conj()*self.fwd.x2u
+        uu = self.fwd.Ms.T*self.fwd.Ms + self.rho*(self.upperBound*self.fwd.x2u*self.fwd.x2u.T*self.upperBound)
+        ur = -self.rho*self.upperBound*self.fwd.x2u
         ul = self.A.T.conj()
         
         rr = 2*self.rho*sparse.eye(self.fwd.getXSize(),self.fwd.getXSize())
-        rl = self.fwd.x2u.T
+        rl = self.s.conj()*self.fwd.x2u.T
         
         ll = sparse.coo_matrix((self.fwd.N,self.fwd.N))
         
@@ -83,12 +83,12 @@ class problem(optimizer):
         nX = self.fwd.getXSize()
         plp = sparse.spdiags(np.exp(1j*self.pp),0,nX,nX)
         
-        ru = self.fwd.Ms.T*self.uHat - self.rho*(self.upperBound*self.s.conj()*self.fwd.x2u*plp*(self.zt-self.zd)) - \
-        self.rho*(self.upperBound*self.s*self.s.conj()*self.fwd.x2u*self.fwd.x2u.T*self.upperBound)*self.ub 
+        ru = self.fwd.Ms.T*self.uHat - self.rho*(self.upperBound*self.fwd.x2u*plp*(self.zt-self.zd)) - \
+        self.rho*(self.upperBound*self.fwd.x2u*self.fwd.x2u.T*self.upperBound)*self.ub 
         
         # + something with ub
         rr = self.rho*plp*(self.zt-self.zd) + self.rho*plp*(self.rt-self.rd) + \
-            self.upperBound*plp.T.conj()*self.s*self.fwd.x2u.T*(self.ub)
+            self.upperBound*plp.T.conj()*self.fwd.x2u.T*(self.ub)
         rl = np.zeros(self.fwd.N)
         
         rhh = np.concatenate((ru,rr,rl))
@@ -101,12 +101,12 @@ class problem(optimizer):
         self.rt = (self.r+self.rd).real
         self.rt = np.maximum(self.rt,0.0)
         
-        self.zt = (self.r-self.upperBound*plp.T.conj()*self.s*self.fwd.x2u.T*(self.us+self.ub) + self.zd).real
+        self.zt = (self.r-self.upperBound*plp.T.conj()*self.fwd.x2u.T*(self.us+self.ub) + self.zd).real
         self.zt = np.minimum(self.zt,0.0)
         
         ''' update dual variables '''
         self.rd = self.rd + self.r-self.rt
-        self.zd = self.zd + self.r-self.upperBound*plp.conj()*self.s*self.fwd.x2u.T*(self.us+self.ub) - self.zt
+        self.zd = self.zd + self.r-self.upperBound*plp.conj()*self.fwd.x2u.T*(self.us+self.ub) - self.zt
         
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
@@ -138,7 +138,7 @@ class problem(optimizer):
         
         ''' nothing to do here really'''
         print self.rt.shape
-        P = self.rt/np.abs(self.s*self.fwd.Md*(self.us+self.ub))
+        P = self.rt/np.abs(self.fwd.Md*(self.us+self.ub))
         return P
         
         
