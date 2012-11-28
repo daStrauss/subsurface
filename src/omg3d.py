@@ -35,7 +35,7 @@ def getMyVars(parseNumber, D):
         
     elif parseNumber == 4:
         D['bkgSig'] = 1e-5
-        D['maxIter'] = 10
+        D['maxIter'] = 30
         D['freqs'] = np.array([1e5])
         D['reg'] = 0.0 
         D['rho'] = 100.0
