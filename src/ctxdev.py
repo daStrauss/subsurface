@@ -208,6 +208,7 @@ class problem(optimizer):
             ppp = self.fwd.parseFields(self.fwd.Md.sum(0).A.flatten())
             
             D = {'f':self.fwd.f, 'angle':self.fwd.incAng, \
+                 'uhat':self.uHat, 'ums':self.fwd.Ms*self.us,\
                  'sigMatX':sgmm[0], 'sigMatY':sgmm[1], 'sigMatZ': sgmm[2],\
                  'ubX':ub[0], 'ubY':ub[1], 'ubZ':ub[2], \
                  'usX':us[0], 'usY':us[1], 'usZ':us[2], \
