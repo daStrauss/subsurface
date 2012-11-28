@@ -38,7 +38,7 @@ def getMyVars(parseNumber, D):
         D['maxIter'] = 10
         D['freqs'] = np.array([1e5])
         D['reg'] = 0.0 
-        D['rho'] = 1.0
+        D['rho'] = 100.0
         
         
     D['lmb'] = 1e-5
