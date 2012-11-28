@@ -50,7 +50,7 @@ def test(ica):
     
     
     D = {'ox':fwd.nabla2+fwd.getk(0),'rhs':fwd.rhs,'nbl':fwd.nabla2,'ex':ex, 'ey':ey, 'ez':ez,\
-         'rhx':rhx,'rhy':rhy,'rhz':rhz}
+         'rhx':rhx,'rhy':rhy,'rhz':rhz,'sol':sol}
     
     spio.savemat('threeDTest', D)
     
