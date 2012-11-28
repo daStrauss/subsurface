@@ -88,7 +88,7 @@ class problem(optimizer):
         
         # + something with ub
         rr = self.rho*plp*(self.zt-self.zd) + self.rho*plp*(self.rt-self.rd) + \
-            self.upperBound*plp.T.conj()*self.s*self.x2u.T*(self.ub)
+            self.upperBound*plp.T.conj()*self.s*self.fwd.x2u.T*(self.ub)
         rl = np.zeros(self.fwd.N)
         
         rhh = np.concatenate((ru,rr,rl))
@@ -101,12 +101,12 @@ class problem(optimizer):
         self.rt = (self.r+self.rd).real
         self.rt = np.maximum(self.rt,0.0)
         
-        self.zt = (self.r-self.upperBound*plp.T.conj()*self.s*self.x2u.T*(self.us+self.ub) + self.zd).real
+        self.zt = (self.r-self.upperBound*plp.T.conj()*self.s*self.fwd.x2u.T*(self.us+self.ub) + self.zd).real
         self.zt = np.minimum(self.zt,0.0)
         
         ''' update dual variables '''
         self.rd = self.rd + self.r-self.rt
-        self.zd = self.zd + self.r-self.upperBound*plp.conj()*self.s*self.x2u.T*(self.us+self.ub) - self.zt
+        self.zd = self.zd + self.r-self.upperBound*plp.conj()*self.s*self.fwd.x2u.T*(self.us+self.ub) - self.zt
         
         
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
