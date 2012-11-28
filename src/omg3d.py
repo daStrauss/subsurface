@@ -41,6 +41,6 @@ def getMyVars(parseNumber, D):
         D['rho'] = 1.0
         
         
-    D['lmb'] = 1e-13
+    D['lmb'] = 1e-5
     
     return D
