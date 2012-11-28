@@ -125,7 +125,8 @@ class problem(optimizer):
             
         D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgmm[0], 'ub':ub[0], \
              'us':us[0], 'uTrue':uTrue[0], \
-             'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
+             'rt':self.rt, 'rd':self.rd, 'zd':self.zd, 'zt':self.zt, \             
+             'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
              'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL}
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
