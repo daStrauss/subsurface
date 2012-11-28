@@ -9,7 +9,7 @@ Simple routine to do optimization over 3D!
 
 
 import numpy as np
-D = {'solverType':'ctxdev', 'flavor':'TE', 'numRuns':4, 'expt':'huge', 'numProcs':1}
+D = {'solverType':'ctxdev', 'flavor':'TE3D', 'numRuns':4, 'expt':'huge', 'numProcs':1}
 
 
 def getMyVars(parseNumber, D):
