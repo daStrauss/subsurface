@@ -19,5 +19,6 @@ def getMyVars(parseNumber, D):
     D['bkgNo'] =  100
     D['numProcs'] = 1
     D['maxIter'] = 10
+    D['numSensors'] = 2010
     
     return D
