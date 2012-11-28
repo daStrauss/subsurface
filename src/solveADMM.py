@@ -213,6 +213,7 @@ def semiParallel(solverType, flavor, **kwargs):
         D['nProc'] = nProc
         D['resid'] = resid
         D['timing'] = tmvc
+        D['pTrue'] = pTrue
         spio.savemat(D['outDir'] + 'pout_' + solverType + repr(D['ix']), D)
 
         
