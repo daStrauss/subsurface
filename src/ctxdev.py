@@ -134,7 +134,7 @@ class problem(optimizer):
         bmxl = self.fwd.x2u.T
         bmlu = self.A
         bmlx = self.fwd.x2u
-        bmll = sparse.coo_matrix((self.fwd.N, self.fwd.N))
+        bmll = self.reg*sparse.eye(self.fwd.N,self.fwd.N) + sparse.coo_matrix((self.fwd.N, self.fwd.N))
         
         ''' right hand side ''' 
         rhsu = self.fwd.Ms.T.conj()*self.uHat - self.rho*(ds.T.conj()*ds)*self.ub + self.rho*ds.T.conj()*self.Z
