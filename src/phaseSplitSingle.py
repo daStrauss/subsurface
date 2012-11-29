@@ -81,7 +81,7 @@ class problem(optimizer):
         ''' to run at each layer at each iteration '''
         ''' jointly update u,r '''
         
-        self.pp = np.angle(self.fwd.x2u.T*(self.fwd.sol[1])) #  us + self.ub))
+        self.pp = np.angle(self.fwd.x2u.T*(self.us + self.ub))
         self.phaseList.append(self.pp)
         self.pL.append(self.fwd.x2u.T*self.us)
         
