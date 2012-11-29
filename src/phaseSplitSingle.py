@@ -82,6 +82,7 @@ class problem(optimizer):
         
         self.pp = np.angle(self.fwd.x2u.T*(self.us + self.ub))
         self.phaseList.append(self.pp)
+        self.pL.append(self.fwd.x2u.T*self.us)
         
         nX = self.fwd.getXSize()
         plp = sparse.spdiags(np.exp(1j*self.pp),0,nX,nX)
