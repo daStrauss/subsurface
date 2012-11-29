@@ -20,6 +20,6 @@ def getMyVars(parseNumber, D):
     D['numProcs'] = 1
     D['maxIter'] = 100
     D['numSensors'] = 2010
-    D['rho'] = 1
+    D['rho'] = 0.1
     
     return D
