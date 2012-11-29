@@ -37,6 +37,7 @@ class problem(optimizer):
         self.objInt = list()
         self.pL = list()
         self.phaseList = list()
+        self.rlist = list()
         
         self.us = np.zeros(self.fwd.N,dtype='complex128')
         # just to make life easier:
@@ -101,6 +102,8 @@ class problem(optimizer):
         
         self.us = sol[:self.fwd.N]
         self.r = plp.T.conj()*sol[self.fwd.N:(self.fwd.N+nX)]
+        
+        self.rlist.append(self.r)
         
         self.rt = (self.r+self.rd).real
         self.rt = np.maximum(self.rt,0.0)
