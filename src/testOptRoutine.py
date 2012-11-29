@@ -18,7 +18,7 @@ def getMyVars(parseNumber, D):
     D['inc'] = np.array([75*np.pi/180])
     D['bkgNo'] =  100
     D['numProcs'] = 1
-    D['maxIter'] = 10
+    D['maxIter'] = 100
     D['numSensors'] = 2010
     D['rho'] = 1
     
