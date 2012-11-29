@@ -30,7 +30,7 @@ def getMyVars(parseNumber, D):
     D['numSensors'] = allfrq[noPhis[parseNumber]]
     
     D['bkgNo'] = bkg[parseNumber]+100;
-    D['inc'] = np.array([45.0*np.pi/180.0])
+    D['inc'] = np.array([75.0*np.pi/180.0])
     D['numProcs'] = len(D['freqs'])
     D['rho'] = 1e-3
     D['xi'] = 1e-12
