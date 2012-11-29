@@ -82,7 +82,7 @@ class problem(optimizer):
         ''' jointly update u,r '''
         sold = np.exp(1j*self.pp)
         snew = np.exp(1j*np.angle(self.fwd.x2u.T*(self.us+self.ub)))
-        pdiff = np.angle(snew/sold)*0.1
+        pdiff = np.angle(snew/sold)*self.xi
         self.pp = np.angle(sold*np.exp(1j*pdiff))
         self.phaseList.append(self.pp)
         self.pL.append(self.fwd.x2u.T*self.us)
