@@ -81,7 +81,7 @@ class problem(optimizer):
         ''' to run at each layer at each iteration '''
         ''' jointly update u,r '''
         
-        self.pp = np.angle(self.fwd.x2u.T*(self.us + self.ub))
+        self.pp = np.angle(self.fwd.x2u.T*(self.fwd.sol[1])) #  us + self.ub))
         self.phaseList.append(self.pp)
         self.pL.append(self.fwd.x2u.T*self.us)
         
@@ -135,7 +135,7 @@ class problem(optimizer):
              'rt':self.rt, 'rd':self.rd, 'zd':self.zd, 'zt':self.zt, \
              'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
              'obj':self.objInt, 'Ms':self.fwd.Ms, 'Md':self.fwd.Md,\
-             'phist':self.pL,'pp':self.pp, 'phl':self.phaseList}
+             'phist':self.pL,'pp':self.pp, 'phl':self.phaseList, 'rlist':self.rlist}
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
