@@ -93,7 +93,7 @@ class problem(optimizer):
         
         # + something with ub
         rr = self.rho*plp*(self.zt-self.zd) + self.rho*plp*(self.rt-self.rd) + \
-            self.upperBound*plp.T.conj()*self.fwd.x2u.T*(self.ub)
+            self.rho*self.upperBound*self.fwd.x2u.T*(self.ub)
         rl = np.zeros(self.fwd.N)
         
         rhh = np.concatenate((ru,rr,rl))
@@ -116,8 +116,10 @@ class problem(optimizer):
         self.zd = self.zd + self.r-self.upperBound*plp.conj()*self.fwd.x2u.T*(self.us+self.ub) - self.zt
         
         
+        gap = np.linalg.norm(self.r-self.upperBound*plp.conj()*self.fwd.x2u.T*(self.us+self.ub) - self.zt)
         obj = np.linalg.norm(self.uHat-self.fwd.Ms*self.us)
         self.objInt.append(obj)
+        self.gap.append(gap)
         return obj  
         
     
