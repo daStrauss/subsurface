@@ -36,7 +36,8 @@ class problem(optimizer):
         self.gap = list()
         self.objInt = list()
         self.pL = list()
-
+        self.phaseList = list()
+        
         self.us = np.zeros(self.fwd.N,dtype='complex128')
         # just to make life easier:
         self.ub = self.fwd.sol[0] # shouldn't need --> .flatten()
@@ -80,6 +81,8 @@ class problem(optimizer):
         ''' jointly update u,r '''
         
         self.pp = np.angle(self.fwd.x2u.T*(self.us + self.ub))
+        self.phaseList.append(self.pp)
+        
         nX = self.fwd.getXSize()
         plp = sparse.spdiags(np.exp(1j*self.pp),0,nX,nX)
         
@@ -128,7 +131,7 @@ class problem(optimizer):
              'rt':self.rt, 'rd':self.rd, 'zd':self.zd, 'zt':self.zt, \
              'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
              'obj':self.objInt, 'Ms':self.fwd.Ms, 'Md':self.fwd.Md,\
-             'phist':self.pL,'pp':self.pp}
+             'phist':self.pL,'pp':self.pp, 'phl':self.phaseList}
         
         spio.savemat(self.outDir + 'Data/contrastX' + repr(rank) + '_' + repr(ix), D)
         
