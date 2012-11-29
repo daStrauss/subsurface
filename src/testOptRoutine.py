@@ -23,7 +23,7 @@ def getMyVars(parseNumber, D):
 #    D['rho'] = 0.10
     if parseNumber == 0:
         D['freqs'] = np.array([1000, 3684, 13572, 50000])
-        D['inc'] = np.array([75*np.pi/180])
+        D['inc'] = np.array([45*np.pi/180])
         D['bkgNo'] =  100
         D['numProcs'] = 4
         D['maxIter'] = 200
@@ -32,7 +32,7 @@ def getMyVars(parseNumber, D):
         D['xi'] = 1e-12
     else:
         D['freqs'] = np.array([1000, 3684, 13572, 50000])
-        D['inc'] = np.array([75*np.pi/180])
+        D['inc'] = np.array([45*np.pi/180])
         D['bkgNo'] =  100
         D['numProcs'] = 4
         D['maxIter'] = 200
