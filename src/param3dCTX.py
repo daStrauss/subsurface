@@ -21,6 +21,7 @@ def getMyVars(parseNumber, D):
     D['reg'] = reg[parseNumber]
     D['rho'] = rhos[parseNumber]
     D['freqs'] = np.array(frq[parseNumber])
+    D['maxIters'] = 10
     
     return D 
 
