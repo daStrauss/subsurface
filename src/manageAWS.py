@@ -23,6 +23,7 @@ import time
 import sys
 import doFolders
 import math
+import importlib
 
 class jobParm(object):
     def __init__(self, name, folder):
@@ -100,7 +101,7 @@ def main():
         numWorkers = 1
         
     ''' import the management script '''
-    prSpec = __import__('expts.' + sys.argv[1])
+    prSpec = importlib.import_module('expts.' + sys.argv[1])
     finalIx = prSpec.D['numRuns']
     
     ''' creat a list of jobs to run '''
