@@ -15,7 +15,7 @@ import doFolders
 
 def main():
     ''' simple main routine '''
-    prSpec = __import__(sys.argv[1])
+    prSpec = __import__('expts.' + sys.argv[1])
 
     prSpec.D['outDir'] = doFolders.ensureFolders(prSpec.D, int(sys.argv[2]))
     

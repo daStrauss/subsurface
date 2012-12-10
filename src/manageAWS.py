@@ -100,7 +100,7 @@ def main():
         numWorkers = 1
         
     ''' import the management script '''
-    prSpec = __import__(sys.argv[1])
+    prSpec = __import__('expts.' + sys.argv[1])
     finalIx = prSpec.D['numRuns']
     
     ''' creat a list of jobs to run '''

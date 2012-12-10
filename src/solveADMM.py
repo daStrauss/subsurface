@@ -23,45 +23,11 @@ def delegator(solverType, flavor, freq, incAng):
     ''' A function that will allocate the problem instances according to the 'type' given 
     Since I don't mix solvers, it helps to keep the import load low
     '''
-    if solverType == 'contrastX':
-        import contrastADMM
-        S = map(contrastADMM.problem, freq, incAng, flavor)
-        
-    elif solverType == 'splitField':
-        import admm
-        S = map(admm.problem, freq, incAng, flavor)
-        
-    elif solverType == 'sba':
-        import sba
-        S = map(sba.problem, freq, incAng, flavor)
-        
-    elif solverType == 'biconvex':
-        import biconvex
-        S = map(biconvex.problem, freq, incAng, flavor)
-        
-    elif solverType == 'contrastSoftX':
-        import contrastSoftX
-        S = map(contrastSoftX.problem, freq, incAng, flavor)
-        
-    elif solverType == 'projection':
-        import projection
-        S = map(projection.problem, freq, incAng, flavor)
     
-    elif solverType == 'middleMan':
-        import middleMan
-        S = map(middleMan.problem, freq, incAng, flavor)
-        
-    elif solverType == 'phaseSplit':
-        import phaseSplit
-        S = map(phaseSplit.problem, freq, incAng, flavor)
+    ''' change to use a more direct importing method '''
     
-    elif solverType == 'ctxdev':
-        import ctxdev
-        S = map(ctxdev.problem, freq, incAng, flavor)
-        
-    elif solverType == 'phaseSplitSingle':
-        import phaseSplitSingle
-        S = map(phaseSplitSingle.problem, freq, incAng, flavor)
+    optm = __import__('slvr.' + solverType)
+    S = map(optm.problem, freq,incAng,flavor)
     
     return S
     
