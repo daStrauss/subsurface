@@ -83,7 +83,7 @@ def main():
     else:
         numWorkers = 1
     # import my runtime iteration control script
-    prSpec = __import__(sys.argv[1])
+    prSpec = __import__('expts.' + sys.argv[1])
     finalIx = prSpec.D['numRuns']
     
     # queue of indexes still to run
