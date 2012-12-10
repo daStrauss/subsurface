@@ -18,7 +18,7 @@ D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':1100, 'expt':'standard',
 
 def getMyVars(parseNumber, D):
     '''routine to return the parameters to test at the current iteration.'''
-    D['bkgNo'] = parseNumber + 100
+    D['bkgNo'] = parseNumber
 #    D['rho'] = 0.5e-3
 #    D['xi'] = 1e-12
 #    D['numProcs'] = 16
