@@ -1,3 +1,0 @@
-#!/bin/bash
-
-mpiexec -npernode 1 python /home/sgeadmin/subsurface/src/coordinate.py contrastX 1
