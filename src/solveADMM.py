@@ -10,6 +10,7 @@ import numpy as np
 import scipy.io as spio
 import time
 import solverDefaults
+import importlib
 # import os
 # import sys
 
@@ -26,7 +27,7 @@ def delegator(solverType, flavor, freq, incAng):
     
     ''' change to use a more direct importing method '''
     
-    optm = __import__('slvr.' + solverType)
+    optm = importlib.import_module('slvr.' + solverType)
     S = map(optm.problem, freq,incAng,flavor)
     
     return S
