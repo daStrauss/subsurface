@@ -10,12 +10,13 @@ Putting together a script to just simply loop through all of these materials and
 import solveADMM
 import sys
 import doFolders
+import importlib
 
 # trialNs = 100
 
 def main():
     ''' simple main routine '''
-    prSpec = __import__('expts.' + sys.argv[1])
+    prSpec = importlib.import_module('expts.' + sys.argv[1])
 
     prSpec.D['outDir'] = doFolders.ensureFolders(prSpec.D, int(sys.argv[2]))
     

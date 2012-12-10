@@ -10,6 +10,7 @@ import time
 import sys
 import doFolders
 import math
+import importlib
     
 def waitForExit(jobName):
     ''' Routine to check and see if a particular job is still running, if not, return.
@@ -83,7 +84,7 @@ def main():
     else:
         numWorkers = 1
     # import my runtime iteration control script
-    prSpec = __import__('expts.' + sys.argv[1])
+    prSpec = importlib.import_module('expts.' + sys.argv[1])
     finalIx = prSpec.D['numRuns']
     
     # queue of indexes still to run
