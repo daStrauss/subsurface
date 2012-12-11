@@ -145,6 +145,11 @@ def semiParallel(solverType, flavor, **kwargs):
 
     for F in S:
         uHat = F.fwd.Ms*(F.fwd.sol[1].flatten())
+        
+        noi = np.random.randn(F.fwd.nSen) + 1j*np.random.randn(F.fwd.nSen)
+        noi = D['relNoi']*(np.linalg.norm(uHat)/np.linalg.norm(noi))*noi
+        
+        uHat = uHat + noi
         ti = time.time()
         F.initOpt(uHat,D)
         fout.write('initialize time ' + repr(time.time()-ti) + '\n')
