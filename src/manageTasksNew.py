@@ -108,16 +108,16 @@ def main():
             lclD = prSpec.getMyVars(ix, prSpec.D)
             nProcs = lclD['numProcs']
             # nNodes = int(math.ceil(nProcs/8.0))
-            nProcs = 6
+            # nProcs = 6
             
             if nProcs > 0:
                 jobTitle = 'run' + sys.argv[1] + repr(ix)
                 fileName = 'sub' + sys.argv[1] + repr(ix) + '.pbs'
         
                 fid = open(fileName, 'w')
-                fid.write('mpiexec -npernode ' + repr(1) + ' --mca btl_tcp_if_include "p3p2" -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
+                fid.write('mpiexec -n ' + repr(nProcs) + ' --mca btl_tcp_if_include "p3p2" -wdir /shared/users/dstrauss/subsurface/src python coordinate.py ' + sys.argv[1] + ' ' + repr(ix))
                 fid.close()
-                cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=20:00:00', '-l','nodes=1:ppn=' + repr(nProcs), '-l', 'nice=0', '-q','batchnew', fileName]        
+                cmd = ['qsub', '-N', jobTitle, '-l' , 'walltime=20:00:00', '-l','nodes=' + repr(nProcs), '-l', 'nice=0', '-q','batchnew', fileName]        
                 print cmd
             
                 jobList.append(submitJob(cmd))
