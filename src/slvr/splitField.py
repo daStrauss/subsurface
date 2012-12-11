@@ -164,7 +164,8 @@ class problem(optimizer):
     def aggregatorSemiParallel(self,S,comm):
         ''' Do the aggregation step in parallel whoop! '''
         N = np.size(S)
-        n = S[0].fwd.nRx*S[0].fwd.nRy
+        n = self.fwd.getPSize()
+        # S[0].fwd.nRx*S[0].fwd.nRy
         
         QL = sparse.lil_matrix( (n,n), dtype='complex128' )
         bL = np.zeros(n, dtype='complex128')
