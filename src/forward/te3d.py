@@ -191,6 +191,7 @@ class solver(fwd):
         
         ''' smush together in block diagonal format '''
         self.Ms = sparse.block_diag((Mx,My,Mz),'csr')
+        self.nSen = 3*self.nSen
         
     def setCTRX(self):
         ''' create some operators to map back and forth between the x space and the u '''
