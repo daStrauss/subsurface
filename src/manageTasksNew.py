@@ -88,7 +88,7 @@ def main():
     
 
     # import my runtime iteration control script
-    prSpec = importlib.import_module(sys.argv[1])
+    prSpec = importlib.import_module('expts.' + sys.argv[1])
     finalIx = prSpec.D['numRuns']
     
     # queue of indexes still to run
