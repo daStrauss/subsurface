@@ -95,11 +95,35 @@ class problem(optimizer):
         us = self.fwd.parseFields(self.us)
         v = self.fwd.parseFields(self.v)
         
-        D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgm[0], 'ub':ub[0], \
-             'us':us[0], 'uTrue':ut[0], \
-             'v':v[0], 'rho':self.rho, 'xi':self.xi, 'obj':self.obj,\
-             'flavor':self.fwd.flavor}
+        if (self.fwd.flavor == 'TE' ) | (self.fwd.flavor == 'TM'):
+            D = {'f':self.fwd.f, 'angle':self.fwd.incAng, 'sigMat':sgm[0], 'ub':ub[0], \
+                 'us':us[0], 'uTrue':ut[0], \
+                 'v':v[0], 'rho':self.rho, 'xi':self.xi, 'obj':self.obj,\
+                 'flavor':self.fwd.flavor}
     
+        elif (self.fwd.flavor == 'TE3D'):
+            print 'writing out TE3d data'
+            
+            print 'ms shape ' + repr(self.fwd.Ms.shape)
+            print 'sumd shape ' + repr(self.fwd.Ms.sum(0).shape)
+            
+#            sns = self.fwd.parseFields(self.fwd.Ms.sum(0).A.flatten())
+#            ppp = self.fwd.parseFields(self.fwd.Md.sum(0).A.flatten())
+            
+            D = {'f':self.fwd.f, 'angle':self.fwd.incAng, \
+                 'uhat':self.uHat, 'ums':self.fwd.Ms*self.us,\
+                 'allsgm':self.fwd.sigmap[1],\
+                 'sigMatX':sgm[0], 'sigMatY':sgm[1], 'sigMatZ': sgm[2],\
+                 'ubX':ub[0], 'ubY':ub[1], 'ubZ':ub[2], \
+                 'usX':us[0], 'usY':us[1], 'usZ':us[2], \
+                 'uTrueX':ut[0], 'uTrueY':ut[1], 'uTrueZ':ut[2], \
+                 }
+            ''''MsX':sns[0], 'MsY':sns[1], 'MsZ':sns[2],\
+                 'MdX':ppp[0], 'MdY':ppp[1], 'MdZ':ppp[2],\
+                 'X':self.X, 'obj':self.obj, 'flavor':self.fwd.flavor, 'gap':self.gap, \
+                 'obj':self.objInt, 'Ms':self.fwd.Ms, 'phist':self.pL,'Md':self.fwd.Md, 'x2u':self.fwd.x2u
+                 '''
+        
         spio.savemat(self.outDir + 'Data/splitField' + repr(rank) + '_' + repr(ix), D)
         
   
