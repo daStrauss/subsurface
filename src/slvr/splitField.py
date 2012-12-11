@@ -13,6 +13,7 @@ import scipy.sparse.linalg as lin
 from mpi4py import MPI
 import scipy.io as spio
 from optimize import optimizer
+import time
 
 class problem(optimizer):
     '''A function for implementing the field splitting methods'''
@@ -42,10 +43,15 @@ class problem(optimizer):
         self.Q = sparse.vstack([self.A, -self.xi*sparse.eye(self.fwd.N,self.fwd.N)])
         self.Moo = self.rho*(self.Q.conj().T*self.Q) + self.fwd.Ms.T*self.fwd.Ms
         
+        tml = time.time()
         self.M = lin.factorized(self.Moo.tocsc())
+        print 'factorization time (AtA + xiI) ' + repr(time.time()-tml)
+        
+        ''' in expansion to the 3d/TM, will need these operators...'''
+        self.fwd.setCTRX()
 
     def runOpt(self, P):
-        ''' method to run in each interation of the ADMM routine - super parallel '''
+        ''' method to run in each interaction of the ADMM routine - super parallel '''
         
         #update dual variables
         self.F = self.F + (self.A*self.us + self.s*(self.fwd.Md.T*P)*(self.ub+self.v))
@@ -170,6 +176,8 @@ class problem(optimizer):
             # looking at this it is seeking to do min || Av + s(v+ub)Md*theta + F ||
             D = sparse.spdiags(L.s*(L.ub+L.v),0, self.fwd.N,self.fwd.N)
             g = D*L.fwd.Md.T
+            print 'size of F ' + repr(L.F.shape)
+            print 'size of Aus ' + repr((L.A*L.us).shape)
             bL += g.T.conj()*((L.A*L.us) + L.F)
             QL += g.T.conj()*g
 
