@@ -26,7 +26,7 @@ def getMyVars(parseNumber, D):
     if parseNumber == 0:
         D['maxIter'] = 1
     elif parseNumber == 1:
-        D['maxIter'] = 2
+        D['maxIter'] = 200
     elif parseNumber == 2:
         D['maxIter'] = 10
     elif parseNumber == 3:
