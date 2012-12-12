@@ -201,9 +201,9 @@ class problem(optimizer):
             # looking at this it is seeking to do min || Av + s(v+ub)Md*theta + F ||
             D = sparse.spdiags(L.s*(L.ub+L.v),0, self.fwd.N,self.fwd.N)
             g = D*L.fwd.Md.T
-            print 'size of F ' + repr(L.F.shape)
-            print 'size of Aus ' + repr((L.A*L.us).shape)
-            print 'size of g ' + repr(g.shape)
+#            print 'size of F ' + repr(L.F.shape)
+#            print 'size of Aus ' + repr((L.A*L.us).shape)
+#            print 'size of g ' + repr(g.shape)
             bL += g.T.conj()*((L.A*L.us) + L.F)
             QL += g.T.conj()*g
 
