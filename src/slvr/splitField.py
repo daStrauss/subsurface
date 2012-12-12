@@ -14,6 +14,7 @@ from mpi4py import MPI
 import scipy.io as spio
 from optimize import optimizer
 import time
+import superSolve.wrapCvxopt as cvxopt
 
 class problem(optimizer):
     '''A function for implementing the field splitting methods'''
@@ -44,7 +45,8 @@ class problem(optimizer):
         self.Moo = self.rho*(self.Q.conj().T*self.Q) + self.fwd.Ms.T*self.fwd.Ms
         
         tml = time.time()
-        self.M = lin.factorized(self.Moo.tocsc())
+        self.M = cvxopt.staticSolver(self.Moo.tocsc())
+#        self.M = lin.factorized(self.Moo.tocsc())
         print 'factorization time (AtA + xiI) ' + repr(time.time()-tml)
         
         ''' in expansion to the 3d/TM, will need these operators...'''
