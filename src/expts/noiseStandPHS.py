@@ -5,7 +5,7 @@ Created on Dec 10, 2012
 '''
 import numpy as np
 
-D = {'solverType':'phaseSplit', 'flavor':'TE', 'numRuns':100, 'expt':'bringDa', 'numProcs':4}
+D = {'solverType':'phaseSplit', 'flavor':'TE', 'numRuns':1000, 'expt':'bringDa', 'numProcs':4}
 
 
 def getMyVars(parseNumber, D):
