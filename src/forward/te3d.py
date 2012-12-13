@@ -9,6 +9,8 @@ import numpy as np
 from scipy import sparse
 import sparseTools as spt
 from scipy import io as spio
+import superSolve.wrapCvxopt as cvxopt
+import time
 
 def speye(n):
     return sparse.eye(n,n)
@@ -547,6 +549,18 @@ class solver(fwd):
     def getS(self):
         ''' return the coefficient necessary in the Md*P part to make things work '''
         return self.w*self.muo*1j
+    
+    def fwd_solve(self, ind):
+        '''Does the clean solve for the given index. The factorization is not cached
+        Over ride the basic model so that I can use Cvxopt exclusively for 3d.''' 
+             
+        strm = time.time()
+        self.gogo[ind] = cvxopt.staticSolver(sparse.csc_matrix(self.nabla2+self.getk(ind)) )
+        print 'factor time = ' + repr(time.time()-strm)
+        # self.gogo[ind] = superSolve.wrapCvxopt.staticSolver(self.nabla2+self.getk(ind))
+        strm = time.time()
+        self.sol[ind] = self.gogo[ind](self.rhs.flatten())
+        print 'sol time ' + repr(ind) + ' time = ' + repr(time.time()-strm)
     
 def te_ezf(X,Y,Z,xi,kinc,ktx,rTE,tTE,kFS,kHS):
     m,n,p = X.shape

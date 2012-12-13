@@ -65,11 +65,13 @@ def smallProj(S,D):
     return S,pTrue 
 
 def feas3dProj(S,D):
-    '''build for a small project, ie 99x99 '''
+    '''build for a small project, ie 41x41x41 '''
     # pTrue = np.ones((14,7,14))*0.01
-    pTrue = np.ones((7,3,7))*0.005
+    # pTrue = np.ones((7,3,7))*0.005
     # pTrue[:3,:,:] = 0.02
-    pTrue = pTrue.flatten()
+    # pTrue = pTrue.flatten()
+    trm = spio.loadmat('mats/t3dMat' + repr(D['bkgNo']+1) + '.mat')
+    pTrue = trm['scrt'].flatten()
     
     for F in S:
         F.fwd.init3Dfeas(pTrue,D['bkgSig'])
