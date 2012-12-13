@@ -76,7 +76,7 @@ class fwd(object):
         #self.setMd([7,14], [6,9],[7,14])
         
         ''' for 41,41,41 '''
-        self.setMD([12,30], [12,19], [12,30])
+        self.setMd([12,30], [12,19], [12,30])
         
         
         self.sigmap[1] += self.Md.T*p # don't worry about specific shapes. 
