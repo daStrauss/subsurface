@@ -37,7 +37,7 @@ def test(ica):
     # fwd.pointSource(10,10,10)
 #        self.planeWave()
     fwd.planeWave()
-    fwd.fwd_solve(0)
+#    fwd.fwd_solve(0)
     
     A = fwd.nabla2+fwd.getk(0)
     sol = wrapCvxopt.linsolve(A, fwd.rhs)
