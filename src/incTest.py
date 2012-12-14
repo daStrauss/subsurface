@@ -21,8 +21,8 @@ def test(ica):
     bkgSig=0.005
     numSensors=4
     
-    fwd.setspace(21,21,21,5.0,5.0,5.0)
-    fwd.setmats(1,bkgSig,21/2)
+    fwd.setspace(41,41,41,5.0,5.0,5.0)
+    fwd.setmats(1,bkgSig,41/2)
     fwd.setOperators()
     fwd.makeGradOper()
     
@@ -37,7 +37,7 @@ def test(ica):
     # fwd.pointSource(10,10,10)
 #        self.planeWave()
     fwd.planeWave()
-    fwd.fwd_solve(0)
+    #    fwd.fwd_solve(0)
     
     A = fwd.nabla2+fwd.getk(0)
     sol = wrapCvxopt.linsolve(A, fwd.rhs)
