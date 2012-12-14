@@ -70,7 +70,7 @@ class fwd(object):
         self.makeGradOper()
         self.setMs(numSensors)
         ''' for 31,31,31 -- use '''
-        self.setMd([9,23], [8,15], [9,22])
+        self.setMd([9,23], [8,15], [9,23])
         # self.sigmap[1] += self.Md.T*np.ones(1372)*0.01 # don't worry about specific shapes. 
         ''' for 21, 21,21 -- use '''
         #self.setMd([7,14], [6,9],[7,14])
