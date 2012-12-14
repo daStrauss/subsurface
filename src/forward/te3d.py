@@ -555,11 +555,14 @@ class solver(fwd):
         Over ride the basic model so that I can use Cvxopt exclusively for 3d.''' 
              
         strm = time.time()
-        self.gogo[ind] = cvxopt.staticSolver(sparse.csc_matrix(self.nabla2+self.getk(ind)) )
-        print 'factor time = ' + repr(time.time()-strm)
-        # self.gogo[ind] = superSolve.wrapCvxopt.staticSolver(self.nabla2+self.getk(ind))
-        strm = time.time()
-        self.sol[ind] = self.gogo[ind](self.rhs.flatten())
+        self.sol[ind] = cvxopt.linsolve(sparse.csc_matrix(self.nabla2+self.getk(ind)), self.rhs.flatten())
+#        
+#        
+#        self.gogo[ind] = cvxopt.staticSolver(sparse.csc_matrix(self.nabla2+self.getk(ind)) )
+#        print 'factor time = ' + repr(time.time()-strm)
+#        # self.gogo[ind] = superSolve.wrapCvxopt.staticSolver(self.nabla2+self.getk(ind))
+#        strm = time.time()
+#        self.sol[ind] = self.gogo[ind](self.rhs.flatten())
         print 'sol time ' + repr(ind) + ' time = ' + repr(time.time()-strm)
     
 def te_ezf(X,Y,Z,xi,kinc,ktx,rTE,tTE,kFS,kHS):
