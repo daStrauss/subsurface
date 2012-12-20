@@ -12,7 +12,7 @@ import numpy as np
 # numRuns = F['goTo'].shape[0]
 
 
-D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':3600, 'expt':'incConds', 'numProcs':16}
+D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':1453, 'expt':'incConds', 'numProcs':16}
 
 
 def getMyVars(parseNumber, D):
