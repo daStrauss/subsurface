@@ -5,7 +5,7 @@ Created on Jan 3, 2013
 '''
 
 import numpy as np
-D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':100, 'expt':'noSense', 'numProcs':16}
+D = {'solverType':'contrastX', 'flavor':'TE', 'numRuns':100, 'expt':'goBig', 'numProcs':16}
 
 
 
