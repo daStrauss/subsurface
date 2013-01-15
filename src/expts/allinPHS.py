@@ -21,6 +21,10 @@ def getMyVars(parseNumber, D):
     D['numSensors'] = 20
     D['bkgNo'] = parseNumber+100;
     D['numProcs'] = 100
+    D['rho'] = 1e-3
+    D['xi'] = 1e-12
+
+    
             
         
     return D
