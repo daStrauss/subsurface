@@ -5,7 +5,7 @@ Created on Dec 10, 2012
 '''
 import numpy as np
 
-D = {'solverType':'phaseSplit', 'flavor':'TE', 'numRuns':1000, 'expt':'bringDa', 'numProcs':4}
+D = {'solverType':'phaseSplit', 'flavor':'TE', 'numRuns':1000, 'expt':'bringDa', 'numProcs':16}
 
 
 def getMyVars(parseNumber, D):
@@ -19,6 +19,7 @@ def getMyVars(parseNumber, D):
 
     D['relNoi'] = snr[parseNumber]        
     D['bkgNo'] = bkg[parseNumber]+100
+    D['freqs'] = np.round(np.logspace(np.log10(1000), np.log10(50000), 16))
     
     D['inc'] = np.array([75.0*np.pi/180.0])
     D['numProcs'] = 4
