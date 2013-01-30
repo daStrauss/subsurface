@@ -22,7 +22,7 @@ def getMyVars(parseNumber, D):
     D['freqs'] = np.round(np.logspace(np.log10(1000), np.log10(50000), 16))
     
     D['inc'] = np.array([75.0*np.pi/180.0])
-    D['numProcs'] = 4
+    D['numProcs'] = 16
     D['rho'] = 1e-3
     D['xi'] = 1e-12
 
