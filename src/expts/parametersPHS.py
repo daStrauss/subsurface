@@ -12,7 +12,7 @@ D = {'solverType':'phaseSplit', 'flavor':'TE', 'numRuns':800, 'expt':'paramPHS',
 
 def getMyVars(parseNumber, D):
     '''routine to return the parameters to test at the current iteration.'''
-    rhos, xis, bkgLocal = np.meshgrid(np.logspace(-4,4,10), np.linspace(-13,-5,10), range(8))
+    rhos, xis, bkgLocal = np.meshgrid(np.logspace(-4,4,10), np.logspace(-13,-5,10), range(8))
     rhos = rhos.flatten()
     xis = xis.flatten()
     bkgLocal = bkgLocal.flatten()
