@@ -6,14 +6,14 @@ Created on Dec 10, 2012
 
 import numpy as np
 
-D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':1000, 'expt':'bringDa', 'numProcs':16}
+D = {'solverType':'splitField', 'flavor':'TE', 'numRuns':2000, 'expt':'bringDa', 'numProcs':16}
 
 
 def getMyVars(parseNumber, D):
     '''routine to return the parameters to test at the current iteration.'''
     # noFreqs,noPhis,bkg = np.meshgrid(range(1,7), range(1,7), range(100))
     
-    snr,bkg = np.meshgrid(np.logspace(-5,0,20),range(50))
+    snr,bkg = np.meshgrid(np.logspace(-5,0,20),range(1000))
         
     snr = snr.flatten()
     bkg = bkg.flatten()                 
