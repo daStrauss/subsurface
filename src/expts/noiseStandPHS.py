@@ -23,8 +23,12 @@ def getMyVars(parseNumber, D):
     
     D['inc'] = np.array([75.0*np.pi/180.0])
     D['numProcs'] = 16
-    D['rho'] = 1e-3
-    D['xi'] = 1e-12
+    
+    D['rho'] = 7.7e-4
+    D['xi'] = 6.0e-12
+    
+#    D['rho'] = 1e-3
+#    D['xi'] = 1e-12
 
     
         
