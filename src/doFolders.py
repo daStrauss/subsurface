@@ -10,7 +10,7 @@ import os
 def ensureFolders(D,ix):
     ''' here's where the folder making mechanism goes! '''
     
-    outDir = D['expt']
+    outDir = '/shared/users/dstrauss/emData/' + D['expt']
     if not os.path.exists(outDir):
         os.mkdir(outDir)
     
