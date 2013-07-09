@@ -1,9 +1,26 @@
 '''
 Created on Jun 6, 2012
+Copyright © 2013
+The Board of Trustees of The Leland Stanford Junior University.
+All Rights Reserved
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 @author: dstrauss
 
 Putting together a script to just simply loop through all of these materials and run on the cluster.
+Actually, there is no looping. Really, this script is just a wrapper that imports the proper
+functions for specifying simulation parameters and calls solveADMM.semiParallel with the
+appropriate arguments.
+
 '''
 
 
@@ -25,49 +42,6 @@ def main():
     gogo['ix'] = int(sys.argv[2])    
     solveADMM.semiParallel(**gogo)
     
-#            
-#        
-#    
-#    
-#    
-#    if len(sys.argv) == 1:
-#        print 'I think you meant to specify one of the following:'
-#        print 'splitField'
-#        print 'contrastX'
-#        print 'sba'
-#        
-#    elif sys.argv[1] == 'splitField':
-#        ix = int(sys.argv[2])
-#        outDir = 'splitField/' + sys.argv[3] + '/trial' + repr(ix) + '/'
-#        if sys.argv[3] == 'TE':
-#            # did a parameter search just as I've done for the TM, found some 'new' numbers.
-#            solveADMM.semiParallel('splitField', sys.argv[3], rho=138, xi =1e-3, \
-#                               uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
-##            solveADMM.semiParallel('splitField', sys.argv[3], rho=1500, xi =2e-3, \
-##                               uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
-#        elif sys.argv[3] == 'TM':
-#            solveADMM.semiParallel('splitField', sys.argv[3], rho=0.019307, xi =1.3895e-3, \
-#                               uBound = 0.05, lmb = 1e-8, bkgNo = (ix+1), outDir=outDir)
-#            
-#    elif sys.argv[1] == 'contrastX':
-#        ix = int(sys.argv[2])
-#        outDir = 'contrastX/trial' + repr(ix)  + '/'
-#        
-#        solveADMM.semiParallel('contrastX', sys.argv[3], rho=1e-3, xi=2e-3, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir = outDir)
-#
-#    elif sys.argv[1] == 'sba':
-#        ix = int(sys.argv[2])
-#        outDir = 'sba/trial'+repr(ix) + '/'
-#        solveADMM.semiParallel('sba', sys.argv[3], rho=0.005, xi=0.9, uBound=0.05, lmb=0, bkgNo=(ix+1), outDir=outDir)
-#        
-#    elif sys.argv[1] == 'biconvex':
-#        ix = int(sys.argv[2])
-#        outDir = sys.argv[1] + '/' + sys.argv[3] + '/trial' + repr(ix) + '/'
-##        outDir = 'biconvex/trial' + repr(ix) + '/'
-#        solveADMM.semiParallel('biconvex', sys.argv[3], rho=0.001, xi=1e-5, lmb=0, uBound=0.05,bkgNo=(ix+1), outDir=outDir)
-#        
-#    else: 
-#        print 'I think you asked for the wrong thing:'
- 
+
 if __name__ == "__main__":
     main()
